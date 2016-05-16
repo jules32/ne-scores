@@ -1,0 +1,103 @@
+---
+title: 'OHI-Northeast: Tourism and Recreation'
+author: "*Compiled on `r date()` by `r Sys.info()['user']`*"
+output: 
+  html_document:
+    code_folding: show
+    toc: true
+    toc_depth: 3
+    toc_float: yes
+    number_sections: true
+    theme: cerulean
+    highlight: haddock
+    includes: 
+      in_header: '~/github/ohi-northeast/src/templates/ohi_hdr.html'
+  pdf_document:
+    toc: true
+---
+
+#Setup
+``` {r setup, echo = FALSE, message = FALSE, warning = FALSE}
+knitr::opts_chunk$set(fig.width = 6, fig.height = 4, fig.path = 'Figs/',
+                      echo = FALSE, message = FALSE, warning = FALSE)
+
+library(zoo)
+library(rgdal)
+library(raster)
+library(DT)
+
+dir_git <- '~/github/ohi-northeast'
+dir_rgn <- file.path(dir_git, 'prep/regions')  ### github: general buffer region shapefiles
+dir_anx <- file.path(dir_M, 'git-annex/neprep')
+
+source(file.path(dir_git, 'src/R/common.R'))  ### an OHIBC specific version of common.R
+
+
+### set up proj4string options: BC Albers and WGS84
+p4s_wgs84 <- '+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0'
+p4s_nealb <- '+proj=aea +lat_1=29.5 +lat_2=45.5 +lat_0=23 +lon_0=-96 +x_0=0 +y_0=0 +ellps=clrk66 +units=m +no_defs'
+
+```
+
+#Summary
+[general description: What data are being generated? Why (what project, etc.)? Upstream/downstream processing information that might be helpful?  Other information?]
+
+***
+
+
+
+#Data Source [NOTE: can be copied from README.md in rawdata file]
+**Reference**: [citation for source data; website, literature, contact information. Version of data (if relevant). Screenshots if a series of menus had to be navigated to obtain the data.]
+
+**Downloaded**: [date downloaded or received]
+
+**Description**:  [e.g., surface aragonite state]
+
+**Native data resolution**: [e.g., 1 degree, 30 m, etc.]   
+
+**Time range**: [e.g., 1880-1899, monthly data provided for each year] 
+
+**Format**:  [e.g. NetCDF]
+
+***
+  
+  
+  
+#Methods
+
+```{r read in data}
+
+#read in raw data and filter for Sector == Tourism & Recreation
+raw <- read.csv(file.path(dir_anx,"_raw_data/NOEP/NewEngland_sectors_counties.csv"),stringsAsFactors=F)%>%
+        filter(Sector=='Tourism & Recreation')%>%
+      arrange(State,County)%>%
+        mutate(year = rep(2013:2005,27),
+               Employment = as.numeric(gsub(",","",.$Employment)),
+               Establishments = as.numeric(gsub(",","",.$Establishments)))
+
+```
+
+Calculate the number of jobs over time
+
+```{r jobs}
+
+jobs <- raw%>%
+          group_by(State, year)%>%
+          summarise(jobs = sum(Employment,na.rm=T))%>%
+          ungroup()%>%
+          as.data.frame()%>%
+          mutate(roll_avg = rollapply(jobs, 5,FUN=mean,align = 'right',partial=T),
+                 score = jobs/roll_avg)
+
+```
+
+
+***
+
+#Citation information  
+
+National Ocean Economics Program. Ocean Economic Data by Sector & Industry., ONLINE. 2012.
+Available: http://www.OceanEconomics.org/Market/oceanEcon.asp [29 Apr. 2016]
+
+``` {r child = file.path(dir_git, 'src/templates/ohibc_prov_ftr.Rmd')}
+
