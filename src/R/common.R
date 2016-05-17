@@ -21,6 +21,9 @@ if (length(setdiff(packages, rownames(installed.packages()))) > 0) {
   install.packages(setdiff(packages, rownames(installed.packages())))
 }
 
+#round everything to 2 decimal places
+options(digits=2)
+
 library(dplyr)
 library(tidyr)
 library(stringr)
@@ -30,7 +33,7 @@ rm(packages)
 
 ### generic theme for all plots
 ggtheme_basic <- theme(axis.ticks = element_blank(),
-                       text = element_text(family = 'Helvetica', color = 'gray30', size = 8),
+                       text = element_text(family = 'Helvetica', color = 'gray30', size = 12),
                        plot.title = element_text(size = rel(1.25), hjust = 0, face = 'bold'),
                        legend.position = 'right')
 
