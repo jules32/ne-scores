@@ -3,7 +3,6 @@ title: 'OHI-Northeast: Tourism and Recreation'
 author: "*Compiled on `r date()` by `r Sys.info()['user']`*"
 output: 
   html_document:
-    code_folding: show
     toc: true
     toc_depth: 3
     toc_float: yes
@@ -16,10 +15,11 @@ output:
     toc: true
 ---
 
-#Setup
-``` {r setup, echo = FALSE, message = FALSE, warning = FALSE}
-knitr::opts_chunk$set(fig.width = 6, fig.height = 4, fig.path = 'Figs/',
-                      echo = FALSE, message = FALSE, warning = FALSE)
+``` {r setup, echo=F, message = FALSE, warning = FALSE}
+knitr::opts_chunk$set(fig.width = 8, fig.height = 6, fig.path = 'Figs/', message = FALSE, warning = FALSE, echo=F)
+dir_git <- '~/github/ohi-northeast'
+dir_rgn <- file.path(dir_git, 'prep/regions')  ### github: general buffer region shapefiles
+source(file.path(dir_git, 'src/R/common.R'))  ### an OHIBC specific version of common.R
 
 library(zoo)
 library(rgdal)
@@ -30,9 +30,6 @@ dir_git <- '~/github/ohi-northeast'
 dir_rgn <- file.path(dir_git, 'prep/regions')  ### github: general buffer region shapefiles
 dir_anx <- file.path(dir_M, 'git-annex/neprep')
 
-source(file.path(dir_git, 'src/R/common.R'))  ### an OHIBC specific version of common.R
-
-
 ### set up proj4string options: BC Albers and WGS84
 p4s_wgs84 <- '+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0'
 p4s_nealb <- '+proj=aea +lat_1=29.5 +lat_2=45.5 +lat_0=23 +lon_0=-96 +x_0=0 +y_0=0 +ellps=clrk66 +units=m +no_defs'
@@ -40,54 +37,134 @@ p4s_nealb <- '+proj=aea +lat_1=29.5 +lat_2=45.5 +lat_0=23 +lon_0=-96 +x_0=0 +y_0
 ```
 
 #Summary
-[general description: What data are being generated? Why (what project, etc.)? Upstream/downstream processing information that might be helpful?  Other information?]
+
+The Tourism & Recreation goal is calculated using coastal employment data from the [National Ocean Economics Program](http://www.oceaneconomics.org/), and State-wide employment from the [Bureau of Labor Statistics](http://www.bls.gov/data/).
 
 ***
 
+#Data Sources
+
+##National ocean Economics Program (NOEP)
+
+**Downloaded**: Received from Pat Johston on May 17, 2016.  
+**Description**:  Total number of jobs per sector for RI, ME, MA, CT and NH counties from 2005 to 2013. The data also include number of establishments, GDP and Wages for each sector - state - year.  
+**Native data resolution**: County level   
+**Time range**: 2005 - 2013  
+**Format**:  Tabular  
 
 
-#Data Source [NOTE: can be copied from README.md in rawdata file]
-**Reference**: [citation for source data; website, literature, contact information. Version of data (if relevant). Screenshots if a series of menus had to be navigated to obtain the data.]
-
-**Downloaded**: [date downloaded or received]
-
-**Description**:  [e.g., surface aragonite state]
-
-**Native data resolution**: [e.g., 1 degree, 30 m, etc.]   
-
-**Time range**: [e.g., 1880-1899, monthly data provided for each year] 
-
-**Format**:  [e.g. NetCDF]
-
-***
-  
-  
-  
-#Methods
-
-```{r read in data}
+```{r coastal data}
 
 #read in raw data and filter for Sector == Tourism & Recreation
-raw <- read.csv(file.path(dir_anx,"_raw_data/NOEP/NewEngland_sectors_counties.csv"),stringsAsFactors=F)%>%
+raw <- read.csv(file.path(dir_anx,"_raw_data/NOEP/NewEngland_sectors_counties-2.csv"),
+                stringsAsFactors=F)%>%
         filter(Sector=='Tourism & Recreation')%>%
-      arrange(State,County)%>%
-        mutate(year = rep(2013:2005,27),
-               Employment = as.numeric(gsub(",","",.$Employment)),
+        mutate(Employment = as.numeric(gsub(",","",.$Employment)),
                Establishments = as.numeric(gsub(",","",.$Establishments)))
+
+DT::datatable(raw, rownames=F, caption = 'Employment in the Tourism & Recreation sector of Coastal Jobs in New England provided by NOEP')
+```
+
+
+
+##US Bureau of Labor Statistics
+
+**Downloaded**: May 17, 2016  
+**Description**: Total Annual Employment (in thousands) per State from 1990 to 2015  
+**Native data resolution**: State level  
+**Time Range:** 1990 to 2015  
+**Format:** Tabular  
+
+
+```{r state data}
+#read in state-wide employment. This data was made by hand from a manual query on the BLS.gov site: http://data.bls.gov/pdq/SurveyOutputServlet. 
+# this should be replaced with code using the blsAPI R package. Currently waiting on a response from the maintainer: https://github.com/mikeasilva/blsAPI/issues/7
+
+#employment is in thousands so we need to multiply
+st_emp <- read.csv('state_employment.csv')%>%
+          mutate(Employment = 1000*Employment)
+
+DT::datatable(st_emp, caption = 'Total Employment by State, provided by the Bureau of Labor Statistics',rownames=FALSE)
+
 
 ```
 
-Calculate the number of jobs over time
+***
+
+#Methods
+
+The Tourism and Recreation score, $X_{i}$, is calculated using the following equation; 
+
+$$X_{i} = \frac{\frac{C_{i}}{C_{r}}}{\frac{T_{i}}{T_{r}}}$$
+
+where $C_{i}$ is the number of coastal jobs in year *i*, $C_{r}$ is the mean number of coastal jobs over the previous 5 years, ${T_{i}}$ is the total number of jobs statewide for year *i* and ${T_{r}}$ is the mean number of jobs statewide over the previous 5 years.
 
 ```{r jobs}
 
 jobs <- raw%>%
-          group_by(State, year)%>%
-          summarise(jobs = sum(Employment,na.rm=T))%>%
-          ungroup()%>%
-          as.data.frame()%>%
-          mutate(roll_avg = rollapply(jobs, 5,FUN=mean,align = 'right',partial=T),
-                 score = jobs/roll_avg)
+          filter(!grepl("All",County))%>%
+          group_by(State, Year)%>%
+          summarise(coast_jobs = sum(Employment,na.rm=T))%>%
+          left_join(st_emp,by=c('State','Year'))%>%
+          mutate(cst_roll_avg= rollapply(coast_jobs, width = list(-1:-5),FUN=mean,align = 'right',partial=F,fill=NA),
+                 cst_chg = coast_jobs/cst_roll_avg,
+                 st_roll_avg = rollapply(Employment,width=list(-1:-5),FUN=mean,align='right',partial=F,fill=NA),
+                 st_chg = Employment/st_roll_avg,
+                 score = ifelse((cst_chg/st_chg)>1,1,cst_chg/st_chg))%>%as.data.frame()
+
+```
+
+***
+
+#Results
+
+```{r table}
+
+jobs_5yr = filter(jobs,!is.na(score))
+
+DT::datatable(jobs_5yr,colnames = c('State','Year','Coastal Jobs','State Jobs','Coastal 5 yr mean','Coastal job change','State 5 yr mean','State job change','Final Score'), caption = 'Coastal employment in the Tourism & Recreation sector for all five regions as well as total number of jobs per region. The 5 year means are calculated using the previous 5 years data and the change in number of jobs is calculated using current jobs divided by the 5 year mean.', rownames=F)
+```
+
+```{r plot1}
+tr_plot <- ggplot(jobs_5yr,aes(x = Year,y = score, group=State))+
+  ggtheme_plot+
+  geom_point(aes(color = State)) +
+            geom_line(aes(color = State))+
+            scale_y_continuous(limits = c(0.75,1))+
+            ggtitle("Tourism & Recreation Scores for the Northeast Regions")+
+  labs(y = 'Score')
+           
+
+print(tr_plot)
+
+```
+
+Look at how scores change across all coastal counties
+
+```{r plot counties}
+
+cntys <-  raw%>%
+          filter(!grepl("All",County))%>%
+          group_by(County, State,Year)%>%
+          summarise(coast_jobs = sum(Employment,na.rm=T))%>%
+          left_join(st_emp,by=c('State','Year'))%>%
+          mutate(cst_roll_avg= rollapply(coast_jobs, width = list(-1:-5),FUN=mean,align = 'right',partial=F,fill=NA),
+                 cst_chg = coast_jobs/cst_roll_avg,
+                 st_roll_avg = rollapply(Employment,width=list(-1:-5),FUN=mean,align='right',partial=F,fill=NA),
+                 st_chg = Employment/st_roll_avg)%>%
+            as.data.frame()%>%
+                 mutate(score = ifelse((cst_chg/st_chg)>1,1,cst_chg/st_chg))%>%
+          filter(!is.na(score))
+
+tr_cnty_plot <- ggplot(cntys,aes(x = Year,y = score, group=County))+
+            ggtheme_plot+geom_point(aes(color = County)) +
+            geom_line(aes(color = County))+
+            scale_y_continuous(limits = c(0.75,1))+
+            ggtitle("Toursm & Recreation Scores per County")+
+            labs(y = 'Score')
+
+print(tr_cnty_plot)
+
 
 ```
 
@@ -97,7 +174,6 @@ jobs <- raw%>%
 #Citation information  
 
 National Ocean Economics Program. Ocean Economic Data by Sector & Industry., ONLINE. 2012.
-Available: http://www.OceanEconomics.org/Market/oceanEcon.asp [29 Apr. 2016]
+Available: http://www.OceanEconomics.org/Market/oceanEcon.asp [17 May 2016]
 
-``` {r child = file.path(dir_git, 'src/templates/ohibc_prov_ftr.Rmd')}
-
+Bureau of Labor Statistics, U.S. Department of Labor, State and Metro Area Employment, Hours & Earnings. 5/17/2016. [www.bls.gov/SAE/](http://www.bls.gov/sae/).
