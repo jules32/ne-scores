@@ -122,6 +122,8 @@ jobs <- raw%>%
 
 jobs_5yr = filter(jobs,!is.na(score))
 
+write.csv(jobs_5yr,'tr_scores.csv')
+
 DT::datatable(jobs_5yr,colnames = c('State','Year','Coastal Jobs','State Jobs','Coastal 5 yr mean','Coastal job change','State 5 yr mean','State job change','Final Score'), caption = 'Coastal employment in the Tourism & Recreation sector for all five regions as well as total number of jobs per region. The 5 year means are calculated using the previous 5 years data and the change in number of jobs is calculated using current jobs divided by the 5 year mean.', rownames=F)
 ```
 
