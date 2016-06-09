@@ -49,7 +49,7 @@ The Tourism & Recreation goal is calculated using coastal employment data from t
 **Downloaded**: Received from Pat Johston on May 17, 2016.  
 **Description**:  Total number of jobs per sector for RI, ME, MA, CT and NH counties from 2005 to 2013. The data also include number of establishments, GDP and Wages for each sector - state - year.  
 **Native data resolution**: County level   
-**Time range**: 2005 - 2013  
+**Time range**: 1990 - 2013  
 **Format**:  Tabular  
 
 
