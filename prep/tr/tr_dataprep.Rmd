@@ -16,7 +16,7 @@ output:
 ---
 
 ``` {r setup, echo=F, message = FALSE, warning = FALSE}
-knitr::opts_chunk$set(fig.width = 8, fig.height = 6, fig.path = 'Figs/', message = FALSE, warning = FALSE, echo=F)
+knitr::opts_chunk$set(fig.width = 8, fig.height = 6, fig.path = 'figs/', message = FALSE, warning = FALSE, echo=F)
 dir_git <- '~/github/ohi-northeast'
 dir_rgn <- file.path(dir_git, 'prep/regions')  ### github: general buffer region shapefiles
 source(file.path(dir_git, 'src/R/common.R'))  ### an OHIBC specific version of common.R
@@ -56,21 +56,13 @@ The Tourism & Recreation goal is calculated using coastal employment data from t
 ```{r coastal_data}
 
 #read in raw data and filter for Sector == Tourism & Recreation
-data_05_13<- read.csv(file.path(dir_anx,"_raw_data/NOEP/NewEngland_sectors_counties-2.csv"),
+data<- read.csv(file.path(dir_anx,"_raw_data/NOEP/NewEngland_sectors_counties-2.csv"),
                 stringsAsFactors=F)%>%
         filter(Sector=='Tourism & Recreation')%>%
         mutate(Employment = as.numeric(gsub(",","",.$Employment)),
                Establishments = as.numeric(gsub(",","",.$Establishments)))
 
-data_90_04 <- read.csv(file.path(dir_anx,"_raw_data/NOEP/NewEngland_sectors_counties-3.csv"),
-                stringsAsFactors=F)%>%
-        filter(Sector=='Tourism & Recreation')%>%
-        mutate(Employment = as.numeric(gsub(",","",.$Employment)),
-               Establishments = as.numeric(gsub(",","",.$Establishments)))
-
-all = rbind(data_05_13,data_90_04)
-
-DT::datatable(all, rownames=F, caption = 'Employment in the Tourism & Recreation sector of Coastal Jobs in New England provided by NOEP')
+DT::datatable(data, rownames=F, caption = 'Employment in the Tourism & Recreation sector of Coastal Jobs in New England provided by NOEP')
 
 ```
 
@@ -81,7 +73,7 @@ DT::datatable(all, rownames=F, caption = 'Employment in the Tourism & Recreation
 **Downloaded**: May 17, 2016  
 **Description**: Total Annual Employment (in thousands) per State from 1990 to 2015  
 **Native data resolution**: State level  
-**Time Range:** 1990 to 2015  
+**Time Range:** 2005 to 2015  
 **Format:** Tabular  
 
 
@@ -110,15 +102,15 @@ where $C_{i}$ is the number of coastal jobs in year *i*, $C_{r}$ is the mean num
 
 ```{r jobs}
 
-jobs<- all%>%
+jobs<- data%>%
           filter(!grepl("All",County))%>%
           group_by(State, Year)%>%
           summarise(coast_jobs = sum(Employment,na.rm=T))%>%
+          mutate(hist_jobs = coast_jobs[which.min(Year)])%>%
           left_join(st_emp,by=c('State','Year'))%>%
-          mutate(cst_roll_avg= rollapply(coast_jobs, width = list(-1:-5),FUN=mean,align = 'right',partial=F,fill=NA),
-                 cst_chg = coast_jobs/cst_roll_avg,
-                 st_roll_avg = rollapply(Employment,width=list(-1:-5),FUN=mean,align='right',partial=F,fill=NA),
-                 st_chg = Employment/st_roll_avg,
+          mutate(cst_chg = coast_jobs/hist_jobs, #use historical reference point from 2005
+                 hist_st_jobs = Employment[which.min(Year)],
+                 st_chg = Employment/hist_st_jobs,
                  score = ifelse((cst_chg/st_chg)>1,1,cst_chg/st_chg))%>%as.data.frame()
 
 ```
@@ -129,52 +121,25 @@ jobs<- all%>%
 
 ```{r table}
 
-jobs_5yr = filter(jobs,!is.na(score))
+jobs = filter(jobs,!is.na(score))
 
-write.csv(jobs_5yr,'tr_scores.csv')
+write.csv(jobs, 'tr_scores.csv')
 
-DT::datatable(jobs_5yr,colnames = c('State','Year','Coastal Jobs','State Jobs','Coastal 5 yr mean','Coastal job change','State 5 yr mean','State job change','Final Score'), caption = 'Coastal employment in the Tourism & Recreation sector for all five regions as well as total number of jobs per region. The 5 year means are calculated using the previous 5 years data and the change in number of jobs is calculated using current jobs divided by the 5 year mean.', rownames=F)
+DT::datatable(jobs,colnames = c('State','Year','Coastal Jobs','State Jobs','Coastal 5 yr mean','Coastal job change','State 5 yr mean','State job change','Final Score'), caption = 'Coastal employment in the Tourism & Recreation sector for all five regions as well as total number of jobs per region. The 5 year means are calculated using the previous 5 years data and the change in number of jobs is calculated using current jobs divided by the 5 year mean.', rownames=F)
 
 ```
 
 ```{r plot1}
-tr_plot <- ggplot(jobs_5yr,aes(x = Year,y = score, group=State))+
+
+tr_plot <- ggplot(jobs,aes(x = Year,y = score, group=State))+
   ggtheme_plot+
   geom_point(aes(color = State)) +
             geom_line(aes(color = State))+
-            scale_y_continuous(limits = c(0,1))+
+            scale_y_continuous(limits = c(0.75,1))+
             ggtitle("Tourism & Recreation Scores for the Northeast Regions")+
   labs(y = 'Score')
             ggplotly()
            
-```
-
-Look at how scores change across all coastal counties
-
-```{r plot counties}
-
-cntys <-  all%>%
-          filter(!grepl("All",County))%>%
-          group_by(County, State,Year)%>%
-          summarise(coast_jobs = sum(Employment,na.rm=T))%>%
-          left_join(st_emp,by=c('State','Year'))%>%
-          mutate(cst_roll_avg= rollapply(coast_jobs, width = list(-1:-5),FUN=mean,align = 'right',partial=F,fill=NA),
-                 cst_chg = coast_jobs/cst_roll_avg,
-                 st_roll_avg = rollapply(Employment,width=list(-1:-5),FUN=mean,align='right',partial=F,fill=NA),
-                 st_chg = Employment/st_roll_avg)%>%
-            as.data.frame()%>%
-                 mutate(score = ifelse((cst_chg/st_chg)>1,1,cst_chg/st_chg))%>%
-          filter(!is.na(score))
-
-tr_cnty_plot <- ggplot(cntys,aes(x = Year,y = score, group=County))+
-            ggtheme_plot+geom_point(aes(color = County)) +
-            geom_line(aes(color = County))+
-            scale_y_continuous(limits = c(0,1))+
-            ggtitle("Toursm & Recreation Scores per County")+
-            labs(y = 'Score')
-ggplotly()
-
-
 ```
 
 
