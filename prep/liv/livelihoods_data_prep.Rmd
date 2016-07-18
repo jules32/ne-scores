@@ -1,0 +1,207 @@
+---
+title: 'OHI-Northeast: Livelihoods'
+author: "*Compiled on `r date()` by `r Sys.info()['user']`*"
+output: 
+  html_document:
+    toc: true
+    toc_depth: 3
+    toc_float: yes
+    number_sections: true
+    theme: cerulean
+    highlight: haddock
+    includes: 
+      in_header: '~/github/ohi-northeast/src/templates/ohi_hdr.html'
+  pdf_document:
+    toc: true
+---
+
+
+``` {r setup, echo=F, message = FALSE, warning = FALSE}
+knitr::opts_chunk$set(fig.width = 8, fig.height = 6, fig.path = 'figs/', message = FALSE, warning = FALSE, echo=F)
+dir_git <- '~/github/ohi-northeast'
+dir_rgn <- file.path(dir_git, 'prep/regions')  ### github: general buffer region shapefiles
+source(file.path(dir_git, 'src/R/common.R'))  ### an OHIBC specific version of common.R
+
+library(zoo)
+library(rgdal)
+library(raster)
+library(DT)
+library(plotly)
+
+dir_git <- '~/github/ohi-northeast'
+dir_rgn <- file.path(dir_git, 'prep/regions')  ### github: general buffer region shapefiles
+dir_anx <- file.path(dir_M, 'git-annex/neprep')
+
+#round to 2 decimals
+options(digits=2, scipen = 999)
+```
+
+#Summary
+
+The Livelihoods sub-goal is calculated using coastal employment data from the [National Ocean Economics Program](http://www.oceaneconomics.org/), and State-wide employment from the [Bureau of Labor Statistics](http://www.bls.gov/data/).
+
+***
+
+#Data Sources
+
+##National ocean Economics Program (NOEP)
+
+**Downloaded**: Received from Pat Johston on May 17, 2016.  
+**Description**:  Total number of jobs per sector for RI, ME, MA, CT and NH counties from 2005 to 2013. The data also include number of establishments, GDP and Wages for each sector - state - year.  
+**Native data resolution**: County level   
+**Time range**: 1990 - 2013  
+**Format**:  Tabular  
+
+***
+
+# Analysis
+
+Filter raw data
+
+```{r coastal_data}
+
+#read in raw data and filter for Sector == All Ocean Sectors
+data <- read.csv(file.path(dir_anx,"_raw_data/NOEP/NewEngland_sectors_counties-2.csv"),
+                stringsAsFactors=F)%>%
+        filter(Sector=='All Ocean Sectors')%>%
+        mutate(Employment     = as.numeric(gsub(",","",.$Employment)),
+               Establishments = as.numeric(gsub(",","",.$Establishments)),
+               Wages          = as.numeric(gsub(",","",.$Wages)),
+               Wages_2009     = as.numeric(gsub(",","",.$Wages_2009)),
+               GDP            = as.numeric(gsub(",","",.$GDP)),
+               GDP_2009       = as.numeric(gsub(",","",.$GDP_2009)))
+
+DT::datatable(data, rownames=F, caption = 'Employment in the Tourism & Recreation sector of Coastal Jobs in New England provided by NOEP')
+
+```
+
+
+##US Bureau of Labor Statistics
+
+**Downloaded**: May 17, 2016  
+**Description**: Total Annual Employment (in thousands) per State from 1990 to 2015  
+**Native data resolution**: State level  
+**Time Range:** 2005 to 2015  
+**Format:** Tabular  
+
+
+```{r state data}
+#read in state-wide employment. This data was made by hand from a manual query on the BLS.gov site: http://data.bls.gov/pdq/SurveyOutputServlet. 
+# this should be replaced with code using the blsAPI R package. Currently waiting on a response from the maintainer: https://github.com/mikeasilva/blsAPI/issues/7
+
+#employment is in thousands so we need to multiply
+st_emp <- read.csv('../tr/state_employment.csv')%>%
+          mutate(Employment = 1000*Employment)
+
+DT::datatable(st_emp, caption = 'Total Employment by State, provided by the Bureau of Labor Statistics',rownames=FALSE)
+
+
+```
+
+
+
+***
+
+#Methods
+
+##Jobs
+
+The livelihoods jobs score, $j '$, is calculated using the following equation; 
+
+$$j ' = \frac{\frac{C_{i}}{C_{r}}}{\frac{T_{i}}{T_{r}}}$$
+
+where $C_{i}$ is the number of coastal jobs in year *i*, $C_{r}$ is the number of coastal jobs in 2005, ${T_{i}}$ is the total number of jobs statewide for year *i* and ${T_{r}}$ is the number of jobs statewide in 2005.
+
+
+```{r jobs}
+
+jobs<- data%>%
+          filter(!grepl("All",County))%>%
+          group_by(State, County, Year)%>%
+          summarise(coast_jobs = sum(Employment,na.rm=T))%>%
+          mutate(hist_jobs = coast_jobs[which.min(Year)])%>%
+          left_join(st_emp,by=c('State','Year'))%>%
+          mutate(cst_chg = coast_jobs/hist_jobs, #use historical reference point from 2005
+                 hist_st_jobs = Employment[which.min(Year)],
+                 st_chg = Employment/hist_st_jobs,
+                 score = ifelse((cst_chg/st_chg)>1,1,cst_chg/st_chg))%>%as.data.frame()
+
+```
+
+## Wages
+
+The livelihoods wages score, $g'$ is calculated using the following equation;
+
+$$g ' = \frac{\frac{C_{i}}{C_{r}}}{\frac{T_{i}}{T_{r}}}$$
+
+
+```{r wages}
+
+#getting wage statistics from bureau of labor
+
+# ******************************************************************************************
+# qcewGetAreaData : This function takes a year, quarter, and area argument and
+# returns an array containing the associated area data. use 'a' for annual
+# averages. 
+# For all area codes and titles see:
+# http://www.bls.gov/cew/doc/titles/area/area_titles.htm
+
+qcewGetAreaData <- function(year, qtr, area) {
+	url <- "http://www.bls.gov/cew/data/api/YEAR/QTR/area/AREA.csv"
+	url <- sub("YEAR", year, url, ignore.case=FALSE)
+	url <- sub("QTR", qtr, url, ignore.case=FALSE)
+	url <- sub("AREA", area, url, ignore.case=FALSE)
+	print(url)
+	read.csv(url, header = TRUE, sep = ",", quote="\"", dec=".", na.strings=" ", skip=0)
+}
+
+# ******************************************************************************************
+
+#area codes for BLS
+ct <- '09000'
+ri <- '44000'
+me <- '23000'
+ma <- '25000'
+nh <- '33000'
+
+
+#read in codes
+
+codes <- read.csv('ne_wages_codes',header=F)
+
+## Pull the data via the API
+
+get_data <- function(code){
+
+
+bls.content <- getURLContent(paste0("http://api.bls.gov/publicAPI/v1/timeseries/data/", code))
+bls.json <- fromJSON(bls.content, simplify=TRUE)
+bls.df <- data.frame(year=sapply(bls.json$Results$series[[1]]$data,"[[","year"),
+                     period=sapply(bls.json$Results$series[[1]]$data,"[[","period"),
+                     periodName=sapply(bls.json$Results$series[[1]]$data,"[[","periodName"),
+                     value=as.numeric(sapply(bls.json$Results$series[[1]]$data,"[[","value")), 
+                     stringsAsFactors=FALSE)
+}
+
+
+wages<- data%>%
+          filter(!grepl("All",County))%>%
+          mutate(Wages_2009 = as.numeric(gsub(",","",Wages_2009)))%>%
+          group_by(State, County, Year)%>%
+          summarise(coast_wages = sum(Wages_2009,na.rm=T))%>%
+          mutate(hist_wages = coast_wages[which.min(Year)])%>%
+          left_join(st_emp,by=c('State','Year'))%>%
+          mutate(cst_chg = coast_wages/hist_jobs, #use historical reference point from 2005
+                 hist_st_jobs = Employment[which.min(Year)],
+                 st_chg = Employment/hist_st_jobs,
+                 score = ifelse((cst_chg/st_chg)>1,1,cst_chg/st_chg))%>%as.data.frame()
+
+```
+
+## Score
+
+
+
+***
+
+#Results
