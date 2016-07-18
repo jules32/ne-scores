@@ -98,7 +98,7 @@ The Tourism and Recreation score, $X_{i}$, is calculated using the following equ
 
 $$X_{i} = \frac{\frac{C_{i}}{C_{r}}}{\frac{T_{i}}{T_{r}}}$$
 
-where $C_{i}$ is the number of coastal jobs in year *i*, $C_{r}$ is the mean number of coastal jobs over the previous 5 years, ${T_{i}}$ is the total number of jobs statewide for year *i* and ${T_{r}}$ is the mean number of jobs statewide over the previous 5 years.
+where $C_{i}$ is the number of coastal jobs in year *i*, $C_{r}$ is the number of coastal jobs in 2005, ${T_{i}}$ is the total number of jobs statewide for year *i* and ${T_{r}}$ is the number of jobs statewide in 2005.
 
 ```{r jobs}
 
