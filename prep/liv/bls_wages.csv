@@ -1,64 +1,694 @@
-code,state,county
-ENU0900030010,Connecticut,Statewide
-ENU0900130010,Connecticut,Fairfield
-ENU0900330010,Connecticut,Hartford
-ENU0900530010,Connecticut,Litchfield
-ENU0900730010,Connecticut,Middlesex
-ENU0900930010,Connecticut,New Haven
-ENU0901130010,Connecticut,New London
-ENU0901330010,Connecticut,Tolland
-ENU0901530010,Connecticut,Windham
-ENU0999930010,Connecticut,Unknown or Undefined
-ENU2300030010,Maine,Statewide
-ENU2300130010,Maine,Androscoggin
-ENU2300330010,Maine,Aroostook
-ENU2300530010,Maine,Cumberland
-ENU2300730010,Maine,Franklin
-ENU2300930010,Maine,Hancock
-ENU2301130010,Maine,Kennebec
-ENU2301330010,Maine,Knox
-ENU2301530010,Maine,Lincoln
-ENU2301730010,Maine,Oxford
-ENU2301930010,Maine,Penobscot
-ENU2302130010,Maine,Piscataquis
-ENU2302330010,Maine,Sagadahoc
-ENU2302530010,Maine,Somerset
-ENU2302730010,Maine,Waldo
-ENU2302930010,Maine,Washington
-ENU2303130010,Maine,York
-ENU2399930010,Maine,Unknown or Undefined
-ENU2500030010,Massachusetts,Statewide
-ENU2500130010,Massachusetts,Barnstable
-ENU2500330010,Massachusetts,Berkshire
-ENU2500530010,Massachusetts,Bristol
-ENU2500730010,Massachusetts,Dukes
-ENU2500930010,Massachusetts,Essex
-ENU2501130010,Massachusetts,Franklin
-ENU2501330010,Massachusetts,Hampden
-ENU2501530010,Massachusetts,Hampshire
-ENU2501730010,Massachusetts,Middlesex
-ENU2501930010,Massachusetts,Nantucket
-ENU2502130010,Massachusetts,Norfolk
-ENU2502330010,Massachusetts,Plymouth
-ENU2502530010,Massachusetts,Suffolk
-ENU2502730010,Massachusetts,Worcester
-ENU2599930010,Massachusetts,Unknown or Undefined
-ENU3300030010,New Hampshire,Statewide
-ENU3300130010,New Hampshire,Belknap
-ENU3300330010,New Hampshire,Carroll
-ENU3300530010,New Hampshire,Cheshire
-ENU3300730010,New Hampshire,Coos
-ENU3300930010,New Hampshire,Grafton
-ENU3301130010,New Hampshire,Hillsborough
-ENU3301330010,New Hampshire,Merrimack
-ENU3301530010,New Hampshire,Rockingham
-ENU3301730010,New Hampshire,Strafford
-ENU3301930010,New Hampshire,Sullivan
-ENU3399930010,New Hampshire,Unknown or Undefined
-ENU4400030010,Rhode Island,Statewide
-ENU4400130010,Rhode Island,Bristol
-ENU4400330010,Rhode Island,Kent
-ENU4400530010,Rhode Island,Newport
-ENU4400730010,Rhode Island,Providence
-ENU4400930010,Rhode Island,Washington
-ENU4499930010,Rhode Island,Unknown or Undefined
+State,County,Year,Annual
+Connecticut,Statewide,2005,87071192
+Connecticut,Statewide,2006,91654920
+Connecticut,Statewide,2007,97839316
+Connecticut,Statewide,2008,98564257
+Connecticut,Statewide,2009,93321265
+Connecticut,Statewide,2010,94889456
+Connecticut,Statewide,2011,98584051
+Connecticut,Statewide,2012,101059140
+Connecticut,Statewide,2013,102287013
+Connecticut,Statewide,2014,105694292
+Connecticut,Statewide,2015,108940740
+Connecticut,Fairfield,2005,29308949
+Connecticut,Fairfield,2006,31317059
+Connecticut,Fairfield,2007,33773657
+Connecticut,Fairfield,2008,33555743
+Connecticut,Fairfield,2009,30831923
+Connecticut,Fairfield,2010,31953341
+Connecticut,Fairfield,2011,33424317
+Connecticut,Fairfield,2012,33987317
+Connecticut,Fairfield,2013,34058906
+Connecticut,Fairfield,2014,35078677
+Connecticut,Fairfield,2015,36082642
+Connecticut,Hartford,2005,25156238
+Connecticut,Hartford,2006,26336058
+Connecticut,Hartford,2007,28223708
+Connecticut,Hartford,2008,28371878
+Connecticut,Hartford,2009,27409880
+Connecticut,Hartford,2010,27954885
+Connecticut,Hartford,2011,29080816
+Connecticut,Hartford,2012,30046605
+Connecticut,Hartford,2013,30696599
+Connecticut,Hartford,2014,31971282
+Connecticut,Hartford,2015,32933005
+Connecticut,Litchfield,2005,2322429
+Connecticut,Litchfield,2006,2423243
+Connecticut,Litchfield,2007,2490367
+Connecticut,Litchfield,2008,2541032
+Connecticut,Litchfield,2009,2400297
+Connecticut,Litchfield,2010,2410442
+Connecticut,Litchfield,2011,2469132
+Connecticut,Litchfield,2012,2533345
+Connecticut,Litchfield,2013,2569985
+Connecticut,Litchfield,2014,2654993
+Connecticut,Litchfield,2015,2747596
+Connecticut,Middlesex,2005,3158819
+Connecticut,Middlesex,2006,3357076
+Connecticut,Middlesex,2007,3446992
+Connecticut,Middlesex,2008,3480179
+Connecticut,Middlesex,2009,3275034
+Connecticut,Middlesex,2010,3068325
+Connecticut,Middlesex,2011,3159468
+Connecticut,Middlesex,2012,3247243
+Connecticut,Middlesex,2013,3328806
+Connecticut,Middlesex,2014,3434357
+Connecticut,Middlesex,2015,3606140
+Connecticut,New Haven,2005,15844049
+Connecticut,New Haven,2006,16480466
+Connecticut,New Haven,2007,17255027
+Connecticut,New Haven,2008,17577140
+Connecticut,New Haven,2009,17005506
+Connecticut,New Haven,2010,17159404
+Connecticut,New Haven,2011,17607820
+Connecticut,New Haven,2012,18175671
+Connecticut,New Haven,2013,18535475
+Connecticut,New Haven,2014,19074692
+Connecticut,New Haven,2015,19622780
+Connecticut,New London,2005,5449364
+Connecticut,New London,2006,5585325
+Connecticut,New London,2007,5896117
+Connecticut,New London,2008,6114231
+Connecticut,New London,2009,5956612
+Connecticut,New London,2010,5912929
+Connecticut,New London,2011,6019574
+Connecticut,New London,2012,6044221
+Connecticut,New London,2013,6023973
+Connecticut,New London,2014,6188819
+Connecticut,New London,2015,6290347
+Connecticut,Tolland,2005,1454516
+Connecticut,Tolland,2006,1519103
+Connecticut,Tolland,2007,1639995
+Connecticut,Tolland,2008,1728305
+Connecticut,Tolland,2009,1697301
+Connecticut,Tolland,2010,1683017
+Connecticut,Tolland,2011,1747179
+Connecticut,Tolland,2012,1729003
+Connecticut,Tolland,2013,1732093
+Connecticut,Tolland,2014,1815557
+Connecticut,Tolland,2015,1874289
+Connecticut,Windham,2005,1349675
+Connecticut,Windham,2006,1408648
+Connecticut,Windham,2007,1442804
+Connecticut,Windham,2008,1469309
+Connecticut,Windham,2009,1439506
+Connecticut,Windham,2010,1427212
+Connecticut,Windham,2011,1487462
+Connecticut,Windham,2012,1525253
+Connecticut,Windham,2013,1563516
+Connecticut,Windham,2014,1606353
+Connecticut,Windham,2015,1660673
+Connecticut,Unknown or Undefined,2005,3027153
+Connecticut,Unknown or Undefined,2006,3227943
+Connecticut,Unknown or Undefined,2007,3670649
+Connecticut,Unknown or Undefined,2008,3726440
+Connecticut,Unknown or Undefined,2009,3305207
+Connecticut,Unknown or Undefined,2010,3319901
+Connecticut,Unknown or Undefined,2011,3588283
+Connecticut,Unknown or Undefined,2012,3770483
+Connecticut,Unknown or Undefined,2013,3777661
+Connecticut,Unknown or Undefined,2014,3869561
+Connecticut,Unknown or Undefined,2015,4123267
+Maine,Statewide,2005,19439853
+Maine,Statewide,2006,20226637
+Maine,Statewide,2007,21158899
+Maine,Statewide,2008,21865518
+Maine,Statewide,2009,21303748
+Maine,Statewide,2010,21573618
+Maine,Statewide,2011,22045523
+Maine,Statewide,2012,22514891
+Maine,Statewide,2013,23037846
+Maine,Statewide,2014,23876157
+Maine,Statewide,2015,24893103
+Maine,Androscoggin,2005,1469140
+Maine,Androscoggin,2006,1552629
+Maine,Androscoggin,2007,1628719
+Maine,Androscoggin,2008,1687337
+Maine,Androscoggin,2009,1634983
+Maine,Androscoggin,2010,1659218
+Maine,Androscoggin,2011,1694106
+Maine,Androscoggin,2012,1750782
+Maine,Androscoggin,2013,1776821
+Maine,Androscoggin,2014,1866457
+Maine,Androscoggin,2015,1925794
+Maine,Aroostook,2005,826593
+Maine,Aroostook,2006,854957
+Maine,Aroostook,2007,888829
+Maine,Aroostook,2008,903330
+Maine,Aroostook,2009,891096
+Maine,Aroostook,2010,892800
+Maine,Aroostook,2011,899974
+Maine,Aroostook,2012,912253
+Maine,Aroostook,2013,918459
+Maine,Aroostook,2014,938975
+Maine,Aroostook,2015,954433
+Maine,Cumberland,2005,6317898
+Maine,Cumberland,2006,6561740
+Maine,Cumberland,2007,6902785
+Maine,Cumberland,2008,7158066
+Maine,Cumberland,2009,6953041
+Maine,Cumberland,2010,7050222
+Maine,Cumberland,2011,7277377
+Maine,Cumberland,2012,7465903
+Maine,Cumberland,2013,7678463
+Maine,Cumberland,2014,7969873
+Maine,Cumberland,2015,8344336
+Maine,Franklin,2005,353069
+Maine,Franklin,2006,355307
+Maine,Franklin,2007,363322
+Maine,Franklin,2008,376739
+Maine,Franklin,2009,361266
+Maine,Franklin,2010,355458
+Maine,Franklin,2011,373286
+Maine,Franklin,2012,376155
+Maine,Franklin,2013,371512
+Maine,Franklin,2014,368550
+Maine,Franklin,2015,374116
+Maine,Hancock,2005,676647
+Maine,Hancock,2006,694838
+Maine,Hancock,2007,715496
+Maine,Hancock,2008,745952
+Maine,Hancock,2009,713798
+Maine,Hancock,2010,732156
+Maine,Hancock,2011,742189
+Maine,Hancock,2012,743408
+Maine,Hancock,2013,756465
+Maine,Hancock,2014,787927
+Maine,Hancock,2015,810379
+Maine,Kennebec,2005,1858771
+Maine,Kennebec,2006,1961765
+Maine,Kennebec,2007,2048560
+Maine,Kennebec,2008,2142040
+Maine,Kennebec,2009,2098941
+Maine,Kennebec,2010,2106928
+Maine,Kennebec,2011,2128178
+Maine,Kennebec,2012,2143467
+Maine,Kennebec,2013,2213487
+Maine,Kennebec,2014,2283922
+Maine,Kennebec,2015,2353956
+Maine,Knox,2005,521134
+Maine,Knox,2006,531263
+Maine,Knox,2007,544878
+Maine,Knox,2008,563574
+Maine,Knox,2009,536748
+Maine,Knox,2010,542224
+Maine,Knox,2011,552083
+Maine,Knox,2012,564186
+Maine,Knox,2013,575622
+Maine,Knox,2014,593849
+Maine,Knox,2015,621857
+Maine,Lincoln,2005,308467
+Maine,Lincoln,2006,306960
+Maine,Lincoln,2007,316004
+Maine,Lincoln,2008,323387
+Maine,Lincoln,2009,315826
+Maine,Lincoln,2010,321835
+Maine,Lincoln,2011,325751
+Maine,Lincoln,2012,338642
+Maine,Lincoln,2013,345864
+Maine,Lincoln,2014,357560
+Maine,Lincoln,2015,370112
+Maine,Oxford,2005,504308
+Maine,Oxford,2006,505847
+Maine,Oxford,2007,532915
+Maine,Oxford,2008,538511
+Maine,Oxford,2009,505892
+Maine,Oxford,2010,541536
+Maine,Oxford,2011,532336
+Maine,Oxford,2012,540531
+Maine,Oxford,2013,555015
+Maine,Oxford,2014,574013
+Maine,Oxford,2015,583062
+Maine,Penobscot,2005,2169535
+Maine,Penobscot,2006,2253928
+Maine,Penobscot,2007,2336013
+Maine,Penobscot,2008,2414095
+Maine,Penobscot,2009,2409875
+Maine,Penobscot,2010,2382857
+Maine,Penobscot,2011,2416198
+Maine,Penobscot,2012,2469473
+Maine,Penobscot,2013,2520753
+Maine,Penobscot,2014,2590716
+Maine,Penobscot,2015,2692342
+Maine,Piscataquis,2005,143281
+Maine,Piscataquis,2006,148406
+Maine,Piscataquis,2007,154202
+Maine,Piscataquis,2008,158693
+Maine,Piscataquis,2009,155883
+Maine,Piscataquis,2010,160928
+Maine,Piscataquis,2011,163515
+Maine,Piscataquis,2012,164824
+Maine,Piscataquis,2013,166691
+Maine,Piscataquis,2014,171306
+Maine,Piscataquis,2015,176263
+Maine,Sagadahoc,2005,546012
+Maine,Sagadahoc,2006,557904
+Maine,Sagadahoc,2007,621358
+Maine,Sagadahoc,2008,641435
+Maine,Sagadahoc,2009,638119
+Maine,Sagadahoc,2010,670423
+Maine,Sagadahoc,2011,664096
+Maine,Sagadahoc,2012,668558
+Maine,Sagadahoc,2013,686333
+Maine,Sagadahoc,2014,715258
+Maine,Sagadahoc,2015,762018
+Maine,Somerset,2005,531566
+Maine,Somerset,2006,560161
+Maine,Somerset,2007,585999
+Maine,Somerset,2008,607725
+Maine,Somerset,2009,576637
+Maine,Somerset,2010,583922
+Maine,Somerset,2011,593105
+Maine,Somerset,2012,613120
+Maine,Somerset,2013,619444
+Maine,Somerset,2014,641480
+Maine,Somerset,2015,649368
+Maine,Waldo,2005,306730
+Maine,Waldo,2006,310071
+Maine,Waldo,2007,325797
+Maine,Waldo,2008,338095
+Maine,Waldo,2009,334179
+Maine,Waldo,2010,335100
+Maine,Waldo,2011,341289
+Maine,Waldo,2012,351694
+Maine,Waldo,2013,373525
+Maine,Waldo,2014,395289
+Maine,Waldo,2015,406167
+Maine,Washington,2005,292581
+Maine,Washington,2006,303526
+Maine,Washington,2007,314263
+Maine,Washington,2008,311031
+Maine,Washington,2009,306577
+Maine,Washington,2010,315668
+Maine,Washington,2011,319531
+Maine,Washington,2012,320787
+Maine,Washington,2013,324235
+Maine,Washington,2014,331761
+Maine,Washington,2015,343737
+Maine,York,2005,2178196
+Maine,York,2006,2287533
+Maine,York,2007,2381652
+Maine,York,2008,2440988
+Maine,York,2009,2376324
+Maine,York,2010,2423181
+Maine,York,2011,2494157
+Maine,York,2012,2546300
+Maine,York,2013,2586113
+Maine,York,2014,2686325
+Maine,York,2015,2843160
+Maine,Unknown or Undefined,2005,435925
+Maine,Unknown or Undefined,2006,479803
+Maine,Unknown or Undefined,2007,498108
+Maine,Unknown or Undefined,2008,514520
+Maine,Unknown or Undefined,2009,494564
+Maine,Unknown or Undefined,2010,499162
+Maine,Unknown or Undefined,2011,528351
+Maine,Unknown or Undefined,2012,544809
+Maine,Unknown or Undefined,2013,569045
+Maine,Unknown or Undefined,2014,602897
+Maine,Unknown or Undefined,2015,682003
+Massachusetts,Statewide,2005,158296563
+Massachusetts,Statewide,2006,167524705
+Massachusetts,Statewide,2007,178679510
+Massachusetts,Statewide,2008,184196350
+Massachusetts,Statewide,2009,176425857
+Massachusetts,Statewide,2010,181928262
+Massachusetts,Statewide,2011,190336517
+Massachusetts,Statewide,2012,197447355
+Massachusetts,Statewide,2013,203636520
+Massachusetts,Statewide,2014,215387225
+Massachusetts,Statewide,2015,228510640
+Massachusetts,Barnstable,2005,3257877
+Massachusetts,Barnstable,2006,3369133
+Massachusetts,Barnstable,2007,3491784
+Massachusetts,Barnstable,2008,3552312
+Massachusetts,Barnstable,2009,3444624
+Massachusetts,Barnstable,2010,3469409
+Massachusetts,Barnstable,2011,3564074
+Massachusetts,Barnstable,2012,3695996
+Massachusetts,Barnstable,2013,3830087
+Massachusetts,Barnstable,2014,3988547
+Massachusetts,Barnstable,2015,4199070
+Massachusetts,Berkshire,2005,2227092
+Massachusetts,Berkshire,2006,2302852
+Massachusetts,Berkshire,2007,2389506
+Massachusetts,Berkshire,2008,2432665
+Massachusetts,Berkshire,2009,2339806
+Massachusetts,Berkshire,2010,2332640
+Massachusetts,Berkshire,2011,2401500
+Massachusetts,Berkshire,2012,2421392
+Massachusetts,Berkshire,2013,2479657
+Massachusetts,Berkshire,2014,2569169
+Massachusetts,Berkshire,2015,2681435
+Massachusetts,Bristol,2005,7927158
+Massachusetts,Bristol,2006,8285963
+Massachusetts,Bristol,2007,8592520
+Massachusetts,Bristol,2008,8839001
+Massachusetts,Bristol,2009,8453746
+Massachusetts,Bristol,2010,8570479
+Massachusetts,Bristol,2011,8996783
+Massachusetts,Bristol,2012,9258332
+Massachusetts,Bristol,2013,9542877
+Massachusetts,Bristol,2014,10035009
+Massachusetts,Bristol,2015,10585553
+Massachusetts,Dukes,2005,273283
+Massachusetts,Dukes,2006,291088
+Massachusetts,Dukes,2007,312523
+Massachusetts,Dukes,2008,330114
+Massachusetts,Dukes,2009,322430
+Massachusetts,Dukes,2010,323606
+Massachusetts,Dukes,2011,334174
+Massachusetts,Dukes,2012,349510
+Massachusetts,Dukes,2013,364468
+Massachusetts,Dukes,2014,384962
+Massachusetts,Dukes,2015,414142
+Massachusetts,Essex,2005,12769588
+Massachusetts,Essex,2006,13418033
+Massachusetts,Essex,2007,14043090
+Massachusetts,Essex,2008,14337425
+Massachusetts,Essex,2009,13941030
+Massachusetts,Essex,2010,14516255
+Massachusetts,Essex,2011,15188239
+Massachusetts,Essex,2012,15704131
+Massachusetts,Essex,2013,16160095
+Massachusetts,Essex,2014,16883478
+Massachusetts,Essex,2015,17548487
+Massachusetts,Franklin,2005,854573
+Massachusetts,Franklin,2006,881528
+Massachusetts,Franklin,2007,938432
+Massachusetts,Franklin,2008,944548
+Massachusetts,Franklin,2009,903818
+Massachusetts,Franklin,2010,910049
+Massachusetts,Franklin,2011,923655
+Massachusetts,Franklin,2012,945851
+Massachusetts,Franklin,2013,973925
+Massachusetts,Franklin,2014,998925
+Massachusetts,Franklin,2015,1046302
+Massachusetts,Hampden,2005,7494025
+Massachusetts,Hampden,2006,7782671
+Massachusetts,Hampden,2007,8063412
+Massachusetts,Hampden,2008,8369352
+Massachusetts,Hampden,2009,8145217
+Massachusetts,Hampden,2010,8222452
+Massachusetts,Hampden,2011,8423427
+Massachusetts,Hampden,2012,8706871
+Massachusetts,Hampden,2013,8955176
+Massachusetts,Hampden,2014,9339937
+Massachusetts,Hampden,2015,9686407
+Massachusetts,Hampshire,2005,2070603
+Massachusetts,Hampshire,2006,2115710
+Massachusetts,Hampshire,2007,2232152
+Massachusetts,Hampshire,2008,2338812
+Massachusetts,Hampshire,2009,2320639
+Massachusetts,Hampshire,2010,2311463
+Massachusetts,Hampshire,2011,2375939
+Massachusetts,Hampshire,2012,2479204
+Massachusetts,Hampshire,2013,2556558
+Massachusetts,Hampshire,2014,2641415
+Massachusetts,Hampshire,2015,2828789
+Massachusetts,Middlesex,2005,45348584
+Massachusetts,Middlesex,2006,47913336
+Massachusetts,Middlesex,2007,51970053
+Massachusetts,Middlesex,2008,53627773
+Massachusetts,Middlesex,2009,51788210
+Massachusetts,Middlesex,2010,54626362
+Massachusetts,Middlesex,2011,57531975
+Massachusetts,Middlesex,2012,59617851
+Massachusetts,Middlesex,2013,61272811
+Massachusetts,Middlesex,2014,64403056
+Massachusetts,Middlesex,2015,69191971
+Massachusetts,Nantucket,2005,256277
+Massachusetts,Nantucket,2006,277652
+Massachusetts,Nantucket,2007,296586
+Massachusetts,Nantucket,2008,298992
+Massachusetts,Nantucket,2009,263337
+Massachusetts,Nantucket,2010,259341
+Massachusetts,Nantucket,2011,271511
+Massachusetts,Nantucket,2012,290946
+Massachusetts,Nantucket,2013,320516
+Massachusetts,Nantucket,2014,351722
+Massachusetts,Nantucket,2015,377899
+Massachusetts,Norfolk,2005,15518168
+Massachusetts,Norfolk,2006,16853061
+Massachusetts,Norfolk,2007,17299536
+Massachusetts,Norfolk,2008,17674993
+Massachusetts,Norfolk,2009,16713862
+Massachusetts,Norfolk,2010,17249520
+Massachusetts,Norfolk,2011,17807113
+Massachusetts,Norfolk,2012,18523176
+Massachusetts,Norfolk,2013,19194025
+Massachusetts,Norfolk,2014,19998176
+Massachusetts,Norfolk,2015,21192781
+Massachusetts,Plymouth,2005,6868225
+Massachusetts,Plymouth,2006,7115778
+Massachusetts,Plymouth,2007,7374496
+Massachusetts,Plymouth,2008,7576690
+Massachusetts,Plymouth,2009,7352273
+Massachusetts,Plymouth,2010,7427731
+Massachusetts,Plymouth,2011,7657428
+Massachusetts,Plymouth,2012,7977451
+Massachusetts,Plymouth,2013,8329758
+Massachusetts,Plymouth,2014,8677533
+Massachusetts,Plymouth,2015,9136795
+Massachusetts,Suffolk,2005,37858118
+Massachusetts,Suffolk,2006,40407078
+Massachusetts,Suffolk,2007,44056871
+Massachusetts,Suffolk,2008,45501140
+Massachusetts,Suffolk,2009,42909967
+Massachusetts,Suffolk,2010,43848022
+Massachusetts,Suffolk,2011,45942018
+Massachusetts,Suffolk,2012,48081833
+Massachusetts,Suffolk,2013,49442367
+Massachusetts,Suffolk,2014,53888828
+Massachusetts,Suffolk,2015,57498485
+Massachusetts,Worcester,2005,13008965
+Massachusetts,Worcester,2006,13651382
+Massachusetts,Worcester,2007,14326608
+Massachusetts,Worcester,2008,14676397
+Massachusetts,Worcester,2009,14074489
+Massachusetts,Worcester,2010,14492401
+Massachusetts,Worcester,2011,15128400
+Massachusetts,Worcester,2012,15295553
+Massachusetts,Worcester,2013,16023725
+Massachusetts,Worcester,2014,16667123
+Massachusetts,Worcester,2015,17337652
+Massachusetts,Unknown or Undefined,2005,2564025
+Massachusetts,Unknown or Undefined,2006,2859440
+Massachusetts,Unknown or Undefined,2007,3291941
+Massachusetts,Unknown or Undefined,2008,3696136
+Massachusetts,Unknown or Undefined,2009,3452412
+Massachusetts,Unknown or Undefined,2010,3368532
+Massachusetts,Unknown or Undefined,2011,3790282
+Massachusetts,Unknown or Undefined,2012,4099258
+Massachusetts,Unknown or Undefined,2013,4190474
+Massachusetts,Unknown or Undefined,2014,4559345
+Massachusetts,Unknown or Undefined,2015,4784873
+New Hampshire,Statewide,2005,25177544
+New Hampshire,Statewide,2006,26630104
+New Hampshire,Statewide,2007,27642525
+New Hampshire,Statewide,2008,28239035
+New Hampshire,Statewide,2009,27183986
+New Hampshire,Statewide,2010,27606435
+New Hampshire,Statewide,2011,28645351
+New Hampshire,Statewide,2012,29562792
+New Hampshire,Statewide,2013,30297618
+New Hampshire,Statewide,2014,32058224
+New Hampshire,Statewide,2015,33461604
+New Hampshire,Belknap,2005,891565
+New Hampshire,Belknap,2006,931779
+New Hampshire,Belknap,2007,955412
+New Hampshire,Belknap,2008,960612
+New Hampshire,Belknap,2009,921742
+New Hampshire,Belknap,2010,906015
+New Hampshire,Belknap,2011,916484
+New Hampshire,Belknap,2012,928327
+New Hampshire,Belknap,2013,953165
+New Hampshire,Belknap,2014,992000
+New Hampshire,Belknap,2015,1032856
+New Hampshire,Carroll,2005,560145
+New Hampshire,Carroll,2006,607491
+New Hampshire,Carroll,2007,608158
+New Hampshire,Carroll,2008,624995
+New Hampshire,Carroll,2009,609019
+New Hampshire,Carroll,2010,620980
+New Hampshire,Carroll,2011,641889
+New Hampshire,Carroll,2012,654687
+New Hampshire,Carroll,2013,670448
+New Hampshire,Carroll,2014,666158
+New Hampshire,Carroll,2015,687217
+New Hampshire,Cheshire,2005,1159977
+New Hampshire,Cheshire,2006,1287316
+New Hampshire,Cheshire,2007,1237351
+New Hampshire,Cheshire,2008,1289855
+New Hampshire,Cheshire,2009,1243376
+New Hampshire,Cheshire,2010,1236850
+New Hampshire,Cheshire,2011,1265668
+New Hampshire,Cheshire,2012,1315277
+New Hampshire,Cheshire,2013,1322244
+New Hampshire,Cheshire,2014,1345191
+New Hampshire,Cheshire,2015,1385224
+New Hampshire,Coos,2005,405504
+New Hampshire,Coos,2006,414027
+New Hampshire,Coos,2007,421156
+New Hampshire,Coos,2008,424676
+New Hampshire,Coos,2009,412197
+New Hampshire,Coos,2010,405823
+New Hampshire,Coos,2011,404939
+New Hampshire,Coos,2012,412222
+New Hampshire,Coos,2013,434190
+New Hampshire,Coos,2014,423826
+New Hampshire,Coos,2015,432404
+New Hampshire,Grafton,2005,2060567
+New Hampshire,Grafton,2006,2183515
+New Hampshire,Grafton,2007,2311654
+New Hampshire,Grafton,2008,2386562
+New Hampshire,Grafton,2009,2350615
+New Hampshire,Grafton,2010,2415113
+New Hampshire,Grafton,2011,2488262
+New Hampshire,Grafton,2012,2572071
+New Hampshire,Grafton,2013,2617138
+New Hampshire,Grafton,2014,2726813
+New Hampshire,Grafton,2015,2840885
+New Hampshire,Hillsborough,2005,8841402
+New Hampshire,Hillsborough,2006,9169864
+New Hampshire,Hillsborough,2007,9710389
+New Hampshire,Hillsborough,2008,9922966
+New Hampshire,Hillsborough,2009,9344800
+New Hampshire,Hillsborough,2010,9381556
+New Hampshire,Hillsborough,2011,9825986
+New Hampshire,Hillsborough,2012,10088026
+New Hampshire,Hillsborough,2013,10291640
+New Hampshire,Hillsborough,2014,11000374
+New Hampshire,Hillsborough,2015,11253706
+New Hampshire,Merrimack,2005,2694722
+New Hampshire,Merrimack,2006,2847531
+New Hampshire,Merrimack,2007,2981385
+New Hampshire,Merrimack,2008,3058114
+New Hampshire,Merrimack,2009,3038908
+New Hampshire,Merrimack,2010,3108857
+New Hampshire,Merrimack,2011,3133148
+New Hampshire,Merrimack,2012,3218276
+New Hampshire,Merrimack,2013,3309917
+New Hampshire,Merrimack,2014,3475085
+New Hampshire,Merrimack,2015,3655725
+New Hampshire,Rockingham,2005,5641732
+New Hampshire,Rockingham,2006,6046702
+New Hampshire,Rockingham,2007,6107300
+New Hampshire,Rockingham,2008,5984347
+New Hampshire,Rockingham,2009,5731503
+New Hampshire,Rockingham,2010,5912430
+New Hampshire,Rockingham,2011,6107516
+New Hampshire,Rockingham,2012,6384927
+New Hampshire,Rockingham,2013,6572248
+New Hampshire,Rockingham,2014,7044839
+New Hampshire,Rockingham,2015,7462749
+New Hampshire,Strafford,2005,1613325
+New Hampshire,Strafford,2006,1675741
+New Hampshire,Strafford,2007,1770179
+New Hampshire,Strafford,2008,1945079
+New Hampshire,Strafford,2009,1897195
+New Hampshire,Strafford,2010,1937092
+New Hampshire,Strafford,2011,2019632
+New Hampshire,Strafford,2012,2049288
+New Hampshire,Strafford,2013,2116057
+New Hampshire,Strafford,2014,2202597
+New Hampshire,Strafford,2015,2323716
+New Hampshire,Sullivan,2005,443836
+New Hampshire,Sullivan,2006,461970
+New Hampshire,Sullivan,2007,488191
+New Hampshire,Sullivan,2008,493476
+New Hampshire,Sullivan,2009,478643
+New Hampshire,Sullivan,2010,485932
+New Hampshire,Sullivan,2011,496105
+New Hampshire,Sullivan,2012,535125
+New Hampshire,Sullivan,2013,551042
+New Hampshire,Sullivan,2014,574191
+New Hampshire,Sullivan,2015,588420
+New Hampshire,Unknown or Undefined,2005,864769
+New Hampshire,Unknown or Undefined,2006,1004168
+New Hampshire,Unknown or Undefined,2007,1051349
+New Hampshire,Unknown or Undefined,2008,1148353
+New Hampshire,Unknown or Undefined,2009,1155988
+New Hampshire,Unknown or Undefined,2010,1195787
+New Hampshire,Unknown or Undefined,2011,1345722
+New Hampshire,Unknown or Undefined,2012,1404565
+New Hampshire,Unknown or Undefined,2013,1459529
+New Hampshire,Unknown or Undefined,2014,1607149
+New Hampshire,Unknown or Undefined,2015,1798702
+Rhode Island,Statewide,2005,18500555
+Rhode Island,Statewide,2006,19440791
+Rhode Island,Statewide,2007,19995344
+Rhode Island,Statewide,2008,20210606
+Rhode Island,Statewide,2009,19497452
+Rhode Island,Statewide,2010,19974647
+Rhode Island,Statewide,2011,20501696
+Rhode Island,Statewide,2012,21055491
+Rhode Island,Statewide,2013,21771331
+Rhode Island,Statewide,2014,22839461
+Rhode Island,Statewide,2015,23801171
+Rhode Island,Bristol,2005,472660
+Rhode Island,Bristol,2006,483527
+Rhode Island,Bristol,2007,508529
+Rhode Island,Bristol,2008,516134
+Rhode Island,Bristol,2009,490561
+Rhode Island,Bristol,2010,482977
+Rhode Island,Bristol,2011,489113
+Rhode Island,Bristol,2012,495665
+Rhode Island,Bristol,2013,515786
+Rhode Island,Bristol,2014,541858
+Rhode Island,Bristol,2015,562526
+Rhode Island,Kent,2005,2996697
+Rhode Island,Kent,2006,3274587
+Rhode Island,Kent,2007,3146044
+Rhode Island,Kent,2008,3080169
+Rhode Island,Kent,2009,2928173
+Rhode Island,Kent,2010,2960066
+Rhode Island,Kent,2011,3048602
+Rhode Island,Kent,2012,3133814
+Rhode Island,Kent,2013,3210700
+Rhode Island,Kent,2014,3238385
+Rhode Island,Kent,2015,3337534
+Rhode Island,Newport,2005,1551712
+Rhode Island,Newport,2006,1632642
+Rhode Island,Newport,2007,1696356
+Rhode Island,Newport,2008,1725866
+Rhode Island,Newport,2009,1707147
+Rhode Island,Newport,2010,1725666
+Rhode Island,Newport,2011,1733005
+Rhode Island,Newport,2012,1741947
+Rhode Island,Newport,2013,1763093
+Rhode Island,Newport,2014,1823750
+Rhode Island,Newport,2015,1863013
+Rhode Island,Providence,2005,11343220
+Rhode Island,Providence,2006,11874380
+Rhode Island,Providence,2007,12355326
+Rhode Island,Providence,2008,12567738
+Rhode Island,Providence,2009,12067760
+Rhode Island,Providence,2010,12345618
+Rhode Island,Providence,2011,12737193
+Rhode Island,Providence,2012,13053429
+Rhode Island,Providence,2013,13531501
+Rhode Island,Providence,2014,14358708
+Rhode Island,Providence,2015,14985614
+Rhode Island,Washington,2005,1743503
+Rhode Island,Washington,2006,1772124
+Rhode Island,Washington,2007,1877603
+Rhode Island,Washington,2008,1861150
+Rhode Island,Washington,2009,1828106
+Rhode Island,Washington,2010,1899116
+Rhode Island,Washington,2011,1937207
+Rhode Island,Washington,2012,2008212
+Rhode Island,Washington,2013,2085795
+Rhode Island,Washington,2014,2187714
+Rhode Island,Washington,2015,2283615
+Rhode Island,Unknown or Undefined,2005,392762
+Rhode Island,Unknown or Undefined,2006,403531
+Rhode Island,Unknown or Undefined,2007,411485
+Rhode Island,Unknown or Undefined,2008,459550
+Rhode Island,Unknown or Undefined,2009,475705
+Rhode Island,Unknown or Undefined,2010,561205
+Rhode Island,Unknown or Undefined,2011,556577
+Rhode Island,Unknown or Undefined,2012,622424
+Rhode Island,Unknown or Undefined,2013,664455
+Rhode Island,Unknown or Undefined,2014,689046
+Rhode Island,Unknown or Undefined,2015,768868
