@@ -31,8 +31,6 @@ library(plotly)
 library(RCurl)
 library(RJSONIO)
 
-dir_git <- '~/github/ohi-northeast'
-dir_rgn <- file.path(dir_git, 'prep/regions')  ### github: general buffer region shapefiles
 dir_anx <- file.path(dir_M, 'git-annex/neprep')
 
 #round to 2 decimals
@@ -140,78 +138,103 @@ $$g ' = \frac{\frac{C_{i}}{C_{r}}}{\frac{T_{i}}{T_{r}}}$$
 
 ```{r wages}
 
-#getting wage statistics from bureau of labor
+#wage statistics came from bureau of labor - had to manually query their online database and copy and paste the data for each county into an excel sheet (bls_wages.csv). Not ideal but their public api is awful and only gets data for years 2013-2015
 
-# ******************************************************************************************
-# qcewGetAreaData : This function takes a year, quarter, and area argument and
-# returns an array containing the associated area data. use 'a' for annual
-# averages. 
-# For all area codes and titles see:
-# http://www.bls.gov/cew/doc/titles/area/area_titles.htm
-
-qcewGetAreaData <- function(year, qtr, area) {
-	url <- "http://www.bls.gov/cew/data/api/YEAR/QTR/area/AREA.csv"
-	url <- sub("YEAR", year, url, ignore.case=FALSE)
-	url <- sub("QTR", qtr, url, ignore.case=FALSE)
-	url <- sub("AREA", area, url, ignore.case=FALSE)
-	print(url)
-	read.csv(url, header = TRUE, sep = ",", quote="\"", dec=".", na.strings=" ", skip=0)
-}
-
-# ******************************************************************************************
+bls_wages <- read.csv('bls_wages.csv',stringsAsFactors=FALSE)
 
 
-#read in codes
-
-codes <- read.csv('bls_wages.csv')
-
-## Pull the data via the API
-
-get_data <- function(code){
-
-
-bls.content <- getURLContent(paste0("http://api.bls.gov/publicAPI/v1/timeseries/data/", code))
-bls.json <- fromJSON(bls.content, simplify=TRUE)
-bls.df <- data.frame(year=sapply(bls.json$Results$series[[1]]$data,"[[","year"),
-                     period=sapply(bls.json$Results$series[[1]]$data,"[[","period"),
-                     periodName=sapply(bls.json$Results$series[[1]]$data,"[[","periodName"),
-                     value=as.numeric(sapply(bls.json$Results$series[[1]]$data,"[[","value")), 
-                     stringsAsFactors=FALSE)%>%
-            mutate(state  = codes$state[match(code,codes$code)],
-                   county = codes$county[match(code,codes$code)])
-}
-
-# match the data with state and county
-
-dt <- lapply(codes$code,get_data)
-bls_wages <- do.call(rbind,dt)%>%
-              filter(periodName == 'Annual')%>%
-              rename(County = county,
-                     State  = state,
-                     Year   = year)%>%
-            mutate(County = as.character(County),
-                   State  = as.character(State),
-                   Year   = as.integer(Year))
-
-
-wages<- data%>%
-          filter(!grepl("All",County))%>%
-          mutate(Wages_2009 = as.numeric(gsub(",","",Wages_2009)))%>%
-          group_by(State, County, Year)%>%
-          summarise(coast_wages = sum(Wages_2009,na.rm=T))%>%
-          mutate(hist_wages = coast_wages[which.min(Year)])%>%
+wages <- data%>%
+          mutate(County = ifelse(grepl("All",County),"Statewide",County),
+                 coast_wages = as.numeric(gsub(",","",Wages_2009)),
+                 hist_wages = coast_wages[which.min(Year)])%>%
+          dplyr::select(-Employment, -Wages, -Wages_2009, GDP, GDP_2009)%>%
           left_join(bls_wages,by=c('State','County','Year'))%>%
-          mutate(cst_chg = coast_wages/hist_jobs, #use historical reference point from 2005
-                 hist_st_jobs = Employment[which.min(Year)],
-                 st_chg = Employment/hist_st_jobs,
-                 score = ifelse((cst_chg/st_chg)>1,1,cst_chg/st_chg))%>%as.data.frame()
+          mutate(w_cst_chg = coast_wages/hist_wages, #use historical reference point from 2005
+                 hist_st_wages = Annual[which.min(Year)],
+                 w_st_chg = Annual/hist_st_wages,
+                 wages_score = ifelse((w_cst_chg/w_st_chg)>1,1,w_cst_chg/w_st_chg))%>%as.data.frame()%>%
+          dplyr::select(-Sector,-Establishments,-GDP,-GDP_2009,-Annual)
+
 
 ```
 
-## Score
+## Wages Score
+
+
+```{r plot_wages}
+
+#by state
+
+s <- wages%>%
+      filter(County == 'Statewide')
+  
+s_plot <- ggplot(s,aes(x = Year,y = wages_score, group=State))+
+  ggtheme_plot+
+  geom_point(aes(color = State)) +
+            geom_line(aes(color = State))+
+            scale_y_continuous(limits = c(0,1))+
+            ggtitle("Wages Scores for the Northeast Regions")+
+  labs(y = 'Score')
+            ggplotly()
+            
+#by county
+            
+c    <- wages%>%
+      filter(County != 'Statewide') 
+
+c_plot <- ggplot(c,aes(x = Year,y = wages_score, group=County))+
+  ggtheme_plot+
+  geom_point(aes(color = County)) +
+            geom_line(aes(color = County))+
+            scale_y_continuous(limits = c(0,1))+
+            ggtitle("Wages Scores for the Northeast Regions")+
+  labs(y = 'Score')
+            ggplotly()
+           
+```
 
 
 
 ***
 
 #Results
+
+Now to calculate the livelihoods sub goal we need to bring jobs and wages together
+
+```{r liv_score}
+
+# Combine wages and jobs data
+
+liv <- jobs%>%
+        left_join(wages)%>%
+       mutate(liv_score = (score + wages_score)/2)
+
+liv_plot <- ggplot(liv,aes(x = Year,y = liv_score, group=County))+
+  ggtheme_plot+
+  geom_point(aes(color = County)) +
+            geom_line(aes(color = County))+
+            scale_y_continuous(limits = c(0,1))+
+            ggtitle("Livelihood Scores for the Northeast Regions")+
+  labs(y = 'Score')
+            ggplotly()
+            
+            
+#aggregate by state (take the mean)
+            
+liv_st <- liv%>%
+            group_by(State, Year)%>%
+            summarise(st_score = mean(liv_score,na.rm=T))
+
+liv_st_plot <- ggplot(liv_st,aes(x = Year,y = st_score, group=State))+
+  ggtheme_plot+
+  geom_point(aes(color = State)) +
+            geom_line(aes(color = State))+
+            scale_y_continuous(limits = c(0,1))+
+            ggtitle("Livelihood Scores for the Northeast Regions")+
+  labs(y = 'Score')
+            ggplotly()
+
+```
+
+
+
