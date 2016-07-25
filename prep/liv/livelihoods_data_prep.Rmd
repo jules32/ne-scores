@@ -18,6 +18,7 @@ output:
 
 ``` {r setup, echo=F, message = FALSE, warning = FALSE}
 knitr::opts_chunk$set(fig.width = 8, fig.height = 6, fig.path = 'figs/', message = FALSE, warning = FALSE, echo=F)
+
 dir_git <- '~/github/ohi-northeast'
 dir_rgn <- file.path(dir_git, 'prep/regions')  ### github: general buffer region shapefiles
 source(file.path(dir_git, 'src/R/common.R'))  ### an OHIBC specific version of common.R
@@ -27,6 +28,8 @@ library(rgdal)
 library(raster)
 library(DT)
 library(plotly)
+library(RCurl)
+library(RJSONIO)
 
 dir_git <- '~/github/ohi-northeast'
 dir_rgn <- file.path(dir_git, 'prep/regions')  ### github: general buffer region shapefiles
@@ -157,17 +160,10 @@ qcewGetAreaData <- function(year, qtr, area) {
 
 # ******************************************************************************************
 
-#area codes for BLS
-ct <- '09000'
-ri <- '44000'
-me <- '23000'
-ma <- '25000'
-nh <- '33000'
-
 
 #read in codes
 
-codes <- read.csv('ne_wages_codes',header=F)
+codes <- read.csv('bls_wages.csv')
 
 ## Pull the data via the API
 
@@ -180,8 +176,22 @@ bls.df <- data.frame(year=sapply(bls.json$Results$series[[1]]$data,"[[","year"),
                      period=sapply(bls.json$Results$series[[1]]$data,"[[","period"),
                      periodName=sapply(bls.json$Results$series[[1]]$data,"[[","periodName"),
                      value=as.numeric(sapply(bls.json$Results$series[[1]]$data,"[[","value")), 
-                     stringsAsFactors=FALSE)
+                     stringsAsFactors=FALSE)%>%
+            mutate(state  = codes$state[match(code,codes$code)],
+                   county = codes$county[match(code,codes$code)])
 }
+
+# match the data with state and county
+
+dt <- lapply(codes$code,get_data)
+bls_wages <- do.call(rbind,dt)%>%
+              filter(periodName == 'Annual')%>%
+              rename(County = county,
+                     State  = state,
+                     Year   = year)%>%
+            mutate(County = as.character(County),
+                   State  = as.character(State),
+                   Year   = as.integer(Year))
 
 
 wages<- data%>%
@@ -190,7 +200,7 @@ wages<- data%>%
           group_by(State, County, Year)%>%
           summarise(coast_wages = sum(Wages_2009,na.rm=T))%>%
           mutate(hist_wages = coast_wages[which.min(Year)])%>%
-          left_join(st_emp,by=c('State','Year'))%>%
+          left_join(bls_wages,by=c('State','County','Year'))%>%
           mutate(cst_chg = coast_wages/hist_jobs, #use historical reference point from 2005
                  hist_st_jobs = Employment[which.min(Year)],
                  st_chg = Employment/hist_st_jobs,
