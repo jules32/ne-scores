@@ -30,6 +30,7 @@ library(DT)
 library(plotly)
 library(RCurl)
 library(RJSONIO)
+library(dplyr)
 
 dir_anx <- file.path(dir_M, 'git-annex/neprep')
 
