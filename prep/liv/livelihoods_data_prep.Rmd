@@ -6,7 +6,7 @@ output:
     toc: true
     toc_depth: 3
     toc_float: yes
-    number_sections: true
+    number_sections: false
     theme: cerulean
     highlight: haddock
     includes: 
@@ -23,13 +23,9 @@ dir_git <- '~/github/ohi-northeast'
 dir_rgn <- file.path(dir_git, 'prep/regions')  ### github: general buffer region shapefiles
 source(file.path(dir_git, 'src/R/common.R'))  ### an OHIBC specific version of common.R
 
-library(zoo)
-library(rgdal)
 library(raster)
 library(DT)
 library(plotly)
-library(RCurl)
-library(RJSONIO)
 library(dplyr)
 
 dir_anx <- file.path(dir_M, 'git-annex/neprep')
@@ -49,9 +45,9 @@ The Livelihoods sub-goal is calculated using coastal employment data from the [N
 ##National ocean Economics Program (NOEP)
 
 **Downloaded**: Received from Pat Johston on May 17, 2016.  
-**Description**:  Total number of jobs per sector for RI, ME, MA, CT and NH counties from 2005 to 2013. The data also include number of establishments, GDP and Wages for each sector - state - year.  
+**Description**:  Total number of jobs and wages per sector for RI, ME, MA, CT and NH counties from 2005 to 2013. The data also include number of establishments and GDP for each sector - state - year.
 **Native data resolution**: County level   
-**Time range**: 1990 - 2013  
+**Time range**: 2005 - 2013  
 **Format**:  Tabular  
 
 ***
@@ -101,7 +97,6 @@ DT::datatable(st_emp, caption = 'Total Employment by State, provided by the Bure
 ```
 
 
-
 ***
 
 #Methods
@@ -118,15 +113,33 @@ where $C_{i}$ is the number of coastal jobs in year *i*, $C_{r}$ is the number o
 ```{r jobs}
 
 jobs<- data%>%
-          filter(!grepl("All",County))%>%
-          group_by(State, County, Year)%>%
-          summarise(coast_jobs = sum(Employment,na.rm=T))%>%
-          mutate(hist_jobs = coast_jobs[which.min(Year)])%>%
+      rename(coast_jobs = Employment)%>%
+      mutate(County    = ifelse(grepl("All",County),"Statewide",County),
+             hist_jobs = coast_jobs[which.min(Year)])%>%
           left_join(st_emp,by=c('State','Year'))%>%
           mutate(cst_chg = coast_jobs/hist_jobs, #use historical reference point from 2005
                  hist_st_jobs = Employment[which.min(Year)],
                  st_chg = Employment/hist_st_jobs,
                  score = ifelse((cst_chg/st_chg)>1,1,cst_chg/st_chg))%>%as.data.frame()
+
+```
+
+```{r jobs_plot}
+
+j_s <- jobs%>%
+      filter(County == 'Statewide')
+  
+j_s_plot <- ggplot(j_s,aes(x = Year,y = score, group=State))+
+  ggtheme_plot+
+  geom_point(aes(color = State)) +
+            geom_line(aes(color = State))+
+            scale_y_continuous(limits = c(0,1))+
+            ggtitle("Jobs Scores for the Northeast")+
+  labs(y = 'Score')
+
+ggplotly(j_s_plot)
+
+ggsave('figs/jobs_scores.png')
 
 ```
 
@@ -176,22 +189,29 @@ s_plot <- ggplot(s,aes(x = Year,y = wages_score, group=State))+
             scale_y_continuous(limits = c(0,1))+
             ggtitle("Wages Scores for the Northeast Regions")+
   labs(y = 'Score')
-            ggplotly()
+
+
+ggplotly(s_plot)
+
+ggsave('figs/state_wages_scores.png')
             
 #by county
-            
-c    <- wages%>%
-      filter(County != 'Statewide') 
-
-c_plot <- ggplot(c,aes(x = Year,y = wages_score, group=County))+
-  ggtheme_plot+
-  geom_point(aes(color = County)) +
-            geom_line(aes(color = County))+
-            scale_y_continuous(limits = c(0,1))+
-            ggtitle("Wages Scores for the Northeast Regions")+
-  labs(y = 'Score')
-            ggplotly()
-           
+#             
+# c    <- wages%>%
+#       filter(County != 'Statewide') 
+# 
+# c_plot <- ggplot(c,aes(x = Year,y = wages_score, group=County))+
+#   ggtheme_plot+
+#   geom_point(aes(color = County)) +
+#             geom_line(aes(color = County))+
+#             scale_y_continuous(limits = c(0,1))+
+#             ggtitle("Wages Scores for the Northeast Regions")+
+#   labs(y = 'Score')
+#             
+#            
+# ggplotly(c_plot)
+# 
+# ggsave('figs/wages_county_scores.png')
 ```
 
 
@@ -233,9 +253,19 @@ liv_st_plot <- ggplot(liv_st,aes(x = Year,y = st_score, group=State))+
             scale_y_continuous(limits = c(0,1))+
             ggtitle("Livelihood Scores for the Northeast Regions")+
   labs(y = 'Score')
-            ggplotly()
 
+ggplotly(liv_st_plot)
+
+ggsave('figs/liv_scores.png') 
 ```
 
 
+***
 
+#Citation information  
+
+National Ocean Economics Program. Ocean Economic Data by Sector & Industry., ONLINE. 2012.
+Available: http://www.OceanEconomics.org/Market/oceanEcon.asp [17 May 2016]
+
+
+Bureau of Labor Statistics, U.S. Department of Labor, Quarterly Census of Employment and Wages. 7/24/2016. http://www.bls.gov/cew/](http://www.bls.gov/cew/).
