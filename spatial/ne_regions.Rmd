@@ -1,0 +1,145 @@
+---
+title: "Northeast OHI Regions"
+author: "Jamie Afflerbach"
+date: "10/4/2016"
+output: html_document
+---
+
+
+# Creating the regions for the northeast assessment 
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(fig.width = 6, fig.height = 4, fig.path = 'figs/',
+                      echo = FALSE, message = FALSE, warning = FALSE, root.dir = "ohi-northeast")
+
+source('~/github/ohi-northeast/src/R/common.R') ### an OHI-NE specific version of common.R
+
+dir_git <- '~/github/ohi-northeast'
+dir_anx <- file.path(dir_M, 'git-annex/neprep')
+
+library(sp)
+library(rgdal)
+library(tmap)
+library(RCurl)
+library(raster)
+library(rgeos)
+
+```
+
+
+# read in the US EEZ shapefile and the BOEM shapefile
+
+```{r}
+
+eez    <- readOGR(dsn= file.path(dir_M,'git-annex/globalprep/spatial/d2014/data'),layer = 'regions_gcs')%>%
+            subset(rgn_nam == 'United States')%>%
+            subset(rgn_typ == 'eez')%>%
+          crop(ne_ext)%>%
+        spTransform(p4s_nad83)
+
+writeOGR(eez,dsn = 'spatial',layer = 'ne_eez',driver = "ESRI Shapefile")
+
+coastline <-  readOGR(dsn= file.path(dir_M,'git-annex/globalprep/spatial/d2014/data'),layer = 'regions_gcs')%>%
+                subset(rgn_typ=='land')%>%
+                 spTransform(p4s_nad83)%>%
+                  crop(ne_ext)
+               
+boem   <- readOGR(dsn = file.path(dir_anx,'spatial/Atl_admn'), layer = 'atl_admn')%>%
+        spTransform(p4s_nad83)
+states <- readOGR(dsn = file.path(dir_anx,'spatial'),layer = 'states')%>%subset(STATE_NAME %in% c('Maine','New Hampshire','Massachusetts','Vermont','Connecticut','New York','Rhode Island', 'New Jersey','Delaware','Pennsylvania'))%>%
+        spTransform(p4s_nad83)
+
+state_wa <-  readOGR(dsn = file.path(dir_anx,'spatial'), layer = 'StateWaters')%>%
+        spTransform(p4s_nad83)
+
+meow <- readOGR(dsn = file.path(dir_anx,'spatial/MEOW-TNC'),layer = 'meow_ecos')%>%
+        subset(ECOREGION == 'Gulf of Maine/Bay of Fundy' | ECOREGION == 'Virginian')%>%
+        spTransform(p4s_nad83)%>%
+        crop(ne_ext)%>%
+        raster::intersect(eez)
+
+#NE ocean plan region of interest
+ne_roi <- readOGR(dsn = file.path(dir_anx,'spatial/NEOceanPlan_StudyArea'),layer = 'StudyAreaWGS84')%>%
+            spTransform(p4s_nad83)
+
+plot(eez)
+plot(boem,add=T)
+plot(states,add=T)
+
+```
+
+
+#NEFSC Statistical Areas
+
+https://data.noaa.gov/dataset/nefsc-statistical-areas
+
+```{r}
+reload <- FALSE
+
+if(reload) {
+  ### Get filenames from NEFSC FTP URL:
+  url <- "ftp://ftp.nefsc.noaa.gov/pub/gis/"
+  filenames <- getURL(url,
+                      ftp.use.epsv = FALSE,
+                      dirlistonly = TRUE) %>%
+    str_split('\n') %>%
+    unlist()
+  
+  filenames <- filenames[str_detect(filenames, 'Statistical_Areas')] %>%
+    sort()
+  
+  
+  ### Set up loop to download each file and save to git-annex:
+  
+  ftp_dir <- "ftp://ftp.nefsc.noaa.gov/pub/gis/"
+  for (i in 1:length(filenames)) { # nc_file <- filenames[2]
+    print(i)
+    gis_file <- filenames[i]
+    
+    download.file(url      = file.path(ftp_dir, gis_file),
+                  destfile = file.path(dir_anx, 'spatial/NEFSC_StatAreas', gis_file),
+                  mode     = 'wb')
+  }
+}
+
+
+```
+
+#MEOW and State waters
+
+```{r meow}
+#intersect coastline with state waters
+
+int <- gUnion(state_wa,coastline, byid=T)
+
+int2 <- gUnion(state_wa,meow,byid=T)
+
+diff <- gDifference(meow,coastline,byid=T)
+
+
+```
+
+
+
+# State waters and Herring Management Areas
+
+https://www.greateratlantic.fisheries.noaa.gov/educational_resources/gis/data/index.html
+
+Northeast region plan boundaries and BOEM boundaries
+
+```{r join}
+
+herring <- readOGR(dsn = file.path(dir_anx,'spatial/Herring_Management_Areas_20150315/Herring_Management_Areas'), layer = 'Herring_Management_Areas')
+
+state_wa <
+
+
+```
+
+
+# State waters and Lobster Gear Areas
+
+
+# State waters and NE Region Plan
+
+

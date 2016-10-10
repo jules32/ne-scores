@@ -1,0 +1,161 @@
+---
+title: 'OHI-Northeast: Sea Level Rise Pressure Layer'
+author: "*Compiled on `r date()` by `r Sys.info()['user']`*"
+output: 
+  html_document:
+    code_folding: show
+    toc: true
+    toc_depth: 3
+    toc_float: yes
+    number_sections: true
+    theme: cerulean
+    highlight: haddock
+    includes: 
+      in_header: '~/github/ohi-northeast/src/templates/ohi_hdr.html'
+  pdf_document:
+    toc: true
+---
+
+``` {r child = file.path(dir_git, 'src/templates/ohibc_prov_ftr.Rmd')}
+```
+
+#Summary
+[general description: What data are being generated? Why (what project, etc.)? Upstream/downstream processing information that might be helpful?  Other information?]
+
+***
+
+#Data Source [NOTE: can be copied from README.md in rawdata file]
+**Reference**: [citation for source data; website, literature, contact information. Version of data (if relevant). Screenshots if a series of menus had to be navigated to obtain the data.]
+
+**Downloaded**: [date downloaded or received]
+
+**Description**:  [e.g., surface aragonite state]
+
+**Native data resolution**: [e.g., 1 degree, 30 m, etc.]   
+
+**Time range**: [e.g., 1880-1899, monthly data provided for each year] 
+
+**Format**:  [e.g. NetCDF]
+
+***
+  
+#Methods
+
+## Setup
+
+``` {r setup, message = FALSE, warning = FALSE}
+
+knitr::opts_chunk$set(fig.width = 6, fig.height = 4, fig.path = 'figs/',
+                      echo = FALSE, message = FALSE, warning = FALSE)
+
+source('~/github/ohi-northeast/src/R/common.R')  ### an OHI-NE specific version of common.R
+
+library(sp)
+library(rgdal)
+library(raster)
+library(DT)
+library(tmap)
+library(rasterVis)
+
+dir_git <- '~/github/ohi-northeast'
+dir_anx <- file.path(dir_M, 'git-annex/neprep')
+dir_anx_aviso <- file.path(dir_M, 'git-annex/globalprep/_raw_data/AVISO_slr/d2016')
+
+ne_rgns <- readOGR(dsn = file.path(dir_git,'spatial/neextent'),layer = 'StudyAreaWGS84')
+
+### set up proj4string options: NAD1983 and WGS84
+p4s_wgs84 <- '+proj = longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0'
+p4s_nad83 <- '+init=epsg:4269 +proj=longlat +ellps=GRS80 +datum=NAD83 +no_defs +towgs84=0,0,0'
+
+```
+
+
+
+### Download files
+
+``` {r download_files_and_unzip}
+
+reload <- FALSE
+
+if(reload) {
+  ### Get filenames from AVISO FTP URL:
+  library(RCurl)
+  url <- "ftp://ftp.aviso.altimetry.fr/global/delayed-time/grids/climatology/monthly_mean/"
+  userpwd <- "ucsb_afflerbach:sioped54j"
+  filenames <- getURL(url,
+                      userpwd = userpwd,
+                      ftp.use.epsv = FALSE,
+                      dirlistonly = TRUE) %>%
+    str_split('\n') %>%
+    unlist()
+  
+  filenames <- filenames[!str_detect(filenames, '.png')] %>%
+    sort()
+  
+  
+  ### Set up loop to download each file and save to git-annex:
+  
+  ftp_dir <- 'ftp://ucsb_afflerbach:sioped54j@ftp.aviso.altimetry.fr/global/delayed-time/grids/climatology/monthly_mean'
+  for (i in 1:length(filenames)) { # nc_file <- filenames[2]
+    print(i)
+    nc_file <- filenames[i]
+    
+    download.file(url      = file.path(ftp_dir, nc_file),
+                  destfile = file.path(dir_anx_aviso, 'msla_monthly_mean', nc_file),
+                  mode     = 'wb')
+  }
+  
+  zipfiles <- list.files(file.path(dir_anx_aviso, 'msla_monthly_mean'),
+                         full.names = TRUE)
+  zipfiles <- zipfiles[str_detect(zipfiles, '.gz')]
+  for (zipfile in zipfiles) { # zipfile <- zipfiles[1]
+    message('Unzipping file: ', zipfile)
+    R.utils::gunzip(zipfile, remove = TRUE, skip = TRUE)
+  }
+}
+```
+
+
+### Clip data to coastal cells
+
+All NetCDF files for each month over the 22 years are rasterized, clipped to the northeast region and all non-coastal bordering cells are removed. To do this we use a 3 nautical mile offshore buffer polygon to select all coastal cells. For this to work, the raw data cells need to be disaggregated by a factor of 8 in order for the mask to accurately select cells that fall within the polygons. 
+
+
+```{r clip, eval=F}
+
+#list all netCDF files
+nc_files <- list.files(file.path(dir_anx_aviso, 'msla_monthly_mean'),
+                       full.names = TRUE,pattern='.nc')
+
+## resampling raw data to smaller cell size, then create a raster of all coastal cells. The resampling needs to be done
+## first to ensure we get the small islands that would otherwise be ignored at larger cell seizes
+
+#offshore 3 nm polygon for all regions
+three_nm <- readOGR(dsn= file.path(dir_anx,'spatial/d2014/data'),layer = 'regions_offshore3nm_gcs')
+
+    r <- raster(nc_files[1])%>%
+            rotate()%>%
+            disaggregate(fact = 8)
+    
+    #define projection of the raster before reprojecting
+    projection(r) <- "+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0"
+    
+    r_3nm_mask <- mask(r,three_nm, progress='text')
+    writeRaster(r_3nm_mask,filename = file.path(dir_git,'globalprep/prs_slr/v2016/int/rast_3nm_mask.tif'))
+    
+```
+
+```{r plot_mask}
+
+s <- raster(file.path(dir_git,'globalprep/prs_slr/v2016/int/rast_3nm_mask.tif'))
+plot(ocean, col='cornsilk2', axes=F, box=F, main = 'Coastal cells mask', legend=F)		
+plot(s,col='black',axes=F, box=F,legend=F,add=T)
+
+```
+
+
+
+***
+
+#Citation information  
+[citation information: include if these data will have their own specific citation.]
