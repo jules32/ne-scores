@@ -1,7 +1,7 @@
 ---
-title: "OHI-Northeast: Region Options"
+title: 'OHI-Northeast: Region Options'
 author: "*Compiled on `r date()` by `r Sys.info()['user']`*"
-output: 
+output:
   html_document:
     toc: true
     toc_depth: 3
@@ -54,7 +54,7 @@ library(maptools)
 
 # writeOGR(eez,dsn = 'spatial',layer = 'ne_eez',driver = "ESRI Shapefile")
 
-eez <- readOGR(dsn = '.',layer = 'ne_eez')%>%
+eez <- readOGR(dsn = '.',layer = 'ne_eez', verbose = FALSE)%>%
         spTransform(p4s_nad83)
 # 
 # coastline <-  readOGR(dsn= file.path(dir_M,'git-annex/globalprep/spatial/d2014/data'),layer = 'regions_gcs')%>%
@@ -62,18 +62,18 @@ eez <- readOGR(dsn = '.',layer = 'ne_eez')%>%
 #                  spTransform(p4s_nad83)%>%
 #                   crop(ne_ext)
                
-boem   <- readOGR(dsn = file.path(dir_anx,'spatial/Atl_admn'), layer = 'atl_admn')%>%
+boem   <- readOGR(dsn = file.path(dir_anx,'spatial/Atl_admn'), layer = 'atl_admn', verbose = FALSE)%>%
         spTransform(p4s_nad83)%>%
           crop(ne_ext)%>%
           subset(Atl_ID <8)
 
-states <- readOGR(dsn = file.path(dir_anx,'spatial'),layer = 'states')%>%subset(STATE_NAME %in% c('Maine','New Hampshire','Massachusetts','Vermont','Connecticut','New York','Rhode Island', 'New Jersey','Delaware','Pennsylvania'))%>%
+states <- readOGR(dsn = file.path(dir_anx,'spatial'),layer = 'states', verbose = FALSE)%>%subset(STATE_NAME %in% c('Maine','New Hampshire','Massachusetts','Vermont','Connecticut','New York','Rhode Island', 'New Jersey','Delaware','Pennsylvania'))%>%
         spTransform(p4s_nad83)
 
-state_wa <-  readOGR(dsn = file.path(dir_anx,'spatial'), layer = 'StateWaters')%>%
+state_wa <-  readOGR(dsn = file.path(dir_anx,'spatial'), layer = 'StateWaters', verbose = FALSE)%>%
         spTransform(p4s_nad83)
 
-meow <- readOGR(dsn = file.path(dir_anx,'spatial/MEOW-TNC'),layer = 'meow_ecos')%>%
+meow <- readOGR(dsn = file.path(dir_anx,'spatial/MEOW-TNC'),layer = 'meow_ecos', verbose = FALSE)%>%
         subset(ECOREGION == 'Gulf of Maine/Bay of Fundy' | ECOREGION == 'Virginian')%>%
         spTransform(p4s_nad83)%>%
         crop(ne_ext)%>%
@@ -83,7 +83,7 @@ meow@data$ECOREGION <- factor(meow@data$ECOREGION)
 
 
 #NE ocean plan region of interest
-ne_roi <- readOGR(dsn = file.path(dir_anx,'spatial/NEOceanPlan_StudyArea'),layer = 'StudyAreaWGS84')%>%
+ne_roi <- readOGR(dsn = file.path(dir_anx,'spatial/NEOceanPlan_StudyArea'),layer = 'StudyAreaWGS84', verbose = FALSE)%>%
             spTransform(p4s_nad83)
 
 ```
@@ -158,7 +158,7 @@ I tried finding a good shapefile of George's Bank but haven't been able to find 
 
 # writeOGR(herring,dsn=file.path(dir_anx,'spatial'),layer = 'herring',driver = "ESRI Shapefile")            
 
-herring <- readOGR(dsn = file.path(dir_anx,'spatial'),layer = 'herring')
+herring <- readOGR(dsn = file.path(dir_anx,'spatial'),layer = 'herring', verbose = FALSE)
 herring@data$AREANAME = as.character(herring@data$AREANAME)
 herring@data$COMMNAME = as.character(herring@data$COMMNAME)
 herring@data$id       = rownames(herring@data)
