@@ -83,7 +83,7 @@ meow@data$ECOREGION <- factor(meow@data$ECOREGION)
 
 
 #NE ocean plan region of interest
-ne_roi <- readOGR(dsn = file.path(dir_anx,'spatial/NEOceanPlan_StudyArea'),layer = 'StudyAreaWGS84', verbose = FALSE)%>%
+ne_roi <- readOGR(dsn = file.path(dir_anx,'spatial'),layer = 'ne_plan_poly', verbose = FALSE)%>%
             spTransform(p4s_nad83)
 
 ```
