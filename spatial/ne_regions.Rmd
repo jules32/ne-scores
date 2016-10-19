@@ -73,11 +73,9 @@ states <- readOGR(dsn = file.path(dir_anx,'spatial'),layer = 'states', verbose =
 state_wa <-  readOGR(dsn = file.path(dir_anx,'spatial'), layer = 'StateWaters', verbose = FALSE)%>%
         spTransform(p4s_nad83)
 
-meow <- readOGR(dsn = file.path(dir_anx,'spatial/MEOW-TNC'),layer = 'meow_ecos', verbose = FALSE)%>%
-        subset(ECOREGION == 'Gulf of Maine/Bay of Fundy' | ECOREGION == 'Virginian')%>%
+meow <- readOGR(dsn = file.path(dir_anx,'spatial/MEOW-TNC'),layer = 'meow_ecos_ne', verbose = FALSE)%>%
         spTransform(p4s_nad83)%>%
-        crop(ne_ext)%>%
-        raster::intersect(eez)
+        crop(ne_ext)
 
 meow@data$ECOREGION <- factor(meow@data$ECOREGION)
 
