@@ -22,7 +22,7 @@ if (length(setdiff(packages, rownames(installed.packages()))) > 0) {
 }
 
 #round everything to 2 decimal places
-options(digits=2)
+options(digits=2, scipen = 999)
 
 #libraries
 library(tidyverse)
@@ -34,11 +34,13 @@ rm(packages)
 #spatial information
 
 ## extent for region of interest
-ne_ext <- raster::extent(-76, -62,37, 47)
+ne_ext <- raster::extent(1719007,2564139,298989,1199438) #this is for us_albers projection only
+par(mar = c(1,1,1,1))
 
 ### set up proj4string options: NAD1983 and WGS84
-p4s_wgs84 <- '+proj = longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0'
+p4s_wgs84 <- '+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0'
 p4s_nad83 <- '+proj=longlat +ellps=GRS80 +datum=NAD83 +no_defs +towgs84=0,0,0'
+us_alb    <- "+proj=aea +lat_1=29.5 +lat_2=45.5 +lat_0=37.5 +lon_0=-96 +x_0=0 +y_0=0 +ellps=GRS80 +datum=NAD83 +units=m +no_defs" 
 
 
 ### Define spectral color scheme for plotting maps
