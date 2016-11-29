@@ -1,5 +1,5 @@
 ---
-title: 'OHI-Northeast: Region Options'
+title: 'OHI-Northeast: Regions'
 author: "*Compiled on `r date()` by `r Sys.info()['user']`*"
 output:
   html_document:
@@ -15,18 +15,11 @@ output:
     toc: true
 ---
 
-
-I've created a few different options for delineating regions for the Northeast Ocean Health Index assessment. These are based on the various shapefiles and data that I could find while incorporating what I've learned about the region over the past few months. Using these different maps, it would be great if we could come up with one or two options to present to the RPB. I can generate additional options based on our discussion around these. 
-
-Main things to consider when looking at these maps:
-
-(1) Do we want regions divided along states? If so, should we keep these regions to 3nm, or extend them offshore.
-(2) Do we want to incorporate biogeographic boundaries, such as the Gulf of Maine, George's Bank.
-(3) Do we want to have offshore regions extend to the 200 nm EEZ?
+Based on the region configuration options in ne_rgn_options, I created a single shapefile with a widely agreed upon configuration. This is not formalized yet but can be used to begin data prep for the assessment.
 
 ```{r setup, include=FALSE, message=F,warning=F,echo=F}
-knitr::opts_chunk$set(fig.width = 8, fig.height = 6, fig.path = 'figs/',
-                      echo = FALSE, message = FALSE, warning = FALSE, root.dir = "ohi-northeast")
+
+knitr::opts_chunk$set(fig.width = 8, fig.height = 6, fig.path = 'figs/', message = FALSE, warning = FALSE, root.dir = "ohi-northeast")
 
 source('~/github/ohi-northeast/src/R/common.R') ### an OHI-NE specific version of common.R
 
@@ -43,8 +36,9 @@ library(maptools)
 
 ```
 
+## Read in individual shapefiles for the region
 
-```{r}
+```{r read_in_data}
 
 # eez    <- readOGR(dsn = file.path(dir_M,'git-annex/globalprep/spatial/d2014/data'),layer = 'regions_gcs')%>%
 #             subset(rgn_nam == 'United States')%>%
@@ -56,38 +50,41 @@ library(maptools)
 
 eez <- readOGR(dsn = '.',layer = 'ne_eez', verbose = FALSE)%>%
         spTransform(p4s_nad83)
-# 
-# coastline <-  readOGR(dsn= file.path(dir_M,'git-annex/globalprep/spatial/d2014/data'),layer = 'regions_gcs')%>%
-#                 subset(rgn_typ=='land')%>%
-#                  spTransform(p4s_nad83)%>%
-#                   crop(ne_ext)
-               
-boem   <- readOGR(dsn = file.path(dir_anx,'spatial/Atl_admn'), layer = 'atl_admn', verbose = FALSE)%>%
-        spTransform(p4s_nad83)%>%
-          crop(ne_ext)%>%
-          subset(Atl_ID <8)
 
+plot(eez, col = 'lightblue', main = "EEZ 200 nm off the Northeast United States")
+
+#state land boundaries
 states <- readOGR(dsn = file.path(dir_anx,'spatial'),layer = 'states', verbose = FALSE)%>%subset(STATE_NAME %in% c('Maine','New Hampshire','Massachusetts','Vermont','Connecticut','New York','Rhode Island', 'New Jersey','Delaware','Pennsylvania'))%>%
         spTransform(p4s_nad83)
 
-state_wa <-  readOGR(dsn = file.path(dir_anx,'spatial'), layer = 'StateWaters', verbose = FALSE)%>%
-        spTransform(p4s_nad83)
+#state waters
+state_wa <- readOGR(dsn = file.path(dir_anx,'spatial'), layer = 'StateWaters', verbose = FALSE)%>%
+              spTransform(p4s_nad83)
+#remove vermont
+state_wa <- state_wa %>% subset(!NAME10=="Vermont")
 
+plot(state_wa,col = brewer.pal(8,'Blues'), main = "State Waters in the Northeast")
+
+#marine ecological regions
 meow <- readOGR(dsn = file.path(dir_anx,'spatial/MEOW-TNC'),layer = 'meow_ecos_ne', verbose = FALSE)%>%
         spTransform(p4s_nad83)%>%
-        crop(ne_ext)
+        crop(extent(-76, -62,37, 47))
 
 meow@data$ECOREGION <- factor(meow@data$ECOREGION)
 
+plot(states)
+plot(meow, add=T,col = brewer.pal(3,"Blues"))
 
-#NE ocean plan region of interest
+#NE ocean plan region of interest - provided by Emily
 ne_roi <- readOGR(dsn = file.path(dir_anx,'spatial'),layer = 'ne_plan_poly', verbose = FALSE)%>%
             spTransform(p4s_nad83)
 
+plot(states, main = "Northeast Ocean Planning Boundary")
+plot(ne_roi, add = T, col = 'lightblue')
+
 ```
 
-
-# Marine Ecoregions and State Waters
+## Marine Ecoregions and State Waters
 
 This option combines two regional Marine Ecoregions (MEOWs), Gulf of Maine/Bay of Fundy and the Virginian regions, with state waters in the northeast. Massachusetts state waters are split into two regions where state waters meet the boundary between the two ecoregions. The offshore regions extend to the US EEZ.
 
@@ -119,21 +116,17 @@ tm_layout(legend.text.size = 0.6,
 
 ```
 
-# Marine Ecoregions and State Waters limited to the Northeast Ocean Planning Extent
+## Marine Ecoregions and State Waters limited to the Northeast Ocean Planning Extent
 
-Kate provided a single shapefile that delineates the planning region in the Northeast, which falls along the continental shelf. The only change in this map is the offshore limit, based on this region.
 
 ```{r}
 
-m <- raster::intersect(ne_roi,meow)
+meow_ne <- raster::intersect(ne_roi,meow)
 
-tm_shape(m)+
+tm_shape(meow_ne)+
     tm_polygons("ECOREGION", title = "Ecoregion", palette = 'Paired')+
-tm_shape(states)+
-  tm_polygons(col='beige')+
 tm_shape(int) + 
-  tm_polygons("NAME10", 
-        title="State",palette="Pastel2")+
+  tm_polygons("NAME10",title="State",palette="Pastel2")+
 tm_layout(legend.text.size = 0.6,
           legend.position = c("left","top"),
           legend.bg.color = "white",
@@ -141,111 +134,46 @@ tm_layout(legend.text.size = 0.6,
 
 ```
 
-# Adding in George's Bank
+## Create single shapefile with all regions
 
-I tried finding a good shapefile of George's Bank but haven't been able to find a great one, I'm hoping your expertise can help us make a decision about this. The best one I could find to represent George's Bank is from the Herring Management Areas as [designated by NOAA](https://www.greateratlantic.fisheries.noaa.gov/educational_resources/gis/data/index.html):
+Need to merge `meow_ne` which includes meow regions to state waters and `int` which are all state waters including two portions of MA.
 
-```{r gb}
+```{r rgns}
+# Need to make sure the data is set up the same between the two before merging
 
-# herring <- readOGR(dsn = file.path(dir_anx,'spatial/Herring_Management_Areas_20150315/Herring_Management_Areas'), layer = 'Herring_Management_Areas')
-# 
-# herring@data <- herring@data%>%dplyr::select(AREANAME,COMMNAME)
-# 
-# herring <- spTransform(herring, p4s_nad83)%>%
-#             crop(herring,ne_ext)
+int@data <- int@data%>%
+              mutate(rgn_id = c(1:7))%>%
+              rename(rgn_name = NAME10)%>%
+              dplyr::select(rgn_id,rgn_name)
 
-# writeOGR(herring,dsn=file.path(dir_anx,'spatial'),layer = 'herring',driver = "ESRI Shapefile")            
+meow_ne@data<- meow_ne@data%>%
+                mutate(rgn_id = c(8:9))%>%
+                rename(rgn_name = ECOREGION)%>%
+                dplyr::select(rgn_id, rgn_name)
+                        
+#make unique polygon ids
+m <- spChFIDs(meow_ne, as.character(meow_ne$rgn_id))
+i <- spChFIDs(int, as.character(int$rgn_id))
 
-herring <- readOGR(dsn = file.path(dir_anx,'spatial'),layer = 'herring', verbose = FALSE)
-herring@data$AREANAME = as.character(herring@data$AREANAME)
-herring@data$COMMNAME = as.character(herring@data$COMMNAME)
-herring@data$id       = rownames(herring@data)
+#merge the two using spRbind
+both <- spRbind(i,m)
 
-her.f <- fortify(herring, region = "id")
-her.df <- plyr::join(her.f, herring@data, by="id")
+#project the shapefile then calculate area per polygon
 
-states@data$id = rownames(states@data)
-states.f <- fortify(states,region = "id")
-states.df <- plyr::join(states.f, states@data, by="id")
+ne_rgns <- spTransform(both,CRS(us_alb))
 
-ggplot() + 
-  geom_polygon(data = states.df, aes(long, lat, group = group), fill = 'beige', colour = 'gray')+ 
-  geom_polygon(data = her.df, aes(long, lat, group = group, fill = factor(AREANAME))) +
-  coord_equal()+
-  scale_fill_brewer(palette = 'Pastel2', name="Herring Mgmt Areas")+
-  theme_bw() +
-  labs(x="", y="")+
-  theme(axis.ticks.y = element_blank(),axis.text.y = element_blank(), # get rid of x ticks/text
-          axis.ticks.x = element_blank(),axis.text.x = element_blank(),axis.line = element_blank(),
-    panel.grid.major = element_blank(),
-    panel.grid.minor = element_blank(),
-    panel.border = element_blank(),
-    panel.background = element_blank())
+ne_rgns@data$area_km2 <- gArea(ne_rgns,byid=TRUE)/1000000 #divide by 1000m*1000m
 
-
-# tm_shape(herring)+
-#   tm_fill("AREANAME")+
-# tm_shape(states)+
-#   tm_polygons(col='beige')+
-# tm_shape(int) + 
-#   tm_polygons("NAME10", 
-#         title="State",palette="Pastel2")+
-# tm_layout(legend.text.size = 0.6,
-#           legend.position = c("left","top"),
-#           legend.bg.color = "white",
-#           legend.bg.alpha = 1)
-```
-
-# George's Bank plus MEOW and State Waters
-
-For this options I took the George's Bank region from the Herring Management Areas and added it to the MEOW regions. If we do like this, we can find or make a different region for this. 
-
-```{r}
-gb <- subset(herring, COMMNAME == "Herring Area 3")%>%
-        spTransform(p4s_nad83)
-
-gb@data$name = "George's Bank"
-      
-her_meow <- raster::intersect(meow,gb) #gb
-
-
-tm_shape(meow)+
-    tm_polygons("ECOREGION", title = "Ecoregion", palette = 'Paired')+
-tm_shape(states)+
-  tm_polygons(col='beige')+
-tm_shape(gb)+
-  tm_polygons("name", title = "Herring Mgmt Area", palette = 'Set2')+
-tm_shape(int) + 
-  tm_polygons("NAME10", 
-        title="State",palette="Pastel2")+
+tm_shape(ne_rgns)+
+    tm_polygons("rgn_name", title = "Regions", palette = 'Paired')+
 tm_layout(legend.text.size = 0.6,
           legend.position = c("left","top"),
           legend.bg.color = "white",
           legend.bg.alpha = 1)
 
-```
+#save
 
-# BOEM 
-
-The Bureau of Ocean Energy Management (BOEM) has delineated [Administrative Boundaries](http://www.boem.gov/Administrative-Boundaries/) in the Atlantic that extend from state waters to the US EEZ. These could be used to create offshore waters per state that extend beyond the 3 nm limit.
-
-This option gives Massachusetts just one region for state waters, along with the largest offshore region.
-
-```{r join}
-
-tm_shape(eez)+
-    tm_polygons("rgn_nam", title = "EEZ", palette = 'Paired')+
-tm_shape(states)+
-  tm_polygons(col='beige')+
-tm_shape(boem)+
-  tm_lines(col = "black", title.col="BOEM Administrative Boundaries", legend.lwd.show=TRUE)+
-tm_shape(state_wa) + 
-  tm_polygons("NAME10", 
-        title="State",palette="Pastel2")+
-tm_layout(legend.text.size = 0.6,
-          legend.position = c("left","top"),
-          legend.bg.color = "white",
-          legend.bg.alpha = 1)
+#writeOGR(ne_rgns,dsn = '.',layer = 'ne_ohi_rgns', driver = "ESRI Shapefile")
 
 ```
 
