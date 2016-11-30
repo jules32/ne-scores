@@ -1,5 +1,5 @@
 ---
-title: 'OHI-Northeast: Sea Surface Temperature Pressure'
+title: 'OHI-Northeast: [NAME OF GOAL/LAYER]'
 author: "*Compiled on `r date()` by `r Sys.info()['user']`*"
 output: 
   html_document:
