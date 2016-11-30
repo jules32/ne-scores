@@ -19,7 +19,7 @@ Based on the region configuration options in ne_rgn_options, I created a single 
 
 ```{r setup, include=FALSE, message=F,warning=F,echo=F}
 
-knitr::opts_chunk$set(fig.width = 8, fig.height = 6, fig.path = 'figs/', message = FALSE, warning = FALSE, root.dir = "ohi-northeast")
+knitr::opts_chunk$set(fig.width = 8, fig.height = 6, message = FALSE, warning = FALSE, root.dir = "ohi-northeast")
 
 source('~/github/ohi-northeast/src/R/common.R') ### an OHI-NE specific version of common.R
 
@@ -57,12 +57,11 @@ plot(eez, col = 'lightblue', main = "EEZ 200 nm off the Northeast United States"
 states <- readOGR(dsn = file.path(dir_anx,'spatial'),layer = 'states', verbose = FALSE)%>%subset(STATE_NAME %in% c('Maine','New Hampshire','Massachusetts','Vermont','Connecticut','New York','Rhode Island', 'New Jersey','Delaware','Pennsylvania'))%>%
         spTransform(p4s_nad83)
 
-#state waters
-state_wa <- readOGR(dsn = file.path(dir_anx,'spatial'), layer = 'StateWaters', verbose = FALSE)%>%
+#state waters with some Maine rivers removed (done in QGIS)
+state_wa <- readOGR(dsn = file.path(dir_anx,'spatial'), layer = 'StateWaters_wo_rivs_cleaned', verbose = FALSE)%>%
               spTransform(p4s_nad83)
 #remove vermont
 state_wa <- state_wa %>% subset(!NAME10=="Vermont")
-
 plot(state_wa,col = brewer.pal(8,'Blues'), main = "State Waters in the Northeast")
 
 #marine ecological regions
@@ -165,7 +164,7 @@ ne_rgns <- spTransform(both,CRS(us_alb))
 ne_rgns@data$area_km2 <- gArea(ne_rgns,byid=TRUE)/1000000 #divide by 1000m*1000m
 
 tm_shape(ne_rgns)+
-    tm_polygons("rgn_name", title = "Regions", palette = 'Paired')+
+    tm_polygons("rgn_name", title = "Regions", palette = 'Pastel2')+
 tm_layout(legend.text.size = 0.6,
           legend.position = c("left","top"),
           legend.bg.color = "white",
@@ -173,7 +172,7 @@ tm_layout(legend.text.size = 0.6,
 
 #save
 
-#writeOGR(ne_rgns,dsn = '.',layer = 'ne_ohi_rgns', driver = "ESRI Shapefile")
+writeOGR(ne_rgns,dsn = '.',layer = 'ne_ohi_rgns', driver = "ESRI Shapefile",overwrite_layer=TRUE)
 
 ```
 
