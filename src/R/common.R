@@ -3,10 +3,14 @@
 #This script has common paths, libraries for the OHINE project
 
 
-# set the neptune data_edit share based on operating system
+# set the mazu data_edit share based on operating system
 dir_M             <- c('Windows' = '//mazu.nceas.ucsb.edu/ohi',
                        'Darwin'  = '/Volumes/ohi',    ### connect (cmd-K) to smb://mazu/ohi
                        'Linux'   = '/home/shares/ohi')[[ Sys.info()[['sysname']] ]]
+#set additional paths
+dir_git <- '~/github/ohi-northeast'
+dir_rgn <- file.path(dir_git, 'prep/regions')  ### github: general buffer region shapefiles
+dir_anx <- file.path(dir_M, 'git-annex/neprep')
 
 # WARN rather than stop if directory doesn't exist
 if (!file.exists(sprintf('%s/',dir_M))){
@@ -28,19 +32,23 @@ options(digits=2, scipen = 999)
 library(tidyverse)
 library(stringr)
 library(RColorBrewer)
+library(foreach)
+library(doParallel)
+library(parallel)
 
 rm(packages)
 
 #spatial information
 
 ## extent for region of interest
-ne_ext <- raster::extent(1719007,2564139,298989,1199438) #this is for us_albers projection only
+wgs_ext <- raster::extent(-85, -55,30, 50) # this is larger than the actual NE extent. Only use this when cropping, then reprojecting to albers, and then crop again using the ne_ext
+ne_ext  <- raster::extent(1719007,2564139,298989,1199438) #this is for us_albers projection only
 par(mar = c(1,1,1,1))
 
 ### set up proj4string options: NAD1983 and WGS84
 p4s_wgs84 <- '+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0'
 p4s_nad83 <- '+proj=longlat +ellps=GRS80 +datum=NAD83 +no_defs +towgs84=0,0,0'
-us_alb    <- "+proj=aea +lat_1=29.5 +lat_2=45.5 +lat_0=37.5 +lon_0=-96 +x_0=0 +y_0=0 +ellps=GRS80 +datum=NAD83 +units=m +no_defs" 
+us_alb    <- crs("+proj=aea +lat_1=29.5 +lat_2=45.5 +lat_0=37.5 +lon_0=-96 +x_0=0 +y_0=0 +ellps=GRS80 +datum=NAD83 +units=m +no_defs") 
 
 
 ### Define spectral color scheme for plotting maps
