@@ -1,0 +1,110 @@
+---
+title: 'OHI-Northeast: Sea Surface Temperature Pressure'
+author: "*Compiled on `r date()` by `r Sys.info()['user']`*"
+output: 
+  html_document:
+    code_folding: show
+    toc: true
+    toc_depth: 3
+    toc_float: yes
+    number_sections: true
+    theme: cerulean
+    highlight: haddock
+    includes: 
+      in_header: '~/github/ohi-northeast/src/templates/ohi_hdr.html'
+  pdf_document:
+    toc: true
+---
+
+``` {r child = file.path(dir_git, 'src/templates/ohibc_prov_ftr.Rmd')}
+```
+
+``` {r setup, echo = FALSE, message = FALSE, warning = FALSE}
+knitr::opts_chunk$set(fig.width = 6, fig.height = 4, fig.path = 'figs/',
+                      echo = FALSE, message = FALSE, warning = FALSE)
+
+source('~/github/ohi-northeast/src/R/common.R') ### an OHINE specific version of common.R
+
+library(sp)
+library(rgdal)
+library(raster)
+
+
+### goal specific folders and info
+goal      <- 'tr'
+scenario  <- 'v2016'
+dir_goal  <- file.path(dir_git, 'prep', goal, scenario)
+dir_goal_anx <- file.path(dir_anx, goal, scenario)
+
+```
+
+#Summary
+[general description: What data are being generated? Why (what project, etc.)? Upstream/downstream processing information that might be helpful?  Other information?]
+
+***
+
+#Data Source [NOTE: can be copied from README.md in rawdata file]
+**Reference**: [citation for source data; website, literature, contact information. Version of data (if relevant). Screenshots if a series of menus had to be navigated to obtain the data.]
+
+**Downloaded**: [date downloaded or received]
+
+**Description**:  [e.g., surface aragonite state]
+
+**Native data resolution**: [e.g., 1 degree, 30 m, etc.]   
+
+**Time range**: [e.g., 1880-1899, monthly data provided for each year] 
+
+**Format**:  [e.g. NetCDF]
+
+***
+  
+#Methods
+
+Read in the global data used for OHI 2016.
+```{r global_data}
+
+#each of these rasters is the difference in SST anomalies between a given 5 year period and the historical reference period (1985-1990)
+sst_global_files <- list.files('~/github/ohiprep/globalprep/prs_sst/v2016/int', pattern = '.tif',full.names=T)
+
+```
+
+Crop all files to the northeast region
+
+```{r crop}
+
+#get difference in anomalies for the NE region
+
+# lapply(sst_global_files, cropPressure,rgn_crs = us_alb, rgn_ext = ne_ext, filename = paste0('int/sst_anom_diffs_',substr(sst_global_files,77,85),'.tif'))
+
+registerDoParallel(8)
+
+foreach(f = sst_global_files) %dopar%{
+
+  raster(f)%>%           #raster the file
+    crop(wgs_ext)%>%     #crop to the WGS extent 
+    projectRaster(crs = us_alb)%>% #projectRaster to US albers (crop first to reduce time in reprojecting)
+    crop(ne_ext, filename = 
+           paste0('int/sst_anom_diffs_',substr(f,77,85),'.tif'),overwrite=T) #crop the projected raster to our NE extent
+    
+}
+
+plot(raster('int/sst_anom_diffs_2008-2012.tif'),axes=F,col=cols,box=F)
+plot(ne_rgns,add=T)
+```
+
+Visualize change over time
+
+```{r}
+
+Reference point
+
+Mask and rescale
+
+
+
+
+
+***
+
+#Citation information  
+[citation information: include if these data will have their own specific citation.]
