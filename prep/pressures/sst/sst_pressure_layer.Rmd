@@ -70,6 +70,10 @@ sst_global_files <- list.files('~/github/ohiprep/globalprep/prs_sst/v2016/int', 
 
 Crop all files to the northeast region
 
+For OHI Global we calculated a climatology from 1982-2012 per cell using weekly data from CorTAD. We then calculated the number of times a given cell's weekly SST was greater than the climatological mean for that week (an anomaly: greater than mean + sd) and summed the number of anomalies in a single year. The maximum value a cell could have is 52 which would mean that cell had anomalous SST temperatures for each week of the year.
+
+To look at change over time, we defined a historical reference period, 1985-1990, and summed the total number of anomalies per cell over that time period. Thus the maximum value a cell in the historical reference dataset could have is 52*5 = 265. For each 5 year time period from 1985 through 2012, weekly anomalies were aggregated, and then compared to the historical reference period. The final output of this comparison gets at the change in #of anomolies per cell within a 5 year time period as compared to 1985-1990.
+
 ```{r crop}
 
 #get difference in anomalies for the NE region
@@ -84,7 +88,7 @@ foreach(f = sst_global_files) %dopar%{
     crop(wgs_ext)%>%     #crop to the WGS extent 
     projectRaster(crs = us_alb)%>% #projectRaster to US albers (crop first to reduce time in reprojecting)
     crop(ne_ext, filename = 
-           paste0('int/sst_anom_diffs_',substr(f,77,85),'.tif'),overwrite=T) #crop the projected raster to our NE extent
+           paste0('int/sst_anom_diffs/sst_anom_diffs_',substr(f,77,85),'.tif'),overwrite=T) #crop the projected raster to our NE extent
     
 }
 
@@ -92,17 +96,51 @@ plot(raster('int/sst_anom_diffs_2008-2012.tif'),axes=F,col=cols,box=F)
 plot(ne_rgns,add=T)
 ```
 
-Visualize change over time
+#Visualize change over time
+
+```{r}
+s <- lapply(list.files('int/sst_anom_diffs',full.names=T),raster)%>%brick()
+
+animate(s, n = 1, pause = 0.5)
+
+```
+
+#Reference point
+Using a global reference point. 
 
 ```{r}
 
-Reference point
+ref_point <- max(sst_global_files%>%stack()%>%cellStats(stat='max'))
 
-Mask and rescale
+```
+
+#Rescale
+
+```{r rescale}
+
+diff_files <- list.files('int/sst_anom_diffs',full.names=T)
+
+resc_fun <- function(x){
+  
+  yrs <- substr(x,35,43)
+ raster(x)%>%
+        calc(.,fun=function(x){ifelse(x<0,0,ifelse(x>ref_point,1,x/ref_point))},
+         filename = paste0('int/sst_rescale/sst_rescale_',yrs,'.tif'),overwrite=T)
+}
+
+mclapply(diff_files,resc_fun,mc.cores = 10)
 
 
+```
 
+#Visualize change over time
 
+```{r}
+s <- lapply(list.files('int/sst_rescale',full.names=T),raster)%>%brick()
+
+animate(s, n = 1, pause = 0.5)
+
+```
 
 ***
 
