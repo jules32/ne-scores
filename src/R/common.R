@@ -34,6 +34,8 @@ library(stringr)
 library(RColorBrewer)
 library(foreach)
 library(doParallel)
+library(raster)
+library(rgdal)
 library(parallel)
 
 rm(packages)
@@ -43,13 +45,31 @@ rm(packages)
 ## extent for region of interest
 wgs_ext <- raster::extent(-85, -55,30, 50) # this is larger than the actual NE extent. Only use this when cropping, then reprojecting to albers, and then crop again using the ne_ext
 ne_ext  <- raster::extent(1719007,2564139,298989,1199438) #this is for us_albers projection only
-par(mar = c(1,1,1,1))
+par(mar = c(2,2,1,1))
 
 ### set up proj4string options: NAD1983 and WGS84
 p4s_wgs84 <- '+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0'
 p4s_nad83 <- '+proj=longlat +ellps=GRS80 +datum=NAD83 +no_defs +towgs84=0,0,0'
 us_alb    <- crs("+proj=aea +lat_1=29.5 +lat_2=45.5 +lat_0=37.5 +lon_0=-96 +x_0=0 +y_0=0 +ellps=GRS80 +datum=NAD83 +units=m +no_defs") 
 
+### useful shapefiles
+#state land boundaries
+ne_states <- readOGR(dsn = file.path(dir_anx,'spatial'),layer = 'states', verbose = FALSE)%>%subset(STATE_NAME %in% c('Maine','New Hampshire','Massachusetts','Vermont','Connecticut','New York','Rhode Island', 'New Jersey','Delaware','Pennsylvania'))%>%
+              spTransform(us_alb)
+
+rgns <- readOGR(dsn = file.path(dir_git,'spatial'),layer = 'ne_ohi_rgns', verbose = FALSE)
+
+### create an ocean only raster for the region
+
+ocean_glob <- raster(file.path(dir_M,'model/GL-NCEAS-Halpern2008/tmp/ocean.tif'))
+# ocean_ne   <- ocean_glob%>%
+#               crop(extent(-7208377,-4464697,2652234,6643042))%>% #crop to smaller region to speed up process
+#               projectRaster(crs = us_alb,progress='text', res = 1000)%>%
+#                 crop(ne_ext, filename = '~/github/ohi-northeast/spatial/ocean_rasters/ocean_ne.tif')
+# ocean_rgns <- mask(ocean_ne,rgns,filename = '~/github/ohi-northeast/spatial/ocean_rasters/ocean_rgns.tif')
+
+ocean_ne   <- raster('~/github/ohi-northeast/spatial/ocean_rasters/ocean_ne.tif')
+ocean_rgns <- raster('~/github/ohi-northeast/spatial/ocean_rasters/ocean_rgns.tif')
 
 ### Define spectral color scheme for plotting maps
 cols      = rev(colorRampPalette(brewer.pal(9, 'Spectral'))(255)) # rainbow color scheme
