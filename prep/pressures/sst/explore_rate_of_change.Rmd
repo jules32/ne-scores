@@ -1,0 +1,133 @@
+---
+title: 'SST Rate of Change'
+author: "*Compiled on `r date()` by `r Sys.info()['user']`*"
+output: 
+  html_document:
+    code_folding: show
+    toc: true
+    toc_depth: 3
+    toc_float: yes
+    number_sections: true
+    theme: cerulean
+    highlight: haddock
+    includes: 
+      in_header: '~/github/ohi-northeast/src/templates/ohi_hdr.html'
+  pdf_document:
+    toc: true
+---
+
+``` {r child = file.path(dir_git, 'src/templates/ohibc_prov_ftr.Rmd')}
+```
+
+``` {r setup, echo = FALSE, message = FALSE, warning = FALSE}
+knitr::opts_chunk$set(fig.width = 6, fig.height = 4, fig.path = 'figs/',
+                      echo = FALSE, message = FALSE, warning = FALSE)
+
+source('~/github/ohi-northeast/src/R/common.R') ### an OHINE specific version of common.R
+
+library(sp)
+library(rgdal)
+library(raster)
+
+```
+
+#Summary
+Looking at the rate of change in SST over time as opposed to number of anomalous weeks. Should be similar (ish) output
+
+Get raw SST data
+```{r}
+
+weekly_sst = stack(file.path(dir_M,'git-annex/globalprep/prs_sst/data/cortadv5_WeeklySST.nc'),varname='WeeklySST')
+
+names_weekly = names(weekly_sst)
+
+registerDoParallel(10)
+#Create weekly standard deviations across all years
+foreach(i = 1982:2012) %dopar%{
+  
+  s = stack()
+  
+  for (j in 1:53){
+    
+    print(j)
+    w = which(substr(names_weekly,2,5)==i)[j] 
+    if(is.na(w))next()
+    
+    w_week = weekly_sst[[w]]%>%crop(wgs_ext)
+    
+    s = stack(s,w_week)
+    
+  }
+  
+  s_mean = calc(s,fun=function(x){mean(x,na.rm=T)},progress='text',filename =paste0('int/sst_annual_means_ne/sst_annual_mean_',i,'.tif'),overwrite=T)
+  
+}
+
+annual_stack <- list.files('int/sst_annual_means_ne',full.names=T)%>%stack()
+
+#get a single raster output with rate of change
+time <- c(1:31) #31 years
+fun <- function(x) { if (is.na(x[1])){ NA } else {lm(x ~ time)$coefficients[2] }} 
+
+rate <- calc(annual_stack, fun, progress = 'text')%>%
+          projectRaster(crs = us_alb)%>%
+          resample(ocean_ne,method = 'ngb')%>%
+          mask(ocean_ne)
+```
+
+if we rescale using the max within the ne region (not only in the eez) and compare to the same type of spatial rescaling using the change in anomalies, do they look the same?
+```{r rescale}
+ref <- cellStats(rate,stat='max')
+res <- rate%>%
+        calc(.,fun=function(x){ifelse(x<0,0,x/ref)})
+
+plot(res,col=cols)
+hist(res)
+
+```
+
+Compare
+
+```{r compare}
+
+anom_resc <- raster('int/sst_rescale/sst_rescale_2008-2012.tif')
+plot(anom_resc,col=cols)
+hist(anom_resc)
+
+```
+
+Look at rate of change in only the last 10 years (2002-2012) compared to rate of change 1982-1992?
+
+```{r}
+#rec = recent
+rec_stack <- annual_stack[[21:31]]
+old_stack <- annual_stack[[1:11]]
+
+#get a single raster output with rate of change
+time <- c(1:11) #11 years
+
+rec_rate <- calc(rec_stack, fun, progress = 'text')%>%
+              projectRaster(crs = us_alb)%>%
+              resample(ocean_ne,method = 'ngb')%>%
+              mask(ocean_ne)
+
+old_rate <- calc(old_stack, fun, progress = 'text')%>%
+              projectRaster(crs = us_alb)%>%
+              resample(ocean_ne,method = 'ngb')%>%
+              mask(ocean_ne)
+
+plot(rec_rate,col=cols,zlim = c(-2,3.1))
+plot(old_rate,col=cols,zlim = c(-2,3.1))
+
+diff <- rec_rate - old_rate
+plot(diff,col=cols)
+
+```
+
+
+
+
+
+
+
+
