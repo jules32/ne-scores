@@ -164,7 +164,7 @@ ne_rgns <- spTransform(both,us_alb)
 ne_rgns@data$area_km2 <- gArea(ne_rgns,byid=TRUE)/1000000 #divide by 1000m*1000m
 
 tm_shape(ne_rgns)+
-    tm_polygons("rgn_name", title = "Regions", palette = 'Pastel2')+
+    tm_polygons("rgn_name", title = "Regions", palette = 'Paired')+
 tm_layout(legend.text.size = 0.6,
           legend.position = c("left","top"),
           legend.bg.color = "white",
@@ -172,7 +172,7 @@ tm_layout(legend.text.size = 0.6,
 
 #save
 
-writeOGR(ne_rgns,dsn = '.',layer = 'ne_ohi_rgns', driver = "ESRI Shapefile",overwrite_layer=TRUE)
+#writeOGR(ne_rgns,dsn = '.',layer = 'ne_ohi_rgns', driver = "ESRI Shapefile",overwrite_layer=TRUE)
 
 ```
 
