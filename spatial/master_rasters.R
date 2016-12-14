@@ -5,11 +5,23 @@
 
 #
 source('~/github/ohi-northeast/src/R/rast_tools.R')
-source('~/github/ohi-northeast/src/R/common.R')
+
 
 library(dplyr)
 library(raster)
 library(rgdal)
+
+## extent for region of interest
+wgs_ext <- raster::extent(-85, -55,30, 50) # this is larger than the actual NE extent. Only use this when cropping, then reprojecting to albers, and then crop again using the ne_ext
+ne_ext <- raster::extent(1750000, 2550000,300000,1200000) #this is for us_albers projection only
+
+### set up proj4string options: NAD1983 and WGS84
+p4s_wgs84 <- '+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0'
+p4s_nad83 <- '+proj=longlat +ellps=GRS80 +datum=NAD83 +no_defs +towgs84=0,0,0'
+us_alb    <- raster::crs("+proj=aea +lat_1=29.5 +lat_2=45.5 +lat_0=37.5 +lon_0=-96 +x_0=0 +y_0=0 +ellps=GRS80 +datum=NAD83 +units=m +no_defs") 
+
+rgns      <- readOGR(dsn = paste0(path.expand(dir_git),'/spatial'),layer = 'ne_ohi_rgns', verbose = FALSE) #need to use path.expand because readOGR does not read '~'
+
 
 #---------------------------------------------------------------------------------
 
@@ -57,7 +69,7 @@ three_nm <- rgns[rgns@data$rgn_id %in% c(1:7),]
 r_3nm_mask <- mask(ocean_ras,three_nm, progress='text',
                    filename = '~/github/ohi-northeast/spatial/ocean_rasters/rast_3nm_mask.tif',overwrite=T)
 
-
+plot(r_3nm_mask)
 
 
 
