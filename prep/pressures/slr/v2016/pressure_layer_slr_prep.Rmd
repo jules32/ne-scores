@@ -25,7 +25,7 @@ output:
 ***
 
 #Data Source [NOTE: can be copied from README.md in rawdata file]
-**Reference**: [citation for source data; website, literature, contact information. Version of data (if relevant). Screenshots if a series of menus had to be navigated to obtain the data.]
+**Reference**: AVISO [Monthly mean Maps of Sea Level Anomaly](http://www.aviso.altimetry.fr/en/data/products/sea-surface-height-products/global/msla-mean-climatology.html#c10358)
 
 **Downloaded**: [date downloaded or received]
 
@@ -35,7 +35,7 @@ output:
 
 **Time range**: [e.g., 1880-1899, monthly data provided for each year] 
 
-**Format**:  [e.g. NetCDF]
+**Format**:  NetCDF
 
 ***
   
@@ -45,27 +45,17 @@ output:
 
 ``` {r setup, message = FALSE, warning = FALSE}
 
-knitr::opts_chunk$set(fig.width = 6, fig.height = 4, fig.path = 'figs/',
+knitr::opts_chunk$set(fig.width = 10, fig.height = 8, fig.path = 'figs/',
                       echo = FALSE, message = FALSE, warning = FALSE)
 
 source('~/github/ohi-northeast/src/R/common.R')  ### an OHI-NE specific version of common.R
 
-library(sp)
-library(rgdal)
-library(raster)
-library(DT)
-library(tmap)
 library(rasterVis)
+library(foreach)
+library(parallel)
+library(doParallel)
 
-dir_git <- '~/github/ohi-northeast'
-dir_anx <- file.path(dir_M, 'git-annex/neprep')
 dir_anx_aviso <- file.path(dir_M, 'git-annex/globalprep/_raw_data/AVISO_slr/d2016')
-
-ne_rgns <- readOGR(dsn = file.path(dir_git,'spatial/neextent'),layer = 'StudyAreaWGS84')
-
-### set up proj4string options: NAD1983 and WGS84
-p4s_wgs84 <- '+proj = longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0'
-p4s_nad83 <- '+init=epsg:4269 +proj=longlat +ellps=GRS80 +datum=NAD83 +no_defs +towgs84=0,0,0'
 
 ```
 
@@ -123,36 +113,223 @@ All NetCDF files for each month over the 22 years are rasterized, clipped to the
 
 ```{r clip, eval=F}
 
-#list all netCDF files
+#list all netCDF files that contain monthly mean sea level anomaly data globally
 nc_files <- list.files(file.path(dir_anx_aviso, 'msla_monthly_mean'),
                        full.names = TRUE,pattern='.nc')
 
 ## resampling raw data to smaller cell size, then create a raster of all coastal cells. The resampling needs to be done
-## first to ensure we get the small islands that would otherwise be ignored at larger cell seizes
+## first to ensure we get the small islands that would otherwise be ignored at larger cell sizes
 
-#offshore 3 nm polygon for all regions
-three_nm <- readOGR(dsn= file.path(dir_anx,'spatial/d2014/data'),layer = 'regions_offshore3nm_gcs')
+## read in three_nm mask
+r_3nm_mask <- raster('~/github/ohi-northeast/spatial/ocean_rasters/rast_3nm_mask.tif')
+    
+# function that rasterizes the nc file, rotates, crops, projects and masks
+    
+months_coast <- function(x){
+  
+  m_yr <- substr(x,108,115)
+    
+  #read in month raster
+   r <- raster(x)%>%
+          rotate()%>%
+        crop(wgs_ext)%>%
+     projectRaster(ocean_ne)%>%
+      mask(r_3nm_mask)
+  
+  writeRaster(r,filename=paste0(dir_git,'/prep/pressures/slr/v2016/int/msla_monthly_coast/msla_monthly_coast_',m_yr,'.tif'),overwrite=T)
 
-    r <- raster(nc_files[1])%>%
-            rotate()%>%
-            disaggregate(fact = 8)
-    
-    #define projection of the raster before reprojecting
-    projection(r) <- "+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0"
-    
-    r_3nm_mask <- mask(r,three_nm, progress='text')
-    writeRaster(r_3nm_mask,filename = file.path(dir_git,'globalprep/prs_slr/v2016/int/rast_3nm_mask.tif'))
-    
+}
+
+#apply the clipping function to all files
+mclapply(nc_files,months_coast,mc.cores=10)
+
+
 ```
 
-```{r plot_mask}
 
-s <- raster(file.path(dir_git,'globalprep/prs_slr/v2016/int/rast_3nm_mask.tif'))
-plot(ocean, col='cornsilk2', axes=F, box=F, main = 'Coastal cells mask', legend=F)		
-plot(s,col='black',axes=F, box=F,legend=F,add=T)
+## Annual mean sea level anomalies
+
+Annual mean sea level anomaly rasters are derived from the monthly data. 
+
+``` {r msla_monthly_to_annual, eval=F}
+
+month_files <- list.files('int/msla_monthly_coast',full.names=T)
+
+all_yrs <- c(1993:2015)
+
+registerDoParallel(6) 
+
+foreach (j = all_yrs) %dopar% {
+  
+  msla_yr <- month_files[str_detect(month_files, as.character(j))]
+  
+  message('Generating annual MSLA raster for ', j)
+  
+  ### stack all rasters for this year, and calc annual mean, then write as raster
+  rast_annual_mean <- stack(msla_yr)%>%
+                      calc(mean,na.rm=T)%>%
+                      writeRaster(filename = paste0(file.path(dir_git),'/prep/pressures/slr/v2016/int/msla_annual_mean/rast_msla_annual_',j,'.tif'),overwrite=T)
+
+}
 
 ```
 
+```{r gif}
+
+annual_files <- list.files('int/msla_annual_mean',full.names=T)%>%stack()
+
+names(annual_files) <- paste0("Year_", substr(names(annual_files),18,21))
+  
+library(animation)
+
+saveGIF({
+  for(i in 1:nlayers(annual_files)){
+     plot(ocean_ne,col='cornsilk2',  main=names(annual_files[[i]]),axes=F,legend=F)
+      # don't forget to fix the zlimits
+    plot(annual_files[[i]], zlim=c(-0.044,0.11), axes=F, col=cols, add=T)
+      
+  }
+}, movie.name = 'slr_annual.gif')
+
+```
+
+<img src="slr_annual.gif"/>
+
+##Reference Point
+
+We will use the max regional SLR anomaly throughout the time series as the reference point.
+
+```{r ref_point}
+
+ref <- max(cellStats(annual_files,stat='max'))
+
+```
+
+
+The global reference point used for OHI 2016 was 0.2523. The maximum value within the NE region is `r ref`. 
+
+##Rescale
+
+Take each year and rescale from 0 to 1 using reference point. Decreases are set to 0
+
+```{r rescale}
+
+registerDoParallel(6) 
+
+foreach(i = 1:nlayers(annual_files)) %dopar%{
+  
+yr <- substr(names(annual_files[[i]]),6,9)
+  
+  annual_files[[i]]%>%
+    calc(.,fun=function(x){ifelse(x<0,0,x/ref)},
+         filename = paste0('~/github/ohi-northeast/prep/pressures/slr/v2016/int/msla_annual_rescaled/msla_annual_rescaled_',yr,'.tif'),overwrite=T)
+  
+}
+
+```
+
+***
+
+#Results
+
+Visualize via gif
+```{r}
+
+resc_files <- list.files('~/github/ohi-northeast/prep/pressures/slr/v2016/int/msla_annual_rescaled',full.names=T)%>%stack()
+names(resc_files) <- paste0("Year_", substr(names(resc_files),22,25))
+
+saveGIF({
+  for(i in 1:nlayers(resc_files)){
+     plot(ocean_ne,col='cornsilk2',  main=names(annual_files[[i]]),axes=F,legend=F)
+      # don't forget to fix the zlimits
+    plot(resc_files[[i]], zlim=c(0,1), axes=F, col=cols, add=T)
+      
+  }
+}, movie.name = 'slr_annual_rescaled.gif')
+
+
+```
+
+<img src="slr_annual_rescaled.gif"/>
+
+
+## Region scores
+
+```{r extract_data}
+
+## Extract data for each region
+
+# read in raster files
+pressure_stack <- lapply(list.files('int/msla_annual_rescaled',full.names=T),raster)%>%brick()
+
+# extract data for each region:
+regions_stats <- zonal(pressure_stack,  zones, fun="mean", na.rm=TRUE, progress="text")
+regions_stats2 <- data.frame(regions_stats)
+
+data <- merge(rgn_data, regions_stats, all.y=TRUE, by.x="rgn_id", by.y="zone") %>%
+          dplyr::select(-area_km2)%>%
+  gather("year", "pressure_score",starts_with("msla_annual_rescaled_")) 
+
+slr_data <- data %>%
+  mutate(year=substr(year,22, 25)) %>%
+  mutate(year = as.numeric(year))
+
+write.csv(slr_data, file.path("int/slr.csv"), row.names=FALSE)
+
+## save toolbox data for different years/regions
+
+# function to extract data more easily
+saveData <- function(newYear){
+  
+  #assessYear <- newYear + 1
+  criteria_year <- ~year == newYear
+  
+  slr  <- slr_data %>%
+    filter_(criteria_year) %>%
+    dplyr::select(rgn_id, pressure_score) %>%
+    arrange(rgn_id)
+  
+  write.csv(slr, file.path(sprintf('out/slr_%s.csv', newYear)), row.names=FALSE)
+}
+
+
+### extract data 
+for(newYear in (max(slr_data$year) - 10):(max(slr_data$year))){
+  saveData(newYear)
+}
+```
+
+### Current scores
+
+```{r current_score}
+
+now <- slr_data%>%filter(year==2015)
+
+rgns_slr <- rgns
+rgns_slr@data <- rgns_slr@data%>%left_join(now)
+
+map <- subs(ocean_rgns,rgns_slr@data, by = "rgn_id", which = "pressure_score")
+
+plot(ocean_ne,col='lightblue',axes=F,legend=F,main = "SLR Pressure Score 2015")
+plot(map,col=cols,axes=F,add=T,box=F)
+plot(ne_states,add=T,col='cornsilk1',border=F)
+```
+
+
+### Visualize through time
+```{r google_plot}
+library(googleVis)
+plotData <- slr_data %>%
+  dplyr::select(rgn_name, year, pressure_score)
+
+Motion=gvisMotionChart(plotData, 
+                       idvar="rgn_name", 
+                       timevar="year")
+plot(Motion)
+
+print(Motion, file='slr.html')
+
+```
 
 
 ***
