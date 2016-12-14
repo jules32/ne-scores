@@ -75,7 +75,7 @@ plot(states)
 plot(meow, add=T,col = brewer.pal(3,"Blues"))
 
 #NE ocean plan region of interest - provided by Emily
-ne_roi <- readOGR(dsn = file.path(dir_anx,'spatial'),layer = 'ne_plan_poly', verbose = FALSE)%>%
+ne_roi <- readOGR(dsn = file.path(dir_anx,'spatial'),layer = 'ne_plan_poly_bi', verbose = FALSE)%>%
             spTransform(p4s_nad83)
 
 plot(states, main = "Northeast Ocean Planning Boundary")
@@ -159,7 +159,7 @@ both <- spRbind(i,m)
 
 #project the shapefile then calculate area per polygon
 
-ne_rgns <- spTransform(both,CRS(us_alb))
+ne_rgns <- spTransform(both,us_alb)
 
 ne_rgns@data$area_km2 <- gArea(ne_rgns,byid=TRUE)/1000000 #divide by 1000m*1000m
 
