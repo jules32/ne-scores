@@ -19,7 +19,7 @@ output:
 
 ``` {r setup, echo = FALSE, message = FALSE, warning = FALSE}
 
-knitr::opts_chunk$set(fig.width = 6, fig.height = 4, fig.path = 'figs/', message = FALSE, warning = FALSE)
+knitr::opts_chunk$set(fig.width = 8, fig.height = 6, fig.path = 'figs/', message = FALSE, warning = FALSE)
 
 source('~/github/ohi-northeast/src/R/common.R') ### an OHINE specific version of common.R
 
