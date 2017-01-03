@@ -16,24 +16,21 @@ output:
     toc: true
 ---
 
-``` {r child = file.path(dir_git, 'src/templates/ohibc_prov_ftr.Rmd')}
-```
-
-#Summary
-[general description: What data are being generated? Why (what project, etc.)? Upstream/downstream processing information that might be helpful?  Other information?]
+#Summary  
+The sea level rise pressure layer is derived from monthly data of gridded sea level anomalies from 1993 to present. The gridded data is clipped to three nautical miles of the coastline in the US Northeast region and aggregated to annual means. All data is rescaled from 0 to 1 using the maximum annual anomaly across the time series as the reference point.
 
 ***
 
-#Data Source [NOTE: can be copied from README.md in rawdata file]
+#Data Source  
 **Reference**: AVISO [Monthly mean Maps of Sea Level Anomaly](http://www.aviso.altimetry.fr/en/data/products/sea-surface-height-products/global/msla-mean-climatology.html#c10358)
 
-**Downloaded**: [date downloaded or received]
+**Downloaded**: September 16, 2016
 
-**Description**:  [e.g., surface aragonite state]
+**Description**:  Mean Sea Level Anomaly (m above a climatological mean)
 
-**Native data resolution**: [e.g., 1 degree, 30 m, etc.]   
+**Native data resolution**: 0.25 degree cells
 
-**Time range**: [e.g., 1880-1899, monthly data provided for each year] 
+**Time range**: 1993 - 2015, monthly data provided for each year
 
 **Format**:  NetCDF
 
@@ -45,8 +42,7 @@ output:
 
 ``` {r setup, message = FALSE, warning = FALSE}
 
-knitr::opts_chunk$set(fig.width = 10, fig.height = 8, fig.path = 'figs/',
-                      echo = FALSE, message = FALSE, warning = FALSE)
+knitr::opts_chunk$set(fig.width = 10, fig.height = 8, fig.path = 'figs/', message = FALSE, warning = FALSE)
 
 source('~/github/ohi-northeast/src/R/common.R')  ### an OHI-NE specific version of common.R
 
@@ -195,6 +191,14 @@ saveGIF({
 
 <img src="slr_annual.gif"/>
 
+Histogram of the most recent year, 2015, shows that the majority of values are below 0.08 m above the climatological mean.
+
+```{r hist_2015}
+
+histogram(annual_files[[23]])
+
+```
+
 ##Reference Point
 
 We will use the max regional SLR anomaly throughout the time series as the reference point.
@@ -205,14 +209,13 @@ ref <- max(cellStats(annual_files,stat='max'))
 
 ```
 
-
 The global reference point used for OHI 2016 was 0.2523. The maximum value within the NE region is `r ref`. 
 
 ##Rescale
 
-Take each year and rescale from 0 to 1 using reference point. Decreases are set to 0
+Take each year and rescale from 0 to 1 using reference point. Decreases in sea level are set to 0.
 
-```{r rescale}
+```{r rescale, eval=F}
 
 registerDoParallel(6) 
 
@@ -233,7 +236,7 @@ yr <- substr(names(annual_files[[i]]),6,9)
 #Results
 
 Visualize via gif
-```{r}
+```{r, eval=F}
 
 resc_files <- list.files('~/github/ohi-northeast/prep/pressures/slr/v2016/int/msla_annual_rescaled',full.names=T)%>%stack()
 names(resc_files) <- paste0("Year_", substr(names(resc_files),22,25))
@@ -246,7 +249,6 @@ saveGIF({
       
   }
 }, movie.name = 'slr_annual_rescaled.gif')
-
 
 ```
 
@@ -305,14 +307,9 @@ for(newYear in (max(slr_data$year) - 10):(max(slr_data$year))){
 
 now <- slr_data%>%filter(year==2015)
 
-rgns_slr <- rgns
-rgns_slr@data <- rgns_slr@data%>%left_join(now)
+#map_scores is a function to plot a tmap map of the scores
+map_scores(now,'pressure_score',scale_label = "Pressure Score", map_title = "Sea Level Rise")
 
-map <- subs(ocean_rgns,rgns_slr@data, by = "rgn_id", which = "pressure_score")
-
-plot(ocean_ne,col='lightblue',axes=F,legend=F,main = "SLR Pressure Score 2015")
-plot(map,col=cols,axes=F,add=T,box=F)
-plot(ne_states,add=T,col='cornsilk1',border=F)
 ```
 
 
@@ -327,7 +324,7 @@ Motion=gvisMotionChart(plotData,
                        timevar="year")
 plot(Motion)
 
-print(Motion, file='slr.html')
+print(Motion, file='figs/slr.html')
 
 ```
 
@@ -335,4 +332,3 @@ print(Motion, file='slr.html')
 ***
 
 #Citation information  
-[citation information: include if these data will have their own specific citation.]
