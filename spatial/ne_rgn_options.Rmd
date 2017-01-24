@@ -67,7 +67,7 @@ boem   <- readOGR(dsn = file.path(dir_anx,'spatial/Atl_admn'), layer = 'atl_admn
           crop(ne_ext)%>%
           subset(Atl_ID <8)
 
-states <- readOGR(dsn = file.path(dir_anx,'spatial'),layer = 'states', verbose = FALSE)%>%subset(STATE_NAME %in% c('Maine','New Hampshire','Massachusetts','Vermont','Connecticut','New York','Rhode Island', 'New Jersey','Delaware','Pennsylvania'))%>%
+states <- readOGR(dsn = '.',layer = 'states', verbose = FALSE)%>%
         spTransform(p4s_nad83)
 
 state_wa <-  readOGR(dsn = file.path(dir_anx,'spatial'), layer = 'StateWaters', verbose = FALSE)%>%
