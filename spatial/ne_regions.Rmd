@@ -54,7 +54,7 @@ eez <- readOGR(dsn = '.',layer = 'ne_eez', verbose = FALSE)%>%
 plot(eez, col = 'lightblue', main = "EEZ 200 nm off the Northeast United States")
 
 #state land boundaries
-states <- readOGR(dsn = file.path(dir_anx,'spatial'),layer = 'states', verbose = FALSE)%>%subset(STATE_NAME %in% c('Maine','New Hampshire','Massachusetts','Vermont','Connecticut','New York','Rhode Island', 'New Jersey','Delaware','Pennsylvania'))%>%
+states <- readOGR(dsn = '.',layer = 'states', verbose = FALSE)%>%
         spTransform(p4s_nad83)
 
 #state waters with some Maine rivers removed (done in QGIS)
@@ -80,6 +80,17 @@ ne_roi <- readOGR(dsn = file.path(dir_anx,'spatial'),layer = 'ne_plan_poly_bi', 
 
 plot(states, main = "Northeast Ocean Planning Boundary")
 plot(ne_roi, add = T, col = 'lightblue')
+
+## Rhode Island Ocean SAMP
+
+## Shapefile downloaded from here (Ocean SAMP study area): http://www.narrbay.org/d_projects/oceansamp/gis_marinebounds.htm
+
+ri_samp <- readOGR(dsn = file.path(dir_anx,'spatial/data_for_rgn_options/mbounds_samp'),layer = 'mbounds_samp',verbose=FALSE)%>%
+            spTransform(p4s_nad83)
+
+ri_samp@data$name = "RI OSAMP Area"
+
+plot(ri_samp,add=T,col='darkblue')
 
 ```
 
@@ -175,5 +186,22 @@ tm_layout(legend.text.size = 0.6,
 #writeOGR(ne_rgns,dsn = '.',layer = 'ne_ohi_rgns', driver = "ESRI Shapefile",overwrite_layer=TRUE)
 
 ```
+
+## Adding the Rhode Island Ocean Planning Area as an option  
+This area has not yet been formally added as a region in the Northeast assessment but it is highlighted in the map below to be considered for inclusion.
+
+```{r ri_samp}
+
+tm_shape(ne_rgns)+
+    tm_polygons("rgn_name", title = "Regions", palette = 'Paired')+
+tm_shape(ri_samp)+
+  tm_fill("name","gray", alpha = 0.2,border.col = 'black', legend.show=T,title = "For consideration")+
+tm_layout(legend.text.size = 0.6,
+          legend.position = c("left","top"),
+          legend.bg.color = "white",
+          legend.bg.alpha = 0)
+
+```
+
 
 
