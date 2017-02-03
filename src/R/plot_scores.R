@@ -7,7 +7,7 @@ map_scores <- function(score_obj,
                        score_var   = 'score',           ### character or vector
                        scale_label = score_var,        ### character or vector
                        map_title   = 'OHI-Northeast') {  ### character or vector
-  ### This function takes a dataframe of scores and applies them to a map of BC regions.
+  ### This function takes a dataframe of scores and applies them to a map of regions.
   ### * 'score_obj' is a data frame with variables rgn_id and one or more score variables.
   ### * score_vars is a vector of column names; tmap will print small
   ###   multiples - one map for each column. Default: "score"
