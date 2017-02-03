@@ -1,0 +1,282 @@
+---
+title: "OHI-Northeast: Clean Waters layers"
+author: "*Compiled on `r date()` by `r Sys.info()['user']`*"
+output: 
+  html_document:
+    code_folding: hide
+    toc: true
+    toc_depth: 2
+    toc_float: yes
+    number_sections: false
+    theme: cerulean
+    highlight: haddock
+    includes: 
+      in_header: '~/github/ohi-northeast/src/templates/ohi_hdr.html'
+pdf_document:
+  toc: true
+---
+
+#Overview
+
+This layer uses [NOAA MusselWatch data](https://data.noaa.gov/dataset/national-status-and-trends-mussel-watch-program).
+
+Selected chemicals are those used in the OHI West Coast assessment: Arsenic, Cadmium, Chlordane, Chromium, DDT, Dieldrin, Lead, Mercury, Mirex, Nickel, PCB.
+
+The dataset is downloaded from [this website](https://products.coastalscience.noaa.gov/nsandt_data/data.aspx) by making manual selections with the following steps:
+
+1. Select a Dataset: Chemical
+2. Select Parameters:
+  - Chlordanes
+  - Dieldrins (Aldrin, Dieldrin and Endrin)
+  - PCBs
+  - DDTs - (non wet weight selections)
+  - Metals (Arsenic, Chromium, Cadmium, Nickel, Lead, Mercury) - all metals selected were NOT wet weight
+  - Mirex (within Organochlorines)
+3. Select Geographical Area:
+4. Select States: New York, New Hampshire, Connecticut, Maine, Rhode Island, Massachusets
+
+#Explore raw data
+
+```{r exploring_data, message = F, warning = F}
+
+knitr::opts_chunk$set(fig.width = 7, fig.height = 7,message = FALSE, warning = FALSE)
+
+source('~/github/ohi-northeast/src/R/common.R')
+
+library(tidyverse)
+library(plotly)
+
+df <- read.csv('data/nccos_chem_data.csv',stringsAsFactors = F)
+```
+
+To get a sense of the data, we can plot the sampling sites over our defined regions to see how they line up.
+
+```{r plot_sites}
+
+locs <- df%>%
+        dplyr::select(NST_Site, General_Location, Specific_Location, Latitude, Longitude)%>%
+        unique()
+
+locs <- SpatialPointsDataFrame(locs[,c(5,4)], locs, proj4string = crs(p4s_wgs84))%>%
+  spTransform(.,crs(rgns_simp))
+
+#plot regions, add sampling sites
+tm_shape(rgns_simp)+
+  tm_polygons("rgn_name", title = "Regions", palette = 'Blues')+
+tm_shape(locs)+
+  tm_dots(size = 0.05, col = 'red', title = "MusselWatch sites")+
+  tm_layout(legend.text.size = 0.8,
+            legend.position = c("left","top"),
+            legend.bg.color = "white",
+            legend.bg.alpha = 0)
+
+```
+
+##Data wrangling
+
+After looking at the sampling sites, it's clear some are not in our region of interest. I've gone through these points in QGIS and identified those sites outside of our region boundary. We need to remove those before proceeding.
+
+```{r}
+
+df <- df%>%
+        filter(!NST_Site %in% c('AIAC','BIBL','DBCM',"NYLB","NYSH","NYSR","GRTSI","GRTWI","GRTIW","HRAI","HRSW","HRWF","HRE_16a","HRE_16b","HRE_23a","HRE_30a","HRE_30b","HRE_30c","NEB_01","NEB_03","NEB_05","NEB_07a","NEB_07b","NEB_07c","NEB_08a","NEB_08b","NEB_10","NEB_11","NEB_12","NEB_14","NEB_17","NEB_20","NEB_21","NEB_26","NEB_31","NEB_36","HRUB","HREI","HUDIC","HRE_1a","HRCI","HRPK","HRPK_DS", "HRPK_SED","LEDK","LOCV","LOOC","LOOS","LORC","NRNF","LEDK_DS","LEDK_SED","LOCV_DS","LOCV_SED","LOCV_1SED","LOOC_DS","LOOC_1SED","LOOS_DS","LORC_DS","LORC_SED","NRNF_DS","NRNF_SED","LEBU_DS","LEBU_SED","LOEC_DS","LOEC_SED","LOOR_DS","LOOR_SED","LOSL_DS","LOSL_SED","LONH","ON64b"))
+
+locs <- df%>%
+        dplyr::select(NST_Site, General_Location, Specific_Location, Latitude, Longitude)%>%
+        unique()
+
+locs <- SpatialPointsDataFrame(locs[,c(5,4)], locs, proj4string = crs(p4s_wgs84))%>%
+  spTransform(.,crs(rgns_simp))
+
+#plot regions, add sampling sites
+tm_shape(rgns_simp)+
+  tm_polygons("rgn_name", title = "Regions", palette = 'Blues')+
+tm_shape(locs)+
+  tm_dots(size = 0.05, col = 'red', title = "MusselWatch sites")+
+  tm_layout(legend.text.size = 0.8,
+            legend.position = c("left","top"),
+            legend.bg.color = "white",
+            legend.bg.alpha = 0)
+
+```
+
+###Add State Names to sampling sites
+
+Since the MusselWatch data does not come with State names (surprisingly) we can intersect the points and the region shapefiles to assign a State to each sampling site.
+
+```{r add_states}
+
+#use the over function from the sp package
+
+o <- over(locs,rgns_simp)%>%
+      select(-rgn_id)
+
+#turn factors to chars
+o$rgn_name = as.character(o$rgn_name)
+
+#combine the intersected data with the shapefile attribute table to add the state names
+
+state_locs <- cbind(locs@data,o)
+```
+
+###Fix missing state names
+
+There are still some NAs for rgn_name, likely due to weird overlay issues that don't allow the intersection function to pick it up. We can fix these manually. I've pulled out all rows without a State name, looked at each specific location and identified the state to which it belongs.
+
+```{r missing_state_names}
+
+missing <- state_locs%>%
+            filter(is.na(rgn_name))%>%
+            dplyr::select(NST_Site,rgn_name)%>%
+            mutate(State = c("New York",
+                             "New York",
+                             "New York",
+                             "New York",
+                             "New York",
+                             "New York",
+                             "Connecticut", 
+                             "Connecticut", 
+                             "Connecticut", 
+                             "Connecticut", 
+                             "Connecticut", 
+                             "Connecticut",
+                             "Connecticut",
+                             "Connecticut",
+                             "New York", 
+                             "New York",
+                             "Connecticut",
+                             "Connecticut",
+                             "Connecticut",
+                             "Connecticut",
+                             "Connecticut",
+                             "Connecticut",
+                             "Connecticut",
+                             "New York",
+                             "New York",
+                             "Connecticut",
+                             "Connecticut",
+                             "Massachusetts-Gulf of Maine",
+                             "New York",
+                             "New York",
+                             "Rhode Island",
+                             "Maine",
+                             "Massachusetts-Gulf of Maine",
+                             "Maine",
+                             "New York",
+                             "New York",
+                             "New York",
+                             "Massachusetts-Gulf of Maine",
+                             "New York",
+                             "New York"))
+
+# For all rows where rgn_name is NA, match the NST_Site with the same site in the dataframe 'missing'
+
+state_locs <- state_locs%>%
+              mutate(rgn = ifelse(is.na(rgn_name),missing$State[match(.$NST_Site,missing$NST_Site)],rgn_name))%>%
+              dplyr::select(-rgn_name,-area_km2)%>%
+              rename(rgn_name = rgn)%>%
+              dplyr::select(NST_Site,General_Location,Specific_Location,rgn_name)%>%
+              left_join(rgns_simp@data,by=c('rgn_name'))%>%
+              dplyr::select(-area_km2)
+
+DT::datatable(state_locs, caption = "MusselWatch Sampling Sites")
+```
+
+Now that we have all sampling sites identified to the state in which they belong, we can add this back to the complete dataset.
+
+```{r add_states_to_data}
+
+df <- df%>%left_join(state_locs,by = c("NST_Site","General_Location","Specific_Location"))
+
+```
+
+### Group chemicals
+
+The data comes more specific than we need, with multiple types of PCBs, DDTs, Chlordanes and Dieldrins. We are interested in the sum of these individual components. This chunk assigns each Parameter value to either "PCB", "DDT","Chlordane","Dieldrins" or left as is if the chemical is a metal.
+
+
+```{r chem_time}
+pcbs  <- unique(df$Parameter)[c(20:39,44:72)]
+ddts  <- unique(df$Parameter)[c(1:6,73)]
+chlor <- unique(df$Parameter)[c(8,14,15,40:43)]
+diels <- unique(df$Parameter)[c(7,12,13)]
+```
+
+###Assign Thresholds
+
+This thresholds table is taken from the OHI West Coast Assessment.
+
+```{r thresholds}
+
+thresh <- read.csv('data/chem_thresholds.csv',stringsAsFactors=F)
+
+DT::datatable(thresh)
+```
+
+###Final dataset 
+
+Add the chemical groupings and contaminant thresholds to the MusselWatch data. This code also translates ng/g to parts per million (ppm).
+
+Turning ng/g value into parts per million (ppm). Some values are reported as micrograms per dry gram which is equivalent to ppm, so we leave those values as they are.
+
+```{r final_data}
+
+eval <- df%>%
+        mutate(chemical = ifelse(Parameter %in% pcbs, "PCB",
+               ifelse(Parameter %in% ddts, "DDT",
+               ifelse(Parameter %in% chlor, "Chlordane",
+               ifelse(Parameter %in% diels, "Dieldrin", Parameter)))))%>%
+        mutate(ppm = ifelse(Unit == 'ng/dry g', Value*0.001,Value))%>%
+        group_by(NST_Site, rgn_name, rgn_id, Fiscal_Year, chemical)%>%
+        summarize(value_ppm = sum(ppm,na.rm=T))%>% 
+        ungroup()%>%
+        left_join(thresh,by = 'chemical')%>%
+        mutate(score = ifelse(value_ppm < ok, 0, 
+                              ifelse(value_ppm < bad & value_ppm > ok, 0.5,
+                                     1)))%>%
+        group_by(rgn_name,rgn_id, year = Fiscal_Year,chemical)%>%
+        summarize(mean_score = mean(score))
+
+
+rgn_time <- ggplot(eval,aes(x = year,y = mean_score, group = chemical,col=chemical))+
+  geom_line()+
+  facet_wrap(~rgn_name)+ 
+  scale_color_brewer(palette="Spectral")
+ggplotly(rgn_time)
+```
+
+#Results
+
+Each region is scored based on the mean pressure value of all chemicals.
+
+```{r region_scores}
+
+scores <- eval%>%
+          group_by(rgn_name,rgn_id,year)%>%
+          summarize(score = mean(mean_score,na.rm=T))
+
+
+
+## scores through time
+
+time_plot <- ggplot(scores,aes(x = year,y = score, col = rgn_name))+
+  geom_line() +
+  labs(title = "Pressure Layer: Chemicals",
+       x = "Year",
+       y = "Pressure Score",
+       colour = "Region")
+ggplotly(time_plot)
+
+#look at 2011 (more interesting than 2012)
+
+map_scores(scores%>%filter(year==2011),
+           scale_label = 'Pressure Score',
+           map_title = "2011")
+
+```
+
+#TODO
+
+##Gapfilling
+
+We'll need to gapfill over time
