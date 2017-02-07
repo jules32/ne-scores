@@ -6,7 +6,8 @@ require(maptools)
 map_scores <- function(score_obj,
                        score_var   = 'score',           ### character or vector
                        scale_label = score_var,        ### character or vector
-                       map_title   = 'OHI-Northeast') {  ### character or vector
+                       map_title   = 'OHI-Northeast', ### character or vector
+                       rev_col     = FALSE) { 
   ### This function takes a dataframe of scores and applies them to a map of regions.
   ### * 'score_obj' is a data frame with variables rgn_id and one or more score variables.
   ### * score_vars is a vector of column names; tmap will print small
@@ -42,7 +43,7 @@ map_scores <- function(score_obj,
   score_map <- tm_shape(poly_rgn, is.master = TRUE) +
     tm_polygons(col     = score_var,
                 title   = scale_label,
-                palette = 'RdYlBu',
+                palette = ifelse(rev_col ==T,"-RdYlBu","RdYlBu"),
                 border.col = 'grey50')
   score_map <- score_map +
     tm_shape(poly_land) +
