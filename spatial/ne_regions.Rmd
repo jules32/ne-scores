@@ -173,6 +173,7 @@ both <- spRbind(i,m)
 ne_rgns <- spTransform(both,us_alb)
 
 ne_rgns@data$area_km2 <- gArea(ne_rgns,byid=TRUE)/1000000 #divide by 1000m*1000m
+ne_rgnsdata$rgn_abrev = c('RI','NY','CT','MA','MA','NH','ME','GOM','VA')
 
 tm_shape(ne_rgns)+
     tm_polygons("rgn_name", title = "Regions", palette = 'Paired')+
