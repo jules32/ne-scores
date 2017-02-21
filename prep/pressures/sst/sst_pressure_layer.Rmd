@@ -290,7 +290,7 @@ Motion=gvisMotionChart(plotData,
                        timevar="year")
 plot(Motion)
 
-print(Motion, file='slr.html')
+print(Motion, file='sst.html')
 
 ```
 
