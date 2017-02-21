@@ -45,6 +45,7 @@ rm(packages)
 ## extent for region of interest
 wgs_ext <- raster::extent(-85, -55,30, 50) # this is larger than the actual NE extent. Only use this when cropping, then reprojecting to albers, and then crop again using the ne_ext
 ne_ext <- raster::extent(1750000, 2550000,300000,1200000) #this is for us_albers projection only
+moll_ext <- raster::extent() ##JA DO THIS
 
 ### set up proj4string options: NAD1983 and WGS84
 p4s_wgs84 <- '+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0'
@@ -60,6 +61,7 @@ rgn_data   <- rgns@data
 ocean_ne   <- raster('~/github/ohi-northeast/spatial/ocean_rasters/ocean_ne.tif')
 ocean_rgns <- raster('~/github/ohi-northeast/spatial/ocean_rasters/ocean_rgns.tif')
 zones      <- ocean_rgns #for zonal stats
+three_nm <- rgns[rgns@data$rgn_id %in% c(1:7),]   #use the state water boundaries as the 3 nautical mile shapefile
 
 ### Define spectral color scheme for plotting maps
 cols      = rev(colorRampPalette(brewer.pal(9, 'Spectral'))(255)) # rainbow color scheme
