@@ -237,7 +237,7 @@ sst_data <- data %>%
   mutate(year=substr(year,24, 27)) %>%
   mutate(year = as.numeric(year))
 
-write.csv(sst_data, file.path("int/slr.csv"), row.names=FALSE)
+write.csv(sst_data, file.path("output/sst.csv"), row.names=FALSE)
 
 ## save toolbox data for different years/regions
 
@@ -252,7 +252,7 @@ saveData <- function(newYear){
     dplyr::select(rgn_id, pressure_score) %>%
     arrange(rgn_id)
   
-  write.csv(sst, file.path(sprintf('out/sst_%s.csv', newYear)), row.names=FALSE)
+  write.csv(sst, file.path(sprintf('output/sst_%s.csv', newYear)), row.names=FALSE)
 }
 
 
