@@ -1,0 +1,73 @@
+"rgn_id","rgn_name","rgn_abrev","year","pressure_score"
+1,"Rhode Island","RI",2009,0
+2,"New York","NY",2009,0
+3,"Connecticut","CT",2009,0
+4,"Massachusetts-Gulf of Maine","MA",2009,0
+5,"Massachusetts-Virginian","MA",2009,0
+6,"New Hampshire","NH",2009,0
+7,"Maine","ME",2009,0
+8,"Gulf of Maine/Bay of Fundy","GOM",2009,0
+9,"Virginian","VA",2009,0
+1,"Rhode Island","RI",2010,0.0111586452762923
+2,"New York","NY",2010,0.0153182935001117
+3,"Connecticut","CT",2010,0.0137170596393897
+4,"Massachusetts-Gulf of Maine","MA",2010,0.00566134377824646
+5,"Massachusetts-Virginian","MA",2010,0.00717617509867241
+6,"New Hampshire","NH",2010,0.0333707865168539
+7,"Maine","ME",2010,0.0162917023096664
+8,"Gulf of Maine/Bay of Fundy","GOM",2010,0.0149521147054448
+9,"Virginian","VA",2010,0.00997307015648631
+1,"Rhode Island","RI",2011,0.0673618538324421
+2,"New York","NY",2011,0.0636095599731963
+3,"Connecticut","CT",2011,0.0781622746185853
+4,"Massachusetts-Gulf of Maine","MA",2011,0.0650918951491413
+5,"Massachusetts-Virginian","MA",2011,0.0792429135270901
+6,"New Hampshire","NH",2011,0.123988764044944
+7,"Maine","ME",2011,0.0721457085828343
+8,"Gulf of Maine/Bay of Fundy","GOM",2011,0.0840761622853384
+9,"Virginian","VA",2011,0.0800728417543751
+1,"Rhode Island","RI",2012,0.141951871657754
+2,"New York","NY",2012,0.125677909314273
+3,"Connecticut","CT",2012,0.136796116504854
+4,"Massachusetts-Gulf of Maine","MA",2012,0.167978306718891
+5,"Massachusetts-Virginian","MA",2012,0.179271618227485
+6,"New Hampshire","NH",2012,0.24752808988764
+7,"Maine","ME",2012,0.153973481608212
+8,"Gulf of Maine/Bay of Fundy","GOM",2012,0.167208870721451
+9,"Virginian","VA",2012,0.159557470909596
+1,"Rhode Island","RI",2013,0.218645276292335
+2,"New York","NY",2013,0.22461469734197
+3,"Connecticut","CT",2013,0.232565880721221
+4,"Massachusetts-Gulf of Maine","MA",2013,0.247511298583911
+5,"Massachusetts-Virginian","MA",2013,0.267050592034446
+6,"New Hampshire","NH",2013,0.297415730337079
+7,"Maine","ME",2013,0.246345879669233
+8,"Gulf of Maine/Bay of Fundy","GOM",2013,0.235202308517553
+9,"Virginian","VA",2013,0.233865397080157
+1,"Rhode Island","RI",2014,0.285365418894831
+2,"New York","NY",2014,0.308056734420371
+3,"Connecticut","CT",2014,0.304244105409154
+4,"Massachusetts-Gulf of Maine","MA",2014,0.295715576981018
+5,"Massachusetts-Virginian","MA",2014,0.339594546106925
+6,"New Hampshire","NH",2014,0.326629213483146
+7,"Maine","ME",2014,0.335575990875392
+8,"Gulf of Maine/Bay of Fundy","GOM",2014,0.305821645875913
+9,"Virginian","VA",2014,0.3095436587549
+1,"Rhode Island","RI",2015,0.382495543672014
+2,"New York","NY",2015,0.38531159258432
+3,"Connecticut","CT",2015,0.377656033287101
+4,"Massachusetts-Gulf of Maine","MA",2015,0.393458873154565
+5,"Massachusetts-Virginian","MA",2015,0.436838894869035
+6,"New Hampshire","NH",2015,0.413876404494382
+7,"Maine","ME",2015,0.456489877388081
+8,"Gulf of Maine/Bay of Fundy","GOM",2015,0.415058143632391
+9,"Virginian","VA",2015,0.403908531127504
+1,"Rhode Island","RI",2016,0.471096256684492
+2,"New York","NY",2016,0.458282331918696
+3,"Connecticut","CT",2016,0.432101248266297
+4,"Massachusetts-Gulf of Maine","MA",2016,0.468954504368786
+5,"Massachusetts-Virginian","MA",2016,0.500308575529243
+6,"New Hampshire","NH",2016,0.446685393258427
+7,"Maine","ME",2016,0.534114627887083
+8,"Gulf of Maine/Bay of Fundy","GOM",2016,0.482936782014236
+9,"Virginian","VA",2016,0.458093536837557
