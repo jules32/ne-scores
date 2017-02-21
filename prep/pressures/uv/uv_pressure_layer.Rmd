@@ -61,7 +61,7 @@ For **OHI 2016** we changed our methods and decided to use just one dataset that
 
 knitr::opts_chunk$set(message = FALSE, warning = FALSE)
 
-source('~/github/ohiprep/src/R/common.R')
+source('~/github/ohi-northeast/src/R/common.R')
 library(raster)
 library(ncdf4)
 library(rgdal)
@@ -69,153 +69,36 @@ library(rhdf5) #from bioconductor: http://bioconductor.org/packages/release/bioc
 library(ggplot2)
 library(RColorBrewer)
 
-raw_data_dir = file.path(dir_M,'git-annex/globalprep/_raw_data/NASA_OMI_AURA_UV/d2016')
-
-#years of data we are using for this data layer
-yrs  <- c(2005:2015)
-mths <- c("01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12")
-days <- seq(1,358,7)
-
-#global ocean raster at 1km for resampling/projecting purposes
-  ocean     <- raster(file.path(dir_M, 'model/GL-NCEAS-Halpern2008/tmp/ocean.tif'))
-  ocean_shp <- readOGR(file.path(dir_M,'git-annex/globalprep/spatial/d2014/data'),layer = 'regions_gcs')
-  land      <- ocean_shp%>%
-                  subset(rgn_typ %in% c('land','land-disputed','land-noeez'))
-  
-#set mollweide projection CRS
-  mollCRS = crs('+proj=moll +lon_0=0 +x_0=0 +y_0=0 +ellps=WGS84 +units=m +no_defs')
- 
-#define colors in spectral format for plotting rasters   
-  cols    = rev(colorRampPalette(brewer.pal(9, 'Spectral'))(255)) # rainbow color scheme
+raw_data_dir = file.path(dir_M,'git-annex/globalprep/_raw_data/NASA_OMI_AURA_UV/d2017')
 
 ```
 
-## Create rasters from HDF files
+# Read in global data
 
-Calculate weekly means and standard deviations across all years
+```{r global_uv_data}
 
-```{r, eval=F}
-
-#list all files from raw data folder
-
-files = list.files(file.path(raw_data_dir,'test'),pattern='*.he5$',full.names=T)
-
-attribute <- "/HDFEOS/GRIDS/OMI UVB PRODUCT/Data Fields/ErythemalDailyDose"
-
-#function to turn HDF file into a raster 
-he_to_ras <- function(x){
-
-    h <- h5read(x,attribute)
-    r <- raster(h,xmn=-90,ymn=-180,xmx = 90, ymx = 180, crs = "+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0")%>%
-            t()%>%
-            flip(direction='y')
-    
-    r[r<0]<-NA #where r = 0, set to NA
-    
-    return(r)
-  
-}
-
-#for every week in each year in the time series, calculate the weekly mean and standard deviation.
-for (i in yrs){
-  
-  print(i)
-  
-    l <- files[substr(files[],96,99)==i]
-    
-    #now grab weeks
-    for (j in 1:length(days)){
-      
-      print(j)
-    
-      dys       <- l[days[j]:(days[j]+6)]              #get all files from the year for these 7 days
-      rasters   <- lapply(dys[!is.na(dys)],he_to_ras)  #rasterize all of these .nc files. This function will assign NA to the empty ones
-    
-      uv_week   <- stack(rasters)
-  
-      #calculate the mean
-      week_mean    <-  calc(uv_week, fun=function(x){mean(x,na.rm=T)},
-                         filename=paste0(file.path(dir_M),'/git-annex/globalprep/prs_uv/v2016/int/weekly_means/weekly_means_',i,'_',j,'.tif'),
-                         overwrite=T)
-      
-      
-      week_sd      <-  calc(uv_week, fun=function(x){sd(x,na.rm=T)},
-                         filename=paste0(file.path(dir_M),'/git-annex/globalprep/prs_uv/v2016/int/weekly_sd/weekly_sd_',i,'_',j,'.tif'),
-                         overwrite=T)
-      
-      week_mean_sd <-  overlay(week_mean,week_sd,fun=function(x,y){x+y},
-                         filename=paste0(file.path(dir_M),'/git-annex/globalprep/prs_uv/v2016/int/weekly_mean_sd/weekly_mean_sd_',i,'_',j,'.tif'),
-                         overwrite=T)
-      
-    }
-}
-
-#get weekly climatologies across all years in the time series
-
-names_weekly <- list.files(file.path(dir_M,'git-annex/globalprep/prs_uv/v2016/int/weekly_means'),full.names=T)
-
-for(i in 1:52){
-  
-  print(i)
-  
-  #get all rasters for week i
-    if(i %in% c(1:9)){ #did this for the first 9 weeks for filepath naming only
-       w = names_weekly[(substr(names_weekly,87,91)==paste0(i,'.tif'))]%>%stack()
-    }else{
-      w  = names_weekly[(substr(names_weekly,87,88)==i)]%>%stack()
-    }
-  
-  #mean
-  m  = calc(w,fun=function(x){mean(x,na.rm=T)},filename=paste0(file.path(dir_M),
-           '/git-annex/globalprep/prs_uv/v2016/int/weekly_climatologies/mean_week_',i,'.tif'),overwrite=T)
-  
-  #sd
-  sd = calc(w,fun=function(x){sd(x,na.rm=T)},progress='text',filename=paste0(file.path(dir_M),
-           '/git-annex/globalprep/prs_uv/v2016/int/weekly_climatologies/sd_week_',i,'.tif'),overwrite=T)
-  
-  #mean plus sd
-  m_sd = overlay(m,sd,fun=function(x,y){x+y},filename = paste0(file.path(dir_M),
-           '/git-annex/globalprep/prs_uv/v2016/int/weekly_climatologies/mean_sd_week_',i,'.tif'),overwrite=T)
-  
-}
-```
-
-
-## Compare to climatology
-
-Compare each week in each year to the climatology for that week. The climatology is equal to the mean plus one standard deviation
-
-```{r, eval=F}
-
-# Second Loop to calculate annual positive anomalies
-
-
-for (i in 2005:2015){
-  
-  print(i)
-  
-  s = stack()
-  
-  for (j in 1:52){
-    
-    print(j)
-
-    w_mean = raster(paste0(file.path(dir_M),'/git-annex/globalprep/prs_uv/v2016/int/weekly_means/weekly_means_',i,'_',j,'.tif')) #mean UV for week i
-
-    w_anom = raster(paste0(file.path(dir_M),'/git-annex/globalprep/prs_uv/v2016/int/weekly_climatologies/mean_sd_week_',j,'.tif')) #get the week climatology
-    
-    count = overlay(w_mean,w_anom,fun=function(x,y){ifelse(x>y,1,0)},progress='text') #compare to average anomaly for that week 
-    
-    s = stack(s,count)
-    
-  }
-  
-  year = calc(s,fun=function(x){sum(x,na.rm=T)},progress='text',filename=paste0('int/annual_pos_anomalies_',i,'.tif'),overwrite=T)
-}
+anom_files <- list.files(file.path(dir_M,'git-annex/globalprep/prs_uv/v2017/int/annual_anoms'),full.names = T)
 
 ```
 
+```{r crop_to_ne}
 
+crop_to_ne <- function(file){
+  
+  yr <- substr(file,90,93)
+  
+        raster(file)%>%
+        crop(wgs_ext)%>%
+        projectRaster(ocean_ne,method='ngb')%>%
+        mask(ocean_ne)%>%
+        writeRaster(.,paste0('int/annual_anom_',yr,'.tif'),overwrite=T)
+  
+}
+
+lapply(anom_files[5:8],crop_to_ne)
+
+```
+    
 ## Calculate differences
 
 Calculate the difference in total number of anomalies in recent 5 years (2011 - 2015) compared to first 5 years (2005-2009)
@@ -227,20 +110,17 @@ l   <- list.files('int',full.names=T)
 ref <- list.files('int',full.names=T)[1:5]%>%stack()%>%
         calc(.,fun=function(x){sum(x,na.rm=T)})
 
-library(parallel)
+registerDoParallel(5) #set 5 cores to do parallel processing
 
-registerDoParallel(5)
-
-foreach(i = c(2007:2011)) %dopar% { #i=2005
+foreach(i = c(2005:2012)) %dopar% { #i=2005
 
   yrs <- c(i:(i+4))
   
-  s   <- stack(l[substr(l,26,29)%in%yrs])%>%sum(.,na.rm=T)
+  s   <- stack(l[substr(l,17,20)%in%yrs])%>%sum(.,na.rm=T)
 
   diff = s - ref #calculate difference between total number of anomalies in recent and historical (2005-2009) time periods
 
-  projection(diff) <- "+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0"
-  
+  writeRaster(diff,filename = paste0('int/annual_diff_ocean_',yrs[1],'_',yrs[5],'.tif'),overwrite=T)
   out = mask(diff,land,inverse=T, filename =paste0('int/annual_diff_ocean_',yrs[1], '_', yrs[5],'.tif'),overwrite=T)
 }
 
