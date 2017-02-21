@@ -1,0 +1,186 @@
+---
+title: 'OHI-Northeast: Plastic Pollution'
+author: "*Compiled on `r date()` by `r Sys.info()['user']`*"
+output: 
+  html_document:
+    code_folding: show
+    toc: true
+    toc_depth: 3
+    toc_float: yes
+    number_sections: true
+    theme: cerulean
+    highlight: haddock
+    includes: 
+      in_header: '~/github/ohi-northeast/src/templates/ohi_hdr.html'
+  pdf_document:
+    toc: true
+---
+
+
+```{r setup,echo=F,message=F,warning=F}
+
+knitr::opts_chunk$set(fig.width = 6, fig.height = 4, fig.path = 'figs/', message = FALSE, warning = FALSE)
+
+source('~/github/ohi-northeast/src/R/common.R') ### an OHINE specific version of common.R
+
+dir_data_vs <- file.path(dir_M, 'git-annex/bcprep/_raw_data/vanSebille_plastics')
+```
+
+#Data
+
+```{r read_in_data}
+vs_files_all <- list.files(dir_data_vs, full.names = TRUE) %>%
+  setNames(basename(.) %>% str_replace('.csv', ''))
+
+# [1] "gridcell_areas"            "latitudes"                 "lebretonmodel_abundance"  
+# [4] "lebretonmodel_mass"        "longitudes"                "maximenkomodel_abundance" 
+# [7] "maximenkomodel_mass"       "vansebillemodel_abundance" "vansebillemodel_mass"     
+
+vs_files <- vs_files_all[c(3, 4, 6,7,9,10)] ### select just data layers for models
+
+vs_rasts <- vector('list', length = length(vs_files)) %>%
+  setNames(names(vs_files))
+
+for (i in 1:length(vs_files)) { ### i = 1
+  vs_file <- vs_files[i]
+  vs_fn <- names(vs_files)[i]
+
+  vs_matrix <- read_csv(vs_file, col_names = FALSE) %>%
+    data.matrix() %>%
+    .[2:181, 1:360]
+    ### it appears that row 361 is glitchy; ditch it, and ditch +90 N row as well
+  rownames(vs_matrix) <- c(90:-89)
+  colnames(vs_matrix) <- c(0:359)
+
+  vs_rast <- raster(vs_matrix)
+  extent(vs_rast) <- c(0, 360, -90, 90)
+  vs_rast <- rotate(vs_rast)
+  crs(vs_rast) <- CRS('+init=epsg:4326')
+
+  vs_rasts[[vs_fn]] <- vs_rast
+}
+
+vs_stack <- stack(vs_rasts)
+```
+
+##Crop to the Northeast
+
+```{r crop}
+
+vs_stack_crop <- crop(vs_stack, wgs_ext)
+plot(vs_stack_crop, col=cols)
+
+### Save raster of van Sebille model by mass
+writeRaster(vs_stack_crop[['vansebillemodel_mass']], 
+            file.path('int/cw_trash_mass_vansebille.tif'), 
+            overwrite = TRUE)
+
+### create North West Atlantic raster: north of Equator; using Law 2010 paper to determine boundaries (Figure 2): http://science.sciencemag.org/content/329/5996/1185.full
+
+n_atl_ext <- extent(c(-90, -45, 5, 50))
+vs_mass_natl <- crop(vs_stack[['vansebillemodel_mass']], n_atl_ext)
+plot(vs_mass_natl,col=cols)
+
+### Save the global Van Sebille mass map cropped to the North Atlantic for additional reference point options
+writeRaster(vs_mass_natl, 
+            file.path('int/cw_trash_mass_vansebille_n_atl.tif'), 
+            overwrite = TRUE)
+```
+
+
+
+```{r}
+
+ne_trash <- raster('int/cw_trash_mass_vansebille.tif')%>%
+            projectRaster(.,ocean_ne)%>%
+            resample(ocean_ne,method = 'ngb')%>%
+            mask(.,ocean_ne)
+
+plot(ne_trash,col=cols)
+
+writeRaster(ne_trash,filename = 'int/cw_trash_mass_ne.tif',overwrite=T)
+
+```
+
+#Log transform
+
+Not sure we want to do this yet
+
+```{r log_transform}
+
+trash_dens_log <- calc(ne_trash, fun = function(x) {log(x + 1)})
+
+writeRaster(trash_dens_log, file.path('int/cw_trash_mass_log.tif'), overwrite = TRUE)
+
+plot(trash_dens_log, main = 'Mass density\nlog(g/km2)',col=cols)
+```
+
+## Rescale marine plastics pressure from zero to 1
+
+Rescale all values to range from zero to 1, using several reference points for comparison.  These rescalings will be done on both log-transformed and raw (linear) scales. The highest amount of trash in the region is located right off New York City (2,144 g/km2). This drives all other values down when a regional reference point is used, whether the data are first log transformed or not.
+
+When using a reference point from the entire North Atlantic region, scores across the Northeast region are, unsurprisingly, lower. The maximum value in the North Atlantic region is off the coast of Venezuela/Colombia (3,881 g/km2).
+
+
+```{r linear_rescales}
+
+### bring in linear-scaled
+trash_dens_lin <- raster(file.path('int/cw_trash_mass_ne.tif'))
+
+### bring in N Atlantic raster
+trash_dens_natl <- raster('int/cw_trash_mass_vansebille_n_atl.tif')
+
+# print(hist(trash_dens_natl, main = 'Mass density (log(g/km2)), N Atlantic'))
+
+
+trash_ref_9999qtile      <- quantile(trash_dens_lin, prob = 0.9999)
+trash_ref_110max         <- max(values(trash_dens_lin), na.rm = TRUE) * 1.1
+trash_ref_9999qtile_natl <- quantile(trash_dens_natl, prob = 0.9999)
+
+trash_9999qtile <- calc(trash_dens_lin, fun = function(x) {ifelse(x > trash_ref_9999qtile, 1, x / trash_ref_9999qtile)}) %>%
+  setNames('linear_mass')
+trash_110max <- calc(trash_dens_lin, fun = function(x) {ifelse(x > trash_ref_110max, 1, x / trash_ref_110max)}) %>%
+  setNames('linear_mass')
+trash_9999qtile_natl <- calc(trash_dens_lin, fun = function(x) {ifelse(x > trash_ref_9999qtile_natl, 1, x / trash_ref_9999qtile_natl)}) %>%
+  setNames('linear_mass')
+
+
+writeRaster(trash_9999qtile, file.path('int/cw_trash_9999qtile_eez_lin.tif'), overwrite = TRUE)
+writeRaster(trash_110max, file.path('int/cw_trash_110max_eez_lin.tif'), overwrite = TRUE)
+writeRaster(trash_9999qtile_natl, file.path('int/cw_trash_9999qtile_natl_lin.tif'), overwrite = TRUE)
+
+plot(trash_9999qtile, main = 'CW trash pressure layer: \n mass density/99.99%ile', col=cols)
+plot(trash_9999qtile_natl, main = 'CW trash pressure layer: \n mass density/99.99%ile in N Atlantc', col=cols)
+
+```
+
+```{r log_rescales}
+
+### bring in log-transformed BC map at 1000 m BC Albers projection
+trash_dens_log <- raster('int/cw_trash_mass_log.tif')
+
+### bring in N Pacific raster; we are not mapping so scale and projection are unimportant
+trash_dens_natl <- raster('int/cw_trash_mass_vansebille_n_atl.tif')
+trash_natl_log <- log(values(trash_dens_natl) + 1)
+
+
+trash_logref_9999qtile      <- quantile(trash_dens_log, prob = 0.9999)
+trash_logref_110max         <- max(values(trash_dens_log), na.rm = TRUE) * 1.1
+trash_logref_9999qtile_natl <- quantile(trash_natl_log, prob = 0.9999, na.rm = TRUE)
+
+trash_log_9999qtile <- calc(trash_dens_log, fun = function(x) {ifelse(x > trash_logref_9999qtile, 1, x / trash_logref_9999qtile)}) %>%
+  setNames('log_mass')
+trash_log_110max <- calc(trash_dens_log, fun = function(x) {ifelse(x > trash_logref_110max, 1, x / trash_logref_110max)}) %>%
+  setNames('log_mass')
+trash_log_9999qtile_natl <- calc(trash_dens_log, fun = function(x) {ifelse(x > trash_logref_9999qtile_natl, 1, x / trash_logref_9999qtile_natl)}) %>%
+  setNames('log_mass')
+
+
+writeRaster(trash_log_9999qtile, filename = 'int/cw_trash_9999qtile_eez_log.tif', overwrite = TRUE)
+writeRaster(trash_log_110max, filename = 'int/cw_trash_110max_eez_log.tif', overwrite = TRUE)
+writeRaster(trash_log_9999qtile_natl, filename = 'int/cw_trash_9999qtile_natl_log.tif', overwrite = TRUE)
+
+plot(trash_log_9999qtile, main = 'CW trash pressure layer: \nlog(mass density)/99.99%ile')
+plot(trash_log_9999qtile_natl, main = 'CW trash pressure layer: \nlog(mass density)/99.99%ile in N Atlantic')
+
+```
