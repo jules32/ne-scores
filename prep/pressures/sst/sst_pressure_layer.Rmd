@@ -5,7 +5,7 @@ output:
   html_document:
     code_folding: show
     toc: true
-    toc_depth: 3
+    toc_depth: 2
     toc_float: yes
     fig_caption: true
     number_sections: true
@@ -27,6 +27,10 @@ source('~/github/ohi-northeast/src/R/common.R') ### an OHINE specific version of
 
 #Summary
 
+For OHI Global Assessments, we calculated a climatology from 1982-2012 per cell using weekly data from CorTAD. We then calculated the number of times a given cell's weekly SST was greater than the climatological mean for that week (an anomaly: greater than mean + sd) and summed the number of anomalies in a single year. The maximum value a cell could have is 52 which would mean that cell had anomalous SST temperatures for each week of the year.
+
+To look at change over time, we defined a historical reference period, 1985-1989, and summed the total number of anomalies per cell over that time period. Thus the maximum value a cell in the historical reference dataset could have is 52*5 = 265. For each 5 year time period from 1985 through 2012, weekly anomalies were aggregated, and then compared to the historical reference period. The final output of this comparison gets at the change in number of anomolies per cell within a 5 year time period as compared to 1985-1989.
+
 Using the same data and methodology as Halpern et al. (2008), we created the SST pressure layer using data on Sea Surface Temperature Anomalies from [CoRTAD](https://data.nodc.noaa.gov/cgi-bin/iso?id=gov.noaa.nodc:0126774).
 
 From the supplementary material for SST from Halpern et al. (2008):
@@ -34,17 +38,15 @@ From the supplementary material for SST from Halpern et al. (2008):
 > We first developed a climatology or long-term weekly average for each approximately ~4 km grid cell using data from 1985 to 2005. These data provide a baseline for determining when temperatures are unusually warm... we calculated the number of times the SST anomaly exceeded the
 standard deviation of SSTs for that location and week of the year. This threshold-based approach accounts for natural variability at a given location, which can vary widely from place to place, by incorporating the standard deviation...
 
-> We then developed a change metric by subtracting the number of non-zero positive anomalies in the early period (1985-1990) from the number in the recent period (2000-2005); these are the data included in our cumulative impact model.
-
-With the updated data, our recent period is 2008-2012.
+> We then developed a change metric by subtracting the number of non-zero positive anomalies in the early period (1985-1989) from the number in the recent period (2000-2005); these are the data included in our cumulative impact model.
 
 The pressure layer is transformed from 0 to 1 using a local reference point. 
 
 ***
 
-#Data Source
+#Data
 
-**Reference(s)**: The [Coral Reef Temperature Anomaly Database Version 5](https://data.nodc.noaa.gov/cgi-bin/iso?id=gov.noaa.nodc:0126774)  
+**Source**: The [Coral Reef Temperature Anomaly Database Version 5](https://data.nodc.noaa.gov/cgi-bin/iso?id=gov.noaa.nodc:0126774)  
 **Downloaded**: May 29, 2015  
 **Description**:  Sea Surface Temperature Anomalies (Kelvin)  
 **Native data resolution**: 4km^2^    
@@ -53,29 +55,25 @@ The pressure layer is transformed from 0 to 1 using a local reference point.
 
 ***
   
-#Methods
+#Analysis
 
 ##Get global data from OHI 2016
 
-Read in the global data used for OHI 2016.
+We're going to use the global data that was processed for OHI 2016. This data is held in the [`ohiprep`](https://github.com/OHI-Science/ohiprep) repo on GitHub.
+
+Each of these rasters is the difference in SST anomalies between a given 5 year period and the historical reference period (1985-1989)
+
 ```{r global_data}
 
-#each of these rasters is the difference in SST anomalies between a given 5 year period and the historical reference period (1985-1990)
 sst_global_files <- list.files('~/github/ohiprep/globalprep/prs_sst/v2016/int', pattern = '.tif',full.names=T)
 
 ```
 
-##Crop all files to the northeast region
+## Crop to the Northeast region
 
-For OHI Global we calculated a climatology from 1982-2012 per cell using weekly data from CorTAD. We then calculated the number of times a given cell's weekly SST was greater than the climatological mean for that week (an anomaly: greater than mean + sd) and summed the number of anomalies in a single year. The maximum value a cell could have is 52 which would mean that cell had anomalous SST temperatures for each week of the year.
-
-To look at change over time, we defined a historical reference period, 1985-1989, and summed the total number of anomalies per cell over that time period. Thus the maximum value a cell in the historical reference dataset could have is 52*5 = 265. For each 5 year time period from 1985 through 2012, weekly anomalies were aggregated, and then compared to the historical reference period. The final output of this comparison gets at the change in #of anomolies per cell within a 5 year time period as compared to 1985-1990.
+Using the `crop` function from the `raster` package we crop all sea surface temperature rasters to our extent and then reproject them to the US Albers projection for consistency across the assessment. We crop the global rasters first to reduce the time it takes to reproject the rasters.
 
 ```{r crop_to_ne, eval=F}
-
-#get difference in anomalies for the NE region
-
-# lapply(sst_global_files, cropPressure,rgn_crs = us_alb, rgn_ext = ne_ext, filename = paste0('int/sst_anom_diffs_',substr(sst_global_files,77,85),'.tif'))
 
 registerDoParallel(8)
 
@@ -83,7 +81,7 @@ foreach(f = sst_global_files) %dopar% {
 
   raster(f)%>%                     #raster the file
     crop(wgs_ext)%>%               #crop to the WGS extent 
-    projectRaster(ocean_ne, filename = paste0('int/sst_anom_diffs/sst_anom_diffs_',substr(f,77,85),'.tif'),overwrite=T) #projectRaster to US albers (crop first to reduce time in reprojecting)
+    projectRaster(ocean_ne, filename = paste0('int/sst_anom_diffs/sst_anom_diffs_',substr(f,77,85),'.tif'),overwrite=T)
     
 }
 ```
@@ -99,11 +97,14 @@ plot(rgns,add=T)
 
 This gif shows yearly differences in the number of anomalous values above the reference period of 1985-1989. As an example, if a pixel has a values of 10, that indicates that pixel was anomalous for 10 more weeks in those 5 years compared to the reference period.
 
-```{r,eval=F}
+```{r gif1,eval=F}
 
-s <- lapply(list.files('int/sst_anom_diffs',full.names=T),raster)%>%brick()
-names(s) <- paste0("Years_",(substr(names(s),16,24)))
-gsub(".", "-", names(s), fixed = TRUE)
+#rasterize each file in the list of files and then create a brick of rasters
+s        <- lapply(list.files('int/sst_anom_diffs',full.names=T),raster)%>%brick()
+
+names(s) <- paste0("Years_",(substr(names(s),16,24))) #rename each layer for plotting
+gsub(".", "-", names(s), fixed = TRUE)                #replace the . with a -
+
 library(animation)
 
 saveGIF({
@@ -119,29 +120,91 @@ saveGIF({
 
 <img src="sst_anom_diffs.gif"/>
 
-## Set Reference point
+## Reference point
 
-Calculates both a local and global reference point across the entire time series.
+Since we aren't sure what spatial reference point is most appropriate for the region yet, we are going to use two different ones:
 
-```{r}
+1. The maximum number of anomalies above the reference period (1985-1989) from a cell that lies within our region bounding box
+2. The maximum number of anomalies above the reference period (1985-1989) a cell has anywhere in the world.
 
-ref_point <- max(sst_global_files%>%stack()%>%cellStats(stat='max'))
+For each of these reference points we will set the max from the entire time series. The spatial patterns and relative scores between cells will not change between the two reference points. The main difference will be the level at which we assign a pressure value of 1. If the global reference point is much higher than the local reference point, our region pressure scores will be much lower. But if we use a local reference point, we are more likely to get higher pressure scores which will ultimately have a great impact on goals where SST acts as a pressure.
+
+### Local reference point
+
+```{r local_ref_point}
 
 ref_point_loc <- max(sst_global_files%>%
-                  stack()%>%
-                  crop(wgs_ext)%>%
-                  projectRaster(ocean_ne)%>%
-                  cellStats(stat='max'))
+                   stack()%>%
+                   crop(wgs_ext)%>%
+                   projectRaster(ocean_ne)%>%
+                   cellStats(stat='max'))
 ```
 
-## Rescale 
+The local reference point is set equal to the maximum value within the Northeast region across the entire time series. This is not necessarily the maximum within our regions, but the maximum value within the larger extent of our region. The reference point is a difference of **`r ref_point_loc`** anomalies in a 5 year period.
 
-### Using a global reference point
+#### Rescale
 
-```{r rescale_global,eval=F}
+```{r rescale_local,eval=F}
 
-diff_files <- list.files('int/sst_anom_diffs',full.names=T)
+local_resc <- function(x){
+  
+  #get the year from the file for naming the output raster
+  yrs <- substr(x,35,43)
+ 
+  #if a cell value is greater than or equal to the reference point, we assign a value of 1, otherwise it is divided by the reference point
+  raster(x)%>%
+  calc(.,fun=function(x){ifelse(x<0,0,ifelse(x>ref_point_loc,1,x/ref_point_loc))},
+         filename = paste0('int/sst_rescale/sst_rescale_local_',yrs,'.tif'),overwrite=T)
+}
 
+#mclapply is used for parallel processing across multiple cores
+mclapply(diff_files,local_resc,mc.cores = 10)
+
+```
+
+#### Pressure over time
+
+Using the local reference point, we can see how the pressure changes over time.
+
+```{r gif_local_rescale, eval=F}
+
+#list the rescaled rasters and assign them in a brick
+resc_loc        <- lapply(list.files('int/sst_rescale',full.names=T,pattern = 'local'),raster)%>%brick()
+names(resc_loc) <- paste0("Years_",(substr(names(resc_loc),19,27)))
+gsub(".", "-", names(resc_loc), fixed = TRUE)
+
+#create a gif of values over time
+saveGIF({
+  for(i in 1:nlayers(resc_loc)){
+      # don't forget to fix the zlimits
+      plot(resc_loc[[i]], zlim=c(0,1), axes=F, col=cols,
+           main=names(resc_loc[[i]]))
+      
+  }
+}, movie.name = 'sst_anom_diffs_rescale_local.gif')
+
+```
+
+<img src="sst_anom_diffs_rescale_local.gif"/>
+
+### Global reference point
+
+```{r global_ref_point}
+
+ref_point     <- max(sst_global_files%>%
+                   stack()%>%
+                   cellStats(stat='max'))
+```
+
+The global reference point is set equal to the maximum value anywhere in the world across the entire time series and is a difference of **`r ref_point`** anomalies in a 5 year period.
+
+#### Rescale
+
+```{r rescale_global, eval=F}
+
+diff_files  <- list.files('int/sst_anom_diffs',full.names=T)
+
+#define the rescaling function to apply to the files
 global_resc <- function(x){
   
   yrs <- substr(x,35,43)
@@ -150,13 +213,16 @@ global_resc <- function(x){
          filename = paste0('int/sst_rescale/sst_rescale_global_',yrs,'.tif'),overwrite=T)
 }
 
+#mclapply is used for parallel processing
 mclapply(diff_files,global_resc,mc.cores = 10)
 
 ```
 
-The global reference point is set equal to the maximum value anywhere in the world across the entire time series and is a difference of **`r ref_point`** anomalies in a 5 year period.
+#### Pressure over time
 
-```{r,eval=F}
+Using a global reference point, we can see how the pressure changes over time.
+
+```{r global_pressure_gif,eval=F}
 
 resc_glob <- lapply(list.files('int/sst_rescale',full.names=T,pattern = 'global'),raster)%>%brick()
 
@@ -173,73 +239,43 @@ saveGIF({
 
 <img src="sst_anom_diffs_rescale_global.gif"/>
 
-### Using a local reference point
-
-```{r rescale_local,eval=F}
-
-local_resc <- function(x){
-  
-  yrs <- substr(x,35,43)
- raster(x)%>%
-        calc(.,fun=function(x){ifelse(x<0,0,ifelse(x>ref_point_loc,1,x/ref_point_loc))},
-         filename = paste0('int/sst_rescale/sst_rescale_local_',yrs,'.tif'),overwrite=T)
-}
-
-mclapply(diff_files,local_resc,mc.cores = 10)
-
-```
-
-The local reference point is set equal to the maximum value within the Northeast region across the entire time series. This is not necessarily the maximum within our regions, but the maximum value within the larger extent of our region. The reference point is a difference of **`r ref_point_loc`** anomalies in a 5 year period.
-
-```{r,eval=F}
-
-resc_loc <- lapply(list.files('int/sst_rescale',full.names=T,pattern = 'local'),raster)%>%brick()
-names(resc_loc) <- paste0("Years_",(substr(names(resc_loc),19,27)))
-gsub(".", "-", names(resc_loc), fixed = TRUE)
-
-saveGIF({
-  for(i in 1:nlayers(resc_loc)){
-      # don't forget to fix the zlimits
-      plot(resc_loc[[i]], zlim=c(0,1), axes=F, col=cols,
-           main=names(resc_loc[[i]]))
-      
-  }
-}, movie.name = 'sst_anom_diffs_rescale_local.gif')
-
-```
-
-<img src="sst_anom_diffs_rescale_local.gif"/>
 
 ***
 
 #Results
 
-Sticking with using a local reference point.
+Let's look at the results if we use a local reference point only.
 
 ## Region scores
 
-```{r extract_data}
+We first need to extract the data for each of the 9 regions using the `zonal` function from the `raster` package.
 
-## Extract data for each region
+```{r extract_data, eval=F}
 
-# read in raster files
+# read in rescaled files
 pressure_stack <- lapply(list.files('int/sst_rescale',full.names=T,pattern = 'local'),raster)%>%brick()
 
-# extract data for each region:
-regions_stats <- zonal(pressure_stack,  zones, fun="mean", na.rm=TRUE, progress="text")
-regions_stats2 <- data.frame(regions_stats)
+# extract data for each region (zones is previously defined in common.R)
+regions_stats  <- zonal(pressure_stack,  zones, fun="mean", na.rm=TRUE, progress="text")%>%
+                  data.frame()
 
-data <- merge(rgn_data, regions_stats, all.y=TRUE, by.x="rgn_id", by.y="zone") %>%
-          dplyr::select(-area_km2)%>%
-  gather("year", "pressure_score",starts_with("sst_rescale_local_")) 
+#merge the zonal stats with the rgn_data as defined in common.R
+data           <- merge(rgn_data, regions_stats, all.y=TRUE, by.x="rgn_id", by.y="zone") %>%
+                    dplyr::select(-area_km2)%>%
+                    gather("year", "pressure_score",starts_with("sst_rescale_local_")) 
 
+#add a year column and reformat as numeric
 sst_data <- data %>%
-  mutate(year=substr(year,24, 27)) %>%
-  mutate(year = as.numeric(year))
+              mutate(year=substr(year,24, 27)) %>%
+              mutate(year = as.numeric(year))
 
+#save output data
 write.csv(sst_data, file.path("output/sst.csv"), row.names=FALSE)
+```
 
-## save toolbox data for different years/regions
+We need to save each years data individually for the OHI toolbox to run.
+
+```{r save_data, eval=F}
 
 # function to extract data more easily
 saveData <- function(newYear){
@@ -264,35 +300,41 @@ for(newYear in (max(sst_data$year) - 10):(max(sst_data$year))){
 
 ### Current scores
 
+Let's look at the most recent scores, which would use the data from 2012 as it's the most recent year in the CoRTAD dataset.
+
 ```{r current_score}
 
-now <- sst_data%>%filter(year==2012)
+#select data from 2012
+now <- read_csv("output/sst.csv")%>%filter(year==2012)
 
-rgns_sst <- rgns
-rgns_sst@data <- rgns_sst@data%>%left_join(now)
 
-map <- subs(ocean_rgns,rgns_sst@data, by = "rgn_id", which = "pressure_score")
+#map_scores is a function to plot a tmap map of the scores
+map_scores(now,'pressure_score',scale_label = "Pressure Score", map_title = "Sea Surface Temperature")
 
-plot(ocean_ne,col='lightblue',axes=F,legend=F,main = "SST Pressure Score - most recent year (2012)")
-plot(map,col=cols,axes=F,add=T,box=F)
-plot(ne_states,add=T,col='cornsilk1',border=F)
 ```
 
 
 ### Visualize through time
-```{r google_plot}
+
+This code chunk creates a google visualization of the scores through time. It unfortunately does not allow the google chart to show up in the RMarkdown knitted document.
+
+```{r google_plot, results = 'asis'}
+
+sst_data <- read_csv("output/sst.csv")
+
 library(googleVis)
 plotData <- sst_data %>%
   dplyr::select(rgn_name, year, pressure_score)
 
 Motion=gvisMotionChart(plotData, 
                        idvar="rgn_name", 
-                       timevar="year")
-plot(Motion)
+                       timevar="year",
+                       options=list(width=550, height=450))
 
-print(Motion, file='sst.html')
+print(Motion, 'chart',file='sst.html')
 
 ```
+
 
 ***
 
