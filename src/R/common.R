@@ -45,7 +45,7 @@ rm(packages)
 ## extent for region of interest
 wgs_ext <- raster::extent(-85, -55,30, 50) # this is larger than the actual NE extent. Only use this when cropping, then reprojecting to albers, and then crop again using the ne_ext
 ne_ext <- raster::extent(1750000, 2550000,300000,1200000) #this is for us_albers projection only
-#moll_ext <- raster::extent() ##JA DO THIS
+moll_ext <- raster::extent(-6511398, -5150310, 4406529, 5490090) ##JA DO THIS
 
 ### set up proj4string options: NAD1983 and WGS84
 p4s_wgs84 <- '+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0'
