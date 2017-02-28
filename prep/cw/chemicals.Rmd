@@ -256,6 +256,7 @@ scores <- eval%>%
           summarize(score = mean(mean_score,na.rm=T))
 
 
+#write.csv(scores,file = 'scores/chemicals.csv')
 
 ## scores through time
 
