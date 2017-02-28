@@ -16,6 +16,9 @@ output:
     toc: true
 ---
 
+#Summary
+
+As of now this is copied from Casey's BC trash prep. I've included three different reference points, local max, local 99.99 percentile, and max from the North Atlantic region.
 
 ```{r setup,echo=F,message=F,warning=F}
 
@@ -130,8 +133,6 @@ trash_dens_lin <- raster(file.path('int/cw_trash_mass_ne.tif'))
 ### bring in N Atlantic raster
 trash_dens_natl <- raster('int/cw_trash_mass_vansebille_n_atl.tif')
 
-# print(hist(trash_dens_natl, main = 'Mass density (log(g/km2)), N Atlantic'))
-
 
 trash_ref_9999qtile      <- quantile(trash_dens_lin, prob = 0.9999)
 trash_ref_110max         <- max(values(trash_dens_lin), na.rm = TRUE) * 1.1
@@ -149,7 +150,7 @@ writeRaster(trash_9999qtile, file.path('int/cw_trash_9999qtile_eez_lin.tif'), ov
 writeRaster(trash_110max, file.path('int/cw_trash_110max_eez_lin.tif'), overwrite = TRUE)
 writeRaster(trash_9999qtile_natl, file.path('int/cw_trash_9999qtile_natl_lin.tif'), overwrite = TRUE)
 
-plot(trash_9999qtile, main = 'CW trash pressure layer: \n mass density/99.99%ile', col=cols)
+#plot(trash_9999qtile, main = 'CW trash pressure layer: \n mass density/99.99%ile', col=cols)
 plot(trash_9999qtile_natl, main = 'CW trash pressure layer: \n mass density/99.99%ile in N Atlantc', col=cols)
 
 ```
@@ -180,7 +181,7 @@ writeRaster(trash_log_9999qtile, filename = 'int/cw_trash_9999qtile_eez_log.tif'
 writeRaster(trash_log_110max, filename = 'int/cw_trash_110max_eez_log.tif', overwrite = TRUE)
 writeRaster(trash_log_9999qtile_natl, filename = 'int/cw_trash_9999qtile_natl_log.tif', overwrite = TRUE)
 
-plot(trash_log_9999qtile, main = 'CW trash pressure layer: \nlog(mass density)/99.99%ile')
+#plot(trash_log_9999qtile, main = 'CW trash pressure layer: \nlog(mass density)/99.99%ile')
 plot(trash_log_9999qtile_natl, main = 'CW trash pressure layer: \nlog(mass density)/99.99%ile in N Atlantic')
 
 ```
