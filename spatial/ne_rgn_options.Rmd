@@ -62,20 +62,21 @@ eez <- readOGR(dsn = '.',layer = 'ne_eez', verbose = FALSE)%>%
 #                  spTransform(p4s_nad83)%>%
 #                   crop(ne_ext)
                
-boem   <- readOGR(dsn = file.path(dir_anx,'spatial/Atl_admn'), layer = 'atl_admn', verbose = FALSE)%>%
+boem   <- readOGR(dsn = file.path(dir_anx,'spatial/data_for_rgn_options/Atl_admn'), layer = 'atl_admn', verbose = FALSE)%>%
         spTransform(p4s_nad83)%>%
-          crop(ne_ext)%>%
-          subset(Atl_ID <8)
+          crop(wgs_ext)%>%
+          subset(as.numeric(Atl_ID) <8)
 
 states <- readOGR(dsn = '.',layer = 'states', verbose = FALSE)%>%
         spTransform(p4s_nad83)
 
-state_wa <-  readOGR(dsn = file.path(dir_anx,'spatial'), layer = 'StateWaters', verbose = FALSE)%>%
-        spTransform(p4s_nad83)
+#state waters with some Maine rivers removed (done in QGIS)
+state_wa <- readOGR(dsn = file.path(dir_anx,'spatial'), layer = 'StateWaters_wo_rivs_cleaned', verbose = FALSE)%>%
+              spTransform(p4s_nad83)
 
 meow <- readOGR(dsn = file.path(dir_anx,'spatial/MEOW-TNC'),layer = 'meow_ecos_ne', verbose = FALSE)%>%
         spTransform(p4s_nad83)%>%
-        crop(ne_ext)
+        crop(wgs_ext)
 
 meow@data$ECOREGION <- factor(meow@data$ECOREGION)
 
@@ -156,7 +157,7 @@ I tried finding a good shapefile of George's Bank but haven't been able to find 
 
 # writeOGR(herring,dsn=file.path(dir_anx,'spatial'),layer = 'herring',driver = "ESRI Shapefile")            
 
-herring <- readOGR(dsn = file.path(dir_anx,'spatial'),layer = 'herring', verbose = FALSE)
+herring <- readOGR(dsn = file.path(dir_anx,'spatial/data_for_rgn_options'),layer = 'herring', verbose = FALSE)
 herring@data$AREANAME = as.character(herring@data$AREANAME)
 herring@data$COMMNAME = as.character(herring@data$COMMNAME)
 herring@data$id       = rownames(herring@data)
@@ -248,5 +249,79 @@ tm_layout(legend.text.size = 0.6,
           legend.bg.alpha = 1)
 
 ```
+
+# Ecological Production Unit Boundaries
+
+Incorporating Ecological Production Units as an option for OHI regions.
+
+```{r epu}
+
+epu <- readOGR(file.path(dir_anx, 'spatial/data_for_rgn_options/Extended_EPU'),'EPU_extended')%>%
+        spTransform(crs(state_wa))
+
+tm_shape(states)+
+  tm_polygons(col='beige')+
+tm_shape(epu) + 
+  tm_polygons("EPU", 
+        title="EPU regions",palette="Set3")+
+tm_layout(legend.text.size = 0.6,
+          legend.position = c("left","top"),
+          legend.bg.color = "white",
+          legend.bg.alpha = 1)
+
+
+```
+
+```{r epu_state_int}
+
+
+#read in the shapefile
+epu_state <- readOGR(file.path(dir_anx, 'spatial/data_for_rgn_options'),'EPU_state_wa_union')%>%
+        spTransform(crs(state_wa))
+
+epu_state@data = epu_state@data%>%
+          dplyr::select(-Shape_Leng,-Shape_Area,-REGION10, -DIVISION10, -STATEFP10, -FUNCSTAT10,-ALAND10,-AWATER10,-INTPTLAT10,
+                        -STATENS10, -GEOID10, -STUSPS10,-LSAD10,-MTFCC10)%>%
+            mutate(EPU = as.character(EPU),
+                   NAME10 = as.character(NAME10))%>%
+              mutate(rgn = ifelse(is.na(NAME10),EPU,NAME10))%>%
+              mutate(rgn = ifelse(NAME10 == "Massachusetts" & EPU == "GB", "Massachusetts-GB",
+                                  ifelse(NAME10 == "Massachusetts" & EPU == "GOM","Massachusetts-GOM",
+                                         ifelse(NAME10 == "Massachusetts" & EPU == "MAB","Massachusetts-MAB",NAME10))))%>%
+              mutate(rgn = ifelse(is.na(rgn),EPU,rgn))%>%
+              mutate(rgn = ifelse(is.na(rgn),NAME10,rgn))%>%
+              mutate(rgn2 = ifelse(is.na(NAME10),EPU,NAME10))
+
+
+tm_shape(states)+
+  tm_polygons(col='beige')+
+tm_shape(epu_state) + 
+  tm_polygons("rgn", 
+        title="Regions",palette="Set3")+
+tm_layout(legend.text.size = 0.6,
+          legend.position = c("left","top"),
+          legend.bg.color = "white",
+          legend.bg.alpha = 1)
+
+```
+
+```{r epu_state_noint}
+
+tm_shape(states)+
+  tm_polygons(col='beige')+
+tm_shape(epu_state) + 
+  tm_polygons("rgn2", 
+        title="Regions",palette="Set3")+
+tm_layout(legend.text.size = 0.6,
+          legend.position = c("left","top"),
+          legend.bg.color = "white",
+          legend.bg.alpha = 1)
+
+
+```
+
+
+
+
 
 
