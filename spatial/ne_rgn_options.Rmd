@@ -3,6 +3,7 @@ title: 'OHI-Northeast: Region Options'
 author: "*Compiled on `r date()` by `r Sys.info()['user']`*"
 output:
   html_document:
+    fig_caption: TRUE
     toc: true
     toc_depth: 3
     toc_float: yes
@@ -250,6 +251,17 @@ tm_layout(legend.text.size = 0.6,
 
 ```
 
+
+## Rhode Island Ocean SAMP
+```{r ri-osamp}
+## Shapefile downloaded from here (Ocean SAMP study area): http://www.narrbay.org/d_projects/oceansamp/gis_marinebounds.htm
+
+ri_samp <- readOGR(dsn = file.path(dir_anx,'spatial/data_for_rgn_options/mbounds_samp'),layer = 'mbounds_samp',verbose=FALSE)%>%
+            spTransform(p4s_nad83)
+
+ri_samp@data$name = "RI OSAMP Area"
+```
+
 # Ecological Production Unit Boundaries
 
 Incorporating Ecological Production Units as an option for OHI regions.
@@ -305,13 +317,15 @@ tm_layout(legend.text.size = 0.6,
 
 ```
 
-```{r epu_state_noint}
+```{r epu_state_noint, fig.cap="**OHI Northeast region options**: This map combines state waters and ecological production units (EPU's) as defined by the Northeast Fisheries Science Center ([reference](http://www.nefsc.noaa.gov/program_review/background2016/6Ecosys%20D&PNew%20folder/Gamble/Gamble%20Ecological%20Production%20UnitsFin%20temp.pdf)) to create 10 regions for consideration. The Rhode Island OSAMP area is included for futher consideration as a region."}
 
 tm_shape(states)+
   tm_polygons(col='beige')+
 tm_shape(epu_state) + 
   tm_polygons("rgn2", 
         title="Regions",palette="Set3")+
+tm_shape(ri_samp)+
+  tm_fill("name","black", alpha = 0.4,border.col = 'black',legend.show=T,title = "For consideration")+
 tm_layout(legend.text.size = 0.6,
           legend.position = c("left","top"),
           legend.bg.color = "white",
