@@ -95,7 +95,7 @@ writeRaster(vs_mass_natl,
 ```{r}
 
 ne_trash <- raster('int/cw_trash_mass_vansebille.tif')%>%
-            projectRaster(.,ocean_ne)%>%
+            projectRaster(.,ocean_ne, method = 'ngb')%>%
             resample(ocean_ne,method = 'ngb')%>%
             mask(.,ocean_ne)
 
