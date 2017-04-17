@@ -128,6 +128,8 @@ More than half the weeks in a 5 year period are anomalous, indicating a regime s
 
 ```{r rescale_local,eval=F}
 
+diffs <- list.files('int/sst_anom_diffs',full.names=T)
+
 local_resc <- function(x){
   
   #get the year from the file for naming the output raster
@@ -135,12 +137,13 @@ local_resc <- function(x){
  
   #if a cell value is greater than or equal to the reference point (130 weeks), we assign a value of 1, otherwise it is divided by the reference point
   raster(x)%>%
-  calc(.,fun=function(x){ifelse(x<0,0,ifelse(x>130,1,x/ref_point_loc))},
-         filename = paste0('int/sst_rescale/sst_rescale_local_',yrs,'.tif'),overwrite=T)
+  calc(.,fun=function(x){ifelse(x<0,0,ifelse(x>130,1,x/130))},
+         filename = paste0('int/sst_rescale/sst_rescale_',yrs,'.tif'),overwrite=T)
 }
 
 #mclapply is used for parallel processing across multiple cores
-mclapply(diff_files,local_resc,mc.cores = 10)
+#mclapply(diffs,local_resc,mc.cores = 10)
+lapply(diffs,local_resc)
 
 ```
 
@@ -151,8 +154,8 @@ Using the local reference point, we can see how the pressure changes over time.
 ```{r gif_local_rescale, eval=F}
 
 #list the rescaled rasters and assign them in a brick
-resc_loc        <- lapply(list.files('int/sst_rescale',full.names=T,pattern = 'local'),raster)%>%brick()
-names(resc_loc) <- paste0("Years_",(substr(names(resc_loc),19,27)))
+resc      <- lapply(list.files('int/sst_rescale',full.names=T,pattern = 'local'),raster)%>%brick()
+names(resc) <- paste0("Years_",(substr(names(resc_loc),19,27)))
 gsub(".", "-", names(resc_loc), fixed = TRUE)
 
 #create a gif of values over time
