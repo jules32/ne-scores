@@ -154,19 +154,19 @@ Using the local reference point, we can see how the pressure changes over time.
 ```{r gif_local_rescale, eval=F}
 
 #list the rescaled rasters and assign them in a brick
-resc      <- lapply(list.files('int/sst_rescale',full.names=T,pattern = 'local'),raster)%>%brick()
-names(resc) <- paste0("Years_",(substr(names(resc_loc),19,27)))
-gsub(".", "-", names(resc_loc), fixed = TRUE)
+resc      <- lapply(list.files('int/sst_rescale',full.names=T),raster)%>%brick()
+names(resc) <- paste0("Years_",(substr(names(resc),13,21)))
+gsub(".", "-", names(resc), fixed = TRUE)
 
 #create a gif of values over time
 saveGIF({
-  for(i in 1:nlayers(resc_loc)){
+  for(i in 1:nlayers(resc)){
       # don't forget to fix the zlimits
-      plot(resc_loc[[i]], zlim=c(0,1), axes=F, col=cols,
-           main=names(resc_loc[[i]]))
+      plot(resc[[i]], zlim=c(0,1), axes=F, col=cols,
+           main=names(resc[[i]]))
       
   }
-}, movie.name = 'sst_anom_diffs_rescale.gif')
+}, movie.name = 'sst_anom_diffs_rescale.gif') #this cause an error on local comp. try on server
 
 ```
 
@@ -177,8 +177,6 @@ saveGIF({
 
 #Results
 
-Let's look at the results if we use a local reference point only.
-
 ## Region scores
 
 We first need to extract the data for each of the 9 regions using the `zonal` function from the `raster` package.
@@ -186,7 +184,7 @@ We first need to extract the data for each of the 9 regions using the `zonal` fu
 ```{r extract_data, eval=F}
 
 # read in rescaled files
-pressure_stack <- lapply(list.files('int/sst_rescale',full.names=T,pattern = 'local'),raster)%>%brick()
+pressure_stack <- lapply(list.files('int/sst_rescale',full.names=T),raster)%>%brick()
 
 # extract data for each region (zones is previously defined in common.R)
 regions_stats  <- zonal(pressure_stack,  zones, fun="mean", na.rm=TRUE, progress="text")%>%
@@ -195,11 +193,11 @@ regions_stats  <- zonal(pressure_stack,  zones, fun="mean", na.rm=TRUE, progress
 #merge the zonal stats with the rgn_data as defined in common.R
 data           <- merge(rgn_data, regions_stats, all.y=TRUE, by.x="rgn_id", by.y="zone") %>%
                     dplyr::select(-area_km2)%>%
-                    gather("year", "pressure_score",starts_with("sst_rescale_local_")) 
+                    gather("year", "pressure_score",starts_with("sst_rescale_")) 
 
-#add a year column and reformat as numeric
+#add a year column that grabs the last year of the 5 year period and reformat as numeric
 sst_data <- data %>%
-              mutate(year=substr(year,24, 27)) %>%
+              mutate(year=substr(year,18, 21)) %>%
               mutate(year = as.numeric(year))
 
 #save output data
@@ -249,11 +247,21 @@ map_scores(now,'pressure_score',scale_label = "Pressure Score", map_title = "Sea
 
 ### Visualize through time
 
+A static ggplot for scores over time
+
+```{r ggplot_time}
+library(ggplot2)
+sst_data <- read_csv("output/sst.csv")
+
+ggplot(sst_data,aes(x = year,y = pressure_score, color = rgn_name))+
+  geom_line()
+
+
+```
+
 This code chunk creates a google visualization of the scores through time. It unfortunately does not allow the google chart to show up in the RMarkdown knitted document.
 
 ```{r google_plot, results = 'asis'}
-
-sst_data <- read_csv("output/sst.csv")
 
 library(googleVis)
 plotData <- sst_data %>%
