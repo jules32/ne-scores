@@ -22,7 +22,7 @@ The Ultraviolet Radiation pressure layer is generated from daily data on Local N
 
 For the global OHI assessment, the raw data is processed into anomaly products. The data product of that process are rasters of total number of weekly anomalies per year. An anomaly is defined as greater than the mean climatology plus 1 standard deviation for that cell across the entire dataset (2005-2016).
 
-This script takes the global anomaly rasters, crops them to the Northeast region and calculates the difference in the number of weekly anomalies over each 5 year period compared to the number of anomalies in the period 2005 to 2009. The data is then rescaled using the maximum number of anomalies above the reference period.
+This script takes the global anomaly rasters, crops them to the Northeast region and calculates the difference in the number of weekly anomalies over each 5 year period compared to the number of anomalies in the period 2005 to 2009. The data is then rescaled using a reference point of 130 anomalous weeks.
 
 
 ***
@@ -121,92 +121,31 @@ plot(raster('int/annual_diff_ocean_2012_2016.tif'),col=cols, main = "Difference 
 
 ## Rescale
 
-### Using a local reference point
-
-Rescale using the maximum value across all years from within the region bounding box. This is being explored currently. We may switch to a different spatial reference point.
+We define the reference point as more than half the weeks in a 5 year period are anomalous, indicating a regime shift. This is equal to (52x5)/2, or **greater than 130**.
 
 ```{r rescale, eval=F}
 
 out_files <- list.files('int',full.names=T, pattern = 'ocean')
 
-#get data across all years
-vals <- c()
-
-for(i in 1:8){
-  
-  print(i)
-  m <- out_files[i]%>%
-    raster()%>%
-    getValues()
-  
-  na.omit(m)
-  
-  vals <- c(vals,m)
-  
-}
-
-#local rescaling 
-loc_resc  <- max(vals,na.rm=T)#70
-
-
 foreach(i = c(2005:2012)) %dopar% { #i=2005
   
  yrs <- c(i:(i+4))
  
   out_rescale = out_files[substr(out_files,23,26)==i]%>%
                 raster()%>%
-                calc(fun=function(x){ifelse(x>0,ifelse(x>loc_resc,1,x/loc_resc),0)})%>%
+                calc(fun=function(x){ifelse(x>0,ifelse(x>130,1,x/130),0)})%>%
                 mask(ocean_ne,filename=paste0('output/',min(yrs),'_',max(yrs),'_rescaled.tif',sep=""),overwrite=T)
 }
 ```
 
 ```{r plot_loc_rescale}
-plot(raster('output/2012_2016_rescaled.tif'),col=cols,main = "UV pressure layer 2016 \n Local Reference Point")
+plot(raster('output/2012_2016_rescaled.tif'),col=cols,main = "UV pressure layer 2016")
 
 ```
-
-### Using a global reference point
-
-Using the maximum value globally to rescale. This requires reading in the global anomalies from ohiprep.
-
-```{r global_rescale, eval=F}
-
-glob_files <- list.files('~/github/ohiprep/globalprep/prs_uv/v2017/int',full.names=T)
-vals <- c()
-
-for(i in 1:7){
-  
-  print(i)
-  m <- glob_files[i]%>%
-    raster()%>%
-    getValues()
-  
-  na.omit(m)
-  
-  vals <- c(vals,m)
-}
-
-global_resc <- max(vals,na.rm=T)#100
-  
-foreach(i = c(2005:2012)) %dopar% { #i=2005
-  
- yrs <- c(i:(i+4))
- 
-  out_rescale = out_files[substr(out_files,23,26)==i]%>%
-                raster()%>%
-                calc(fun=function(x){ifelse(x>0,ifelse(x>global_resc,1,x/global_resc),0)})%>%
-                mask(ocean_ne,filename=paste0('output/',min(yrs),'_',max(yrs),'_rescaled_global.tif',sep=""),overwrite=T)
-}
-
-```
-
 
 ***
 
 # Results
-
-Sticking with using a local reference point.
-
 
 ##Extract data for each region
 
@@ -314,8 +253,24 @@ for(newYear in (min(uv_data$year)):(max(uv_data$year))){
   saveData(newYear)
 }
 
+```
+
+# Scores over time
+
+```{r}
+
+library(ggplot2)
+uv_data <- read_csv("output/uv.csv")
+
+ggplot(uv_data,aes(x = year,y = pressure_score, color = rgn_name))+
+  geom_line()
+
+```
 
 ### try visualizing the data using googleVis plot
+
+```{r}
+
 library(googleVis)
 plotData <- uv_data %>%
   dplyr::select(rgn_name, year, pressure_score)
