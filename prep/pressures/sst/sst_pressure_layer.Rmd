@@ -81,7 +81,7 @@ foreach(f = sst_global_files) %dopar% {
 
   raster(f)%>%                     #raster the file
     crop(wgs_ext)%>%               #crop to the WGS extent 
-    projectRaster(ocean_ne, filename = paste0('int/sst_anom_diffs/sst_anom_diffs_',substr(f,77,85),'.tif'),overwrite=T)
+    projectRaster(ocean_ne, filename = paste0('int/sst_anom_diffs/sst_anom_diffs_',substr(basename(f),16,24),'.tif'),overwrite=T)
     
 }
 ```
@@ -122,25 +122,7 @@ saveGIF({
 
 ## Reference point
 
-Since we aren't sure what spatial reference point is most appropriate for the region yet, we are going to use two different ones:
-
-1. The maximum number of anomalies above the reference period (1985-1989) from a cell that lies within our region bounding box
-2. The maximum number of anomalies above the reference period (1985-1989) a cell has anywhere in the world.
-
-For each of these reference points we will set the max from the entire time series. The spatial patterns and relative scores between cells will not change between the two reference points. The main difference will be the level at which we assign a pressure value of 1. If the global reference point is much higher than the local reference point, our region pressure scores will be much lower. But if we use a local reference point, we are more likely to get higher pressure scores which will ultimately have a great impact on goals where SST acts as a pressure.
-
-### Local reference point
-
-```{r local_ref_point}
-
-ref_point_loc <- max(sst_global_files%>%
-                   stack()%>%
-                   crop(wgs_ext)%>%
-                   projectRaster(ocean_ne)%>%
-                   cellStats(stat='max'))
-```
-
-The local reference point is set equal to the maximum value within the Northeast region across the entire time series. This is not necessarily the maximum within our regions, but the maximum value within the larger extent of our region. The reference point is a difference of **`r ref_point_loc`** anomalies in a 5 year period.
+More than half the weeks in a 5 year period are anomalous, indicating a regime shift. This is equal to (52x5)/2, or **greater than 130**.
 
 #### Rescale
 
@@ -151,9 +133,9 @@ local_resc <- function(x){
   #get the year from the file for naming the output raster
   yrs <- substr(x,35,43)
  
-  #if a cell value is greater than or equal to the reference point, we assign a value of 1, otherwise it is divided by the reference point
+  #if a cell value is greater than or equal to the reference point (130 weeks), we assign a value of 1, otherwise it is divided by the reference point
   raster(x)%>%
-  calc(.,fun=function(x){ifelse(x<0,0,ifelse(x>ref_point_loc,1,x/ref_point_loc))},
+  calc(.,fun=function(x){ifelse(x<0,0,ifelse(x>130,1,x/ref_point_loc))},
          filename = paste0('int/sst_rescale/sst_rescale_local_',yrs,'.tif'),overwrite=T)
 }
 
@@ -181,63 +163,11 @@ saveGIF({
            main=names(resc_loc[[i]]))
       
   }
-}, movie.name = 'sst_anom_diffs_rescale_local.gif')
+}, movie.name = 'sst_anom_diffs_rescale.gif')
 
 ```
 
-<img src="sst_anom_diffs_rescale_local.gif"/>
-
-### Global reference point
-
-```{r global_ref_point}
-
-ref_point     <- max(sst_global_files%>%
-                   stack()%>%
-                   cellStats(stat='max'))
-```
-
-The global reference point is set equal to the maximum value anywhere in the world across the entire time series and is a difference of **`r ref_point`** anomalies in a 5 year period.
-
-#### Rescale
-
-```{r rescale_global, eval=F}
-
-diff_files  <- list.files('int/sst_anom_diffs',full.names=T)
-
-#define the rescaling function to apply to the files
-global_resc <- function(x){
-  
-  yrs <- substr(x,35,43)
- raster(x)%>%
-        calc(.,fun=function(x){ifelse(x<0,0,ifelse(x>ref_point,1,x/ref_point))},
-         filename = paste0('int/sst_rescale/sst_rescale_global_',yrs,'.tif'),overwrite=T)
-}
-
-#mclapply is used for parallel processing
-mclapply(diff_files,global_resc,mc.cores = 10)
-
-```
-
-#### Pressure over time
-
-Using a global reference point, we can see how the pressure changes over time.
-
-```{r global_pressure_gif,eval=F}
-
-resc_glob <- lapply(list.files('int/sst_rescale',full.names=T,pattern = 'global'),raster)%>%brick()
-
-saveGIF({
-  for(i in 1:nlayers(resc_glob)){
-      # don't forget to fix the zlimits
-      plot(resc_glob[[i]], zlim=c(0,1), axes=F, col=cols,
-           main=names(resc_glob[[i]])) 
-      
-  }
-}, movie.name = 'sst_anom_diffs_rescale_global.gif')
-
-```
-
-<img src="sst_anom_diffs_rescale_global.gif"/>
+<img src="sst_anom_diffs_rescale.gif"/>
 
 
 ***
