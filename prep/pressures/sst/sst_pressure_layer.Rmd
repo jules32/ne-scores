@@ -27,26 +27,18 @@ source('~/github/ohi-northeast/src/R/common.R') ### an OHINE specific version of
 
 #Summary
 
-For OHI Global Assessments, we calculated a climatology from 1982-2012 per cell using weekly data from CorTAD. We then calculated the number of times a given cell's weekly SST was greater than the climatological mean for that week (an anomaly: greater than mean + sd) and summed the number of anomalies in a single year. The maximum value a cell could have is 52 which would mean that cell had anomalous SST temperatures for each week of the year.
+For OHI Global Assessments, we calculated a climatology from 1982-2012 per cell using weekly data from CorTAD. We then calculated the number of times a given cell's weekly SST was greater than the climatological mean for that week (an anomaly: greater than mean + one standard deviation) and summed the number of weekly anomalies in a single year. The maximum value a cell could have is 52 which would mean that cell had anomalous SST temperatures for each week of the year.
 
-To look at change over time, we defined a historical reference period, 1985-1989, and summed the total number of anomalies per cell over that time period. Thus the maximum value a cell in the historical reference dataset could have is 52*5 = 265. For each 5 year time period from 1985 through 2012, weekly anomalies were aggregated, and then compared to the historical reference period. The final output of this comparison gets at the change in number of anomolies per cell within a 5 year time period as compared to 1985-1989.
+To account for annual variation, we look at Sea Surface Temperature anomalies in 5 year periods, so the maximum value possible per cell is 260 anomalous weeks. To rescale the values from 0 to 1 we set a reference point. Previously, the reference point for SST has just been the maximum difference in anomalous weeks between the most recent time period and a historical reference period (1985-1989).
 
-Using the same data and methodology as Halpern et al. (2008), we created the SST pressure layer using data on Sea Surface Temperature Anomalies from [CoRTAD](https://data.nodc.noaa.gov/cgi-bin/iso?id=gov.noaa.nodc:0126774).
+This time we have decided to use a reference point that represents a regime shift. Once a given cell is anomalous for more than 50% of a five-year period, it has shifted into a new regime. All cells that have a value greater than 130 weeks (51% of a 5 year time period) are assigned a 1. The rest of the cells are scaled to this reference point by dividing by 130.
 
-From the supplementary material for SST from Halpern et al. (2008):
-
-> We first developed a climatology or long-term weekly average for each approximately ~4 km grid cell using data from 1985 to 2005. These data provide a baseline for determining when temperatures are unusually warm... we calculated the number of times the SST anomaly exceeded the
-standard deviation of SSTs for that location and week of the year. This threshold-based approach accounts for natural variability at a given location, which can vary widely from place to place, by incorporating the standard deviation...
-
-> We then developed a change metric by subtracting the number of non-zero positive anomalies in the early period (1985-1989) from the number in the recent period (2000-2005); these are the data included in our cumulative impact model.
-
-The pressure layer is transformed from 0 to 1 using a local reference point. 
 
 ***
 
 #Data
 
-**Source**: The [Coral Reef Temperature Anomaly Database Version 5](https://data.nodc.noaa.gov/cgi-bin/iso?id=gov.noaa.nodc:0126774)  
+**Source**: The [Coral Reef Temperature Anomaly Database Version 5 (CoRTAD)](https://data.nodc.noaa.gov/cgi-bin/iso?id=gov.noaa.nodc:0126774)  
 **Downloaded**: May 29, 2015  
 **Description**:  Sea Surface Temperature Anomalies (Kelvin)  
 **Native data resolution**: 4km^2^    
@@ -57,21 +49,24 @@ The pressure layer is transformed from 0 to 1 using a local reference point.
   
 #Analysis
 
-##Get global data from OHI 2016
+##Global data layers
 
-We're going to use the global data that was processed for OHI 2016. This data is held in the [`ohiprep`](https://github.com/OHI-Science/ohiprep) repo on GitHub.
+We're going to use the global data that was processed for OHI 2015 & used for OHI 2016. This data is held on a server at NCEAS.
 
-Each of these rasters is the difference in SST anomalies between a given 5 year period and the historical reference period (1985-1989)
+Each of these rasters is the number of positive weekly anomalies each year.
 
 ```{r global_data}
 
-sst_global_files <- list.files('~/github/ohiprep/globalprep/prs_sst/v2016/int', pattern = '.tif',full.names=T)
+sst_global_files <- list.files(file.path(dir_M,'git-annex/globalprep/prs_sst/v2015/tmp'), pattern = 'annual_pos_anomalies',full.names=T)
+
+plot(raster(sst_global_files[31]),col=cols,main = "Sea Surface Temperature 2012",box=F,axes=F,
+     legend.args=list(text='Anomalous Weeks', side=4, font=2, line=2.5, cex=0.8))
 
 ```
 
 ## Crop to the Northeast region
 
-Using the `crop` function from the `raster` package we crop all sea surface temperature rasters to our extent and then reproject them to the US Albers projection for consistency across the assessment. We crop the global rasters first to reduce the time it takes to reproject the rasters.
+Using the `crop` function from the `raster` package we crop all sea surface temperature rasters to our extent and then reproject them to the US Albers projection for consistency across the assessment. We crop the global rasters first to reduce the time it takes to reproject the rasters. `ocean_ne` is used as a mask to remove land cells from the raster for better visuals.
 
 ```{r crop_to_ne, eval=F}
 
@@ -81,28 +76,26 @@ foreach(f = sst_global_files) %dopar% {
 
   raster(f)%>%                     #raster the file
     crop(wgs_ext)%>%               #crop to the WGS extent 
-    projectRaster(ocean_ne, filename = paste0('int/sst_anom_diffs/sst_anom_diffs_',substr(basename(f),16,24),'.tif'),overwrite=T)
+    projectRaster(ocean_ne)%>%
+    mask(ocean_ne, filename = paste0('int/sst_annual_anoms/annual_anoms_',substr(basename(f),25,28),'.tif'),overwrite=T)
     
 }
+
+plot(raster('int/sst_annual_anoms/annual_anoms_2012.tif'),col=cols,axes=F,main = "Sea Surface Temperature 2012",
+     legend.args=list(text='Anomalous Weeks', side=4, font=2, line=2.5, cex=0.8))
 ```
 
-```{r plot_anom_diffs_2008-2012, fig.cap="Difference in the number of weekly anomalies between 2008-2012 and 1985-1989"}
-
-plot(raster('int/sst_anom_diffs/sst_anom_diffs_2008-2012.tif'),axes=F,col=cols,box=F)
-plot(rgns,add=T)
-
-```
 
 ##Visualize change over time
 
-This gif shows yearly differences in the number of anomalous values above the reference period of 1985-1989. As an example, if a pixel has a values of 10, that indicates that pixel was anomalous for 10 more weeks in those 5 years compared to the reference period.
+Getting a sense of how things have changed over time.
 
 ```{r gif1,eval=F}
 
 #rasterize each file in the list of files and then create a brick of rasters
-s        <- lapply(list.files('int/sst_anom_diffs',full.names=T),raster)%>%brick()
+s        <- lapply(list.files('int/sst_annual_anoms',full.names=T),raster)%>%brick()
 
-names(s) <- paste0("Years_",(substr(names(s),16,24))) #rename each layer for plotting
+names(s) <- paste0("Years_",(substr(names(s),14,17))) #rename each layer for plotting
 gsub(".", "-", names(s), fixed = TRUE)                #replace the . with a -
 
 library(animation)
@@ -110,30 +103,50 @@ library(animation)
 saveGIF({
   for(i in 1:nlayers(s)){
       # don't forget to fix the zlimits
-      plot(s[[i]], zlim=c(-75,106), axes=F, col=cols,
-           main=names(s[[i]]))
+      plot(s[[i]], zlim=c(0,52), axes=F, col=cols,
+           main=names(s[[i]]),
+           legend.args=list(text='Anomalous Weeks', side=4, font=2, line=2.5, cex=0.8))
       
   }
-}, movie.name = 'sst_anom_diffs.gif')
+}, movie.name = 'sst_annual_anoms.gif')
 
 ```
 
-<img src="sst_anom_diffs.gif"/>
+<img src="sst_annual_anoms.gif"/>
 
-## Reference point
+##Five-year aggregates
 
-More than half the weeks in a 5 year period are anomalous, indicating a regime shift. This is equal to (52x5)/2, or **greater than 130**.
+Calculating total anomalous weeks for each 5-year period from 1982 - 2012.
 
-#### Rescale
+```{r five-year}
 
-```{r rescale_local,eval=F}
+l <- list.files('int/sst_annual_anoms',full.names=T)
 
-diffs <- list.files('int/sst_anom_diffs',full.names=T)
+for(i in 1982:2008){ #i=2005
+  
+  yrs <- c(i,i+1,i+2,i+3,i+4)
+  s   <- stack(l[substr(l,35,38)%in%yrs])%>%sum(.)
+  
+  writeRaster(s,filename = paste0('int/sst_5yr_anom_sums/sum_anoms_',min(yrs),'-',max(yrs),'.tif'),overwrite=T)
+}
 
-local_resc <- function(x){
+```
+
+## Rescale
+
+To account for annual variation, we look at Sea Surface Temperature anomalies in 5 year periods, so the maximum value possible per cell is 260 anomalous weeks. To rescale the values from 0 to 1 we need to set a reference point. Previously, the reference point for SST has just been the maximum difference in anomalous weeks between the most recent time period and a historical reference period (1985-1989).
+
+This time we have decided to use a reference point that represents a regime shift. Once a given cell is anomalous for more than 50% of a five-year period, it has shifted into a new regime. All cells that have a value greater than 130 weeks (51% of a 5 year time period) are assigned a 1. The rest of the cells are scaled to this reference point by dividing by 130.
+
+
+```{r rescale,eval=F}
+
+sst_aggs <- list.files('int/sst_5yr_anom_sums',full.names=T) 
+
+resc_func <- function(x){
   
   #get the year from the file for naming the output raster
-  yrs <- substr(x,35,43)
+  yrs <- substr(x,33,41)
  
   #if a cell value is greater than or equal to the reference point (130 weeks), we assign a value of 1, otherwise it is divided by the reference point
   raster(x)%>%
@@ -142,12 +155,12 @@ local_resc <- function(x){
 }
 
 #mclapply is used for parallel processing across multiple cores
-#mclapply(diffs,local_resc,mc.cores = 10)
-lapply(diffs,local_resc)
+mclapply(sst_aggs,resc_func,mc.cores = 10)
+
 
 ```
 
-#### Pressure over time
+### Pressure over time
 
 Using the local reference point, we can see how the pressure changes over time.
 
@@ -163,14 +176,15 @@ saveGIF({
   for(i in 1:nlayers(resc)){
       # don't forget to fix the zlimits
       plot(resc[[i]], zlim=c(0,1), axes=F, col=cols,
-           main=names(resc[[i]]))
+           main=names(resc[[i]]),
+           legend.args=list(text='Anomalous Weeks', side=4, font=2, line=2.5, cex=0.8))
       
   }
-}, movie.name = 'sst_anom_diffs_rescale.gif') #this cause an error on local comp. try on server
+}, movie.name = 'sst_rescale.gif')
 
 ```
 
-<img src="sst_anom_diffs_rescale.gif"/>
+<img src="sst_rescale.gif"/>
 
 
 ***
@@ -179,7 +193,7 @@ saveGIF({
 
 ## Region scores
 
-We first need to extract the data for each of the 9 regions using the `zonal` function from the `raster` package.
+By extracting the data for each of the 9 regions using the `zonal` function from the `raster` package we can get the mean score per region.
 
 ```{r extract_data, eval=F}
 
@@ -204,7 +218,7 @@ sst_data <- data %>%
 write.csv(sst_data, file.path("output/sst.csv"), row.names=FALSE)
 ```
 
-We need to save each years data individually for the OHI toolbox to run.
+Each year is saved individually for the OHI toolbox.
 
 ```{r save_data, eval=F}
 
@@ -229,14 +243,14 @@ for(newYear in (max(sst_data$year) - 10):(max(sst_data$year))){
 }
 ```
 
-### Current scores
+## Current scores
 
-Let's look at the most recent scores, which would use the data from 2012 as it's the most recent year in the CoRTAD dataset.
+Let's look at the most recent scores using the data from 2012 since it's the most recent year in the CoRTAD dataset.
 
 ```{r current_score}
 
 #select data from 2012
-now <- read_csv("output/sst.csv")%>%filter(year==2012)
+now <- read.csv("output/sst.csv")%>%filter(year==2012)
 
 
 #map_scores is a function to plot a tmap map of the scores
@@ -245,17 +259,16 @@ map_scores(now,'pressure_score',scale_label = "Pressure Score", map_title = "Sea
 ```
 
 
-### Visualize through time
+## Region scores through time
 
-A static ggplot for scores over time
 
 ```{r ggplot_time}
 library(ggplot2)
 sst_data <- read_csv("output/sst.csv")
 
 ggplot(sst_data,aes(x = year,y = pressure_score, color = rgn_name))+
-  geom_line()
-
+  geom_line()+
+  labs(color = "Region")
 
 ```
 
