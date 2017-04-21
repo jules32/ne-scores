@@ -25,7 +25,7 @@ We are going to do a regional bounding box and use the maximum value in that box
 
 ```{r setup,echo=F,message=F,warning=F}
 
-knitr::opts_chunk$set(fig.width = 6, fig.height = 4, fig.path = 'figs/', message = FALSE, warning = FALSE)
+knitr::opts_chunk$set(fig.width = 10, fig.height = 10, fig.path = 'figs/', message = FALSE, warning = FALSE)
 
 source('~/github/ohi-northeast/src/R/common.R') ### an OHINE specific version of common.R
 
@@ -73,11 +73,6 @@ vs_stack <- stack(vs_rasts)
 ##Crop to the Northeast
 
 ```{r crop}
-
-### Save raster of van Sebille model by mass
-writeRaster(vs_stack_crop[['vansebillemodel_mass']], 
-            file.path('int/cw_trash_mass_vansebille.tif'), 
-            overwrite = TRUE)
 
 ### create North West Atlantic raster: north of Equator; using Law 2010 paper to determine boundaries (Figure 2): http://science.sciencemag.org/content/329/5996/1185.full
 
@@ -142,7 +137,6 @@ The highest amount of trash in the region is located right off New York City (3,
 
 
 ```{r rescale}
-
 
 trash_ne <- vs_mass_ext4
 ref      <- cellStats(trash_ne,stat='max')
