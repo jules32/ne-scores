@@ -70,9 +70,11 @@ for (i in 1:length(vs_files)) { ### i = 1
 vs_stack <- stack(vs_rasts)
 ```
 
-##Crop to the Northeast
+##Compare regional extents
 
-```{r crop}
+Does the regional extent dramatically change the result of the trash layer? Here are 4 arbitrarily determined extents.
+
+```{r trash_compare_extents}
 
 ### create North West Atlantic raster: north of Equator; using Law 2010 paper to determine boundaries (Figure 2): http://science.sciencemag.org/content/329/5996/1185.full
 
@@ -99,10 +101,10 @@ vs_mass_ext3 <- crop(vs_stack[['vansebillemodel_mass']],ext_3)
 plot(vs_mass_ext3,col=cols, axes=F, main = "Extent 3")
 plot(world,col='gray',add=T)
 
-## Extent 4 (Northeast region)
+## Extent 4
 ext_4 <- wgs_ext
 vs_mass_ext4 <- crop(vs_stack[['vansebillemodel_mass']], wgs_ext)
-plot(vs_mass_ext4, col=cols, axes=F, main = "OHI NE extent")
+plot(vs_mass_ext4, col=cols, axes=F, main = "Extent 4")
 plot(world,col='gray',add=T)
 
 
@@ -136,7 +138,7 @@ Let's go with 3,007.
 The highest amount of trash in the region is located right off New York City (3,007 g/km^2^). This drives all other values down when a regional reference point is used, whether the data are first log transformed or not.
 
 
-```{r rescale}
+```{r trash_rescaled}
 
 trash_ne <- vs_mass_ext4
 ref      <- cellStats(trash_ne,stat='max')
@@ -162,7 +164,7 @@ plot(trash_ne_resc,col=cols,main = "Marine Trash",axes=F,
 
 By extracting the data for each of the 9 regions using the `zonal` function from the `raster` package we can get the mean score per region.
 
-```{r extract_region_results, eval=F}
+```{r trash_region_scores}
 
 # extract data for each region:
 regions_stats <- zonal(trash_ne_resc,  zones, fun="mean", na.rm=TRUE, progress="text")%>%data.frame()
@@ -174,7 +176,7 @@ data <- merge(rgn_data, regions_stats, all.y=TRUE, by.x="rgn_id", by.y="zone") %
 write.csv(data, "scores/trash.csv", row.names=FALSE)
 
 #map_scores is a function to plot a tmap map of the scores
-map_scores(data,'pressure_score',scale_label = "Clean Waters Trash Pressure", map_title = "")
+map_scores(data,'pressure_score',scale_label = "Clean Waters Trash Pressure", map_title = "",rev_col = T)
 ```
 
 
