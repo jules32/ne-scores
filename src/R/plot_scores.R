@@ -49,6 +49,7 @@ map_scores <- function(score_obj,
     tm_shape(poly_land) +
     tm_polygons(col = 'cornsilk2', border.col = 'cornsilk4') +
     tm_layout(title = map_title,
+              title.position = c('left','top'),
             legend.position = c("right","top"))
   
   print(score_map)
