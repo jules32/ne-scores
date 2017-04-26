@@ -10,12 +10,11 @@ states <- readOGR(dsn = file.path(dir_anx,'spatial/cb_2015_us_state_500k'),layer
 
 plot(states)
 
-ne <- states[states$NAME %in% c("Massachusetts","New Hampshire","Rhode Island","Connecticut","New Jersey","New York","Maine","Vermont"),]
+ne <- states[states$NAME %in% c("Massachusetts","New Hampshire","Rhode Island","Pennsylvania","Connecticut","New Jersey","New York","Maine","Vermont"),]
 
 ne@data <- ne@data%>%
             dplyr::select(-STATEFP,-STATENS,-GEOID,-LSAD,-ALAND,-AWATER)
 
-out <- spTransform(ne,us_alb)%>%
-        crop(ne_ext)
+out <- spTransform(ne,us_alb)
 
-writeOGR(out,dsn = 'spatial',layer = 'states',driver = 'ESRI Shapefile')
+writeOGR(out,dsn = 'spatial',layer = 'states',driver = 'ESRI Shapefile',overwrite_layer = T)
