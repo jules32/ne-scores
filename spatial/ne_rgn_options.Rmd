@@ -271,16 +271,51 @@ Incorporating Ecological Production Units as an option for OHI regions.
 epu <- readOGR(file.path(dir_anx, 'spatial/data_for_rgn_options/Extended_EPU'),'EPU_extended')%>%
         spTransform(crs(state_wa))
 
+epu <- crop(epu,extent(-75,-65,38,48))
+
+#get long names for EPU regions
+epu_long <- data_frame(EPU = c('GB','GOM','SS','MAB'),
+                       longname = c('Georges Bank','Gulf of Maine','Scotian Shelf','Mid-Atlantic Bight'))
+
+epu@data <- epu@data%>%
+            left_join(epu_long,by='EPU')
+
 tm_shape(states)+
   tm_polygons(col='beige')+
 tm_shape(epu) + 
-  tm_polygons("EPU", 
+  tm_polygons("longname", 
         title="EPU regions",palette="Set3")+
 tm_layout(legend.text.size = 0.6,
           legend.position = c("left","top"),
           legend.bg.color = "white",
           legend.bg.alpha = 1)
 
+
+```
+
+## Map with EPU, state waters and RI OSAMP
+
+Made this version of the map for the May 2 stakeholder workshop presentation.
+
+```{r}
+
+pres_map <- tm_shape(epu,bbox = extent(-75,-66,39,45)) + 
+  tm_polygons("longname", 
+        title="Biogeographical",palette="Pastel1")+
+tm_shape(states)+
+  tm_polygons(col='beige')+
+tm_shape(state_wa) + 
+  tm_polygons("NAME10", 
+        title="Political",palette="Set3")+
+tm_layout(legend.text.size = 0.7,
+          title.size = 0.7,
+          legend.position = c("left","top"),
+          legend.bg.color = "white",
+          legend.bg.alpha = 0.8)
+
+pres_map
+
+save_tmap(pres_map, "figs/rgn_map_may2_pres.png", width=1480, height=1080)
 
 ```
 
@@ -291,18 +326,20 @@ tm_layout(legend.text.size = 0.6,
 epu_state <- readOGR(file.path(dir_anx, 'spatial/data_for_rgn_options'),'EPU_state_wa_union')%>%
         spTransform(crs(state_wa))
 
+
 epu_state@data = epu_state@data%>%
           dplyr::select(-Shape_Leng,-Shape_Area,-REGION10, -DIVISION10, -STATEFP10, -FUNCSTAT10,-ALAND10,-AWATER10,-INTPTLAT10,
                         -STATENS10, -GEOID10, -STUSPS10,-LSAD10,-MTFCC10)%>%
             mutate(EPU = as.character(EPU),
                    NAME10 = as.character(NAME10))%>%
-              mutate(rgn = ifelse(is.na(NAME10),EPU,NAME10))%>%
+            left_join(epu_long,by='EPU')%>%
+              mutate(rgn = ifelse(is.na(NAME10),longname,NAME10))%>%
               mutate(rgn = ifelse(NAME10 == "Massachusetts" & EPU == "GB", "Massachusetts-GB",
                                   ifelse(NAME10 == "Massachusetts" & EPU == "GOM","Massachusetts-GOM",
                                          ifelse(NAME10 == "Massachusetts" & EPU == "MAB","Massachusetts-MAB",NAME10))))%>%
-              mutate(rgn = ifelse(is.na(rgn),EPU,rgn))%>%
+              mutate(rgn = ifelse(is.na(rgn),longname,rgn))%>%
               mutate(rgn = ifelse(is.na(rgn),NAME10,rgn))%>%
-              mutate(rgn2 = ifelse(is.na(NAME10),EPU,NAME10))
+              mutate(rgn2 = ifelse(is.na(NAME10),longname,NAME10))
 
 
 tm_shape(states)+
