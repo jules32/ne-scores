@@ -1,0 +1,201 @@
+---
+title: 'OHIBC Howe Sound: Wild capture fisheries'
+author: "*Compiled on `r date()` by `r Sys.info()['user']`*"
+output: 
+  html_document:
+    code_folding: hide
+    toc: true
+    toc_depth: 3
+    toc_float: yes
+    number_sections: true
+    theme: cerulean
+    highlight: haddock
+    includes: 
+      in_header: '~/github/ohibc/src/templates/ohibc_hdr1.html'
+  pdf_document:
+    toc: true
+---
+
+``` {r setup, echo = TRUE, message = FALSE, warning = FALSE}
+
+knitr::opts_chunk$set(fig.width = 6, fig.height = 4, fig.path = 'figs/',
+                      echo = TRUE, message = FALSE, warning = FALSE)
+
+source('~/github/ohibc/src/R/common.R')  ### an OHIBC specific version of common.R;
+  ### includes library(tidyverse); library(stringr)
+
+dir_git     <- '~/github/ohibc'
+dir_spatial <- file.path(dir_git, 'prep/spatial')  ### github: general buffer region shapefiles
+dir_anx     <- file.path(dir_M, 'git-annex/bcprep')
+
+### goal specific folders and info
+goal      <- 'fis'
+scenario  <- 'vHS'
+dir_goal  <- file.path(dir_git, 'prep', goal, scenario)
+dir_goal_anx <- file.path(dir_anx, goal, scenario)
+
+### provenance tracking
+library(provRmd); prov_setup()
+
+### support scripts
+source(file.path('~/github/ohibc/src/R/map_scores.R'))
+  ### score plotting scripts
+source(file.path(dir_git, 'src/R/rast_tools.R')) 
+  ### raster plotting and analyzing scripts
+
+### set up the default BC projection to be BC Albers
+p4s_bcalb <- c('bcalb' = '+init=epsg:3005')
+
+```
+
+# Summary
+
+The Fisheries goal for Howe Sound will be calculated based on only important local shrimp fishery.  The OHIBC scores will be calculated in the same manner as for the OHI California Current assessment (Halpern et al., 2014), based upon rescaled fishing pressure (F') and biomass condition (B').
+
+***
+
+# Data Source 
+
+**Reference**: [citation for source data; website, literature, contact information. Version of data (if relevant). Screenshots if a series of menus had to be navigated to obtain the data.]
+
+**Downloaded**: [date downloaded or received]
+
+**Description**:  [e.g., surface aragonite state]
+
+**Native data resolution**: [e.g., 1 degree, 30 m, etc.]   
+
+**Time range**: [e.g., 1880-1899, monthly data provided for each year] 
+
+**Format**:  [e.g. NetCDF]
+
+***
+  
+# Methods
+
+Baum and Fuller (2016) have compiled Bmsy and Fmsy reference values for many fisheries in BC, including northern (pink) shrimp and sidestripe shrimp.  In addition, shapefiles from Fish and Oceans Canada (DFO) provide annual catch values for shrimp trawl and trap fisheries.  However, without an understanding of the biomass, we are unable to calculate B/Bmsy, and unable to convert C into an F value that can be used to calculate F/Fmsy.
+
+## Precautionary Approach to fisheries stock status and pressure
+
+An alternate method relies on results reported in the DFO (? Alerias?) 2015 Sustainable Fisheries Survey.  The Precautionary Approach (PA) framework in the survey reports qualitative judgments of the stock status ("healthy", "cautious", "critical", "unknown"), and whether removal references have been identified for various stock status levels.  For many species the fishing harvest rate relative to removal reference is reported qualitatively ("Harvest rate at or below removal reference" or "Harvest Rate ABOVE removal reference").
+
+Shrimp trawl and prawn trap (undifferentiated by species) stock statuses are both listed as "Healthy"; relative harvest:removal reference is listed as "at or below reference" for shrimp trawl fishery, and unlisted for prawn trap fishery.
+
+### Precautionary Approach metrics
+
+From the [DFO reference "A Fishery Decision-Making Framework Incorporating the Precautionary Approach"](http://www.dfo-mpo.gc.ca/fm-gp/peches-fisheries/fish-ren-peche/sff-cpd/precaution-eng.htm) 
+
+#### Stock Status
+
+* **In critical zone**: The stock is considered to be in “the critical zone” if the mature biomass, or its index, is less than or equal to 40% of BMSY. In other words:  Biomass ≤ 40% BMSY.
+* **In cautious zone**: The stock is considered to be in the “cautious zone” if the biomass, or its index, is higher than 40% of BMSY but lower than 80% of BMSY. In other words:  40% BMSY < Biomass < 80% BMSY.
+* **Healthy**: The stock is considered to be “healthy” if the biomass, or its index, is higher than 80% of BMSY. In other words:  Biomass ≥ 80% BMSY.
+
+#### Fishery Status
+
+* **Harvest at or below removal reference**: The harvest on this stock is considered to be at or below the removal reference if the harvest rate, or the fishing mortality (F), is lower than the provisional harvest rule given below. In other words: F≤ provisional harvest rule.
+* **Harvest exceeds removal reference**: The harvest on this stock is considered to be above the removal reference if the harvest rate, or the fishing mortality (F), is higher than the provisional harvest rule given below. In other words: F > provisional harvest rule.
+* **Provisional Harvest Rule**: In absence of a pre-agreed harvest rule developed in the context of the precautionary approach, a provisional removal reference or fishing mortality (say Fp) could be used to guide management and to assess harvest in relation to sustainability. The provisional harvest rule is as follows:
+    * When the stock is in the “Healthy Zone” : Fp < FMSY
+    * When the stock is in the “Cautious Zone” : Fp < FMSY x ( (Biomass – 40% BMSY ) / ( 80% BMSY − 40% BMSY) )
+    * When the stock is in the “Critical Zone” : Fp = 0
+
+#### Note on BMSY and FMSY
+
+In absence of estimates related to the status of the stock and of the fishery at the Maximum Sustainable Yield, options for provisional estimates of BMSY and FMSY are provided below.
+
+* **Biomass at MSY**: In absence of an estimate of BMSY from an explicit model, the provisional estimate of BMSY could be taken as follows (select the first feasible option):
+    * The biomass corresponding to the biomass per recruit at F0.1 multiplied by the average number of recruits; or
+    * The average biomass (or index of biomass) over a productive period; or
+    * The biomass corresponding to 50% of the maximum historical biomass.
+* **Fishing mortality at MSY**: In absence of an estimate of FMSY from an explicit model, the provisional estimate of FMSY could be taken as follows (select the first feasible option):
+    * The fishing mortality corresponding to F0.1; or
+    * The average fishing mortality (or an index of fishing mortality) that did not lead to stock decline over a productive period; or
+    * The fishing mortality equal to natural mortality inferred from life history characteristics of the species.
+
+# Results
+
+Since the only fishery of interest in Howe Sound is the shrimp fishery, for which data to calculate $B/B_{MSY}$ and $F/F_{MSY}$ is not currently available, we must rely on the PA status and pressure.  
+
+As noted above, shrimp trawl stock status is listed as "Healthy", suggesting a $B/B_{MSY}$ of 1.0 or greater;  harvest relative to removal reference is listed as "at or below reference," suggesting a $F/F_{MSY}$ of 1.0 or less.  While a healthy stock being harvested at or below its removal reference would qualify as a 100% score for the fishery, it is possible that the stock is actually being underutilized relative to its maximum sustainable yield.
+
+``` {r generate_scores}
+
+stock_status_df <- data.frame(fishery = 'shrimp_trawl', b_bmsy = 1, f_fmsy = 1)
+
+write_csv(stock_status_df, file.path(dir_goal, 'output', 'stock_status.csv'))
+
+fis_scores <- data.frame(rgn_id = 1, status = 1, trend = 0)
+
+write_csv(fis_scores, file.path(dir_goal, 'output', 'fis_scores.csv'))
+
+```
+
+`r knitr::kable(stock_status_df)`
+
+`r knitr::kable(fis_scores)`
+
+``` {r generate_kobe_plot_crit, eval = TRUE}
+
+source(file.path(dir_goal, '../v2016/kobe_fxns.R'))
+
+kobe <- generate_kobe_df()
+  
+kobe_fPrime_plot <- ggplot(data = kobe, aes(x = b_bmsy, y = f_fmsy, fill = fPrime)) +
+  ggtheme_plot + 
+  geom_raster(alpha = .8) +
+  scale_fill_distiller(palette = 'RdYlGn', direction = 1) +
+  annotate(geom = 'rect', 
+           xmin = 1, xmax = max(kobe$b_bmsy), ymin = 0, ymax = 1,
+           color = rgb(.6, .6, 1, .5), fill = rgb(.6, .6, 1, .2)) +
+  annotate(geom = 'text',
+           x = max(kobe$b_bmsy) - .25, hjust = 1,
+           y = 0.25, vjust = 0.5,
+           color = 'grey20',
+           label = 'underutilized fishery') +
+  geom_point(x = 1, y = 1, size = 2, shape = 1, color = 'blue', fill = NA) +
+  annotate(geom = 'text',
+           x = 1.1, y = 1.1, 
+           label = 'shrimp trawl', 
+           color = 'grey20') +
+  labs(title = 'F\' = f(B/Bmsy, F/Fmsy)',
+       fill = 'F\' value',
+       x = 'B/Bmsy',
+       y = 'F/Fmsy')
+
+print(kobe_fPrime_plot)
+ggsave(filename = file.path(dir_goal, 'figs/hs_kobe_fPrime.png'), width = 8, height = 6, units = 'cm')
+
+kobe_fis_score_plot <- ggplot(data = kobe, aes(x = b_bmsy, y = f_fmsy, fill = x)) +
+  ggtheme_plot + 
+  geom_raster(alpha = .8) +
+  scale_fill_distiller(palette = 'RdYlGn', direction = 1) +
+  annotate(geom = 'rect', 
+           xmin = 1, xmax = max(kobe$b_bmsy), ymin = 0, ymax = 1,
+           color = rgb(.6, .6, 1, .5), fill = rgb(.6, .6, 1, .2)) +
+  annotate(geom = 'text',
+           x = max(kobe$b_bmsy) - .5, hjust = 1,
+           y = 0.25, vjust = 0.5,
+           color = 'grey20',
+           label = 'underutilized fishery') +
+  geom_point(x = 1, y = 1, size = 2, shape = 1, color = 'blue', fill = NA) +
+  annotate(geom = 'text',
+           x = 1.1, y = 1.1, 
+           label = 'shrimp trawl', 
+           color = 'grey20') +
+  labs(title = 'FIS = f(B/Bmsy, F/Fmsy)',
+       fill = 'FIS score',
+       x = 'B/Bmsy',
+       y = 'F/Fmsy')
+
+print(kobe_fis_score_plot)
+ggsave(filename = file.path(dir_goal, 'figs/hs_kobe_fis_score.png'), width = 8, height = 6, units = 'cm')
+
+```
+
+
+***
+
+``` {r prov_footer, results = 'asis'}
+prov_wrapup()
+```
+

@@ -1,0 +1,498 @@
+---
+title: 'OHIBC: Fishing licenses prep'
+author: "*Compiled on `r date()` by `r Sys.info()['user']`*"
+output: 
+  html_document:
+    code_folding: hide
+    toc: true
+    toc_depth: 3
+    toc_float: yes
+    number_sections: true
+    theme: cerulean
+    highlight: haddock
+    includes: 
+      in_header: '~/github/ohibc/src/templates/ohibc_hdr1.html'
+  pdf_document:
+    toc: true
+---
+
+``` {r setup, echo = TRUE, message = FALSE, warning = FALSE}
+
+knitr::opts_chunk$set(fig.width = 6, fig.height = 4, fig.path = 'Figs/',
+                      echo = TRUE, message = FALSE, warning = FALSE)
+
+library(ggmap)
+library(rgdal)
+library(broom)
+
+source('~/github/ohibc/src/R/common.R')  ### an OHIBC specific version of common.R
+
+dir_git     <- '~/github/ohibc'
+dir_spatial <- file.path(dir_git, 'prep/spatial')  ### github: general buffer region shapefiles
+dir_anx     <- file.path(dir_M, 'git-annex/bcprep')
+
+### goal specific folders and info
+goal     <- 'ao'
+scenario <- 'v2017'
+dir_goal <- file.path(dir_git, 'prep', goal, scenario)
+dir_goal_anx <- file.path(dir_anx, goal, scenario)
+
+### provenance tracking
+library(provRmd); prov_setup()
+
+### set up the default BC projection to be BC Albers
+p4s_bcalb <- c('bcalb' = '+init=epsg:3005')
+
+```
+
+#Summary
+
+This data is incorporated into the OHI British Columbia First Nations Resource Access and Opportunities (AO) goal.
+
+***
+
+#Data Source
+
+**Reference**: 
+
+**Downloaded**: 
+
+**Native Data Resolution**:   
+
+**Values**: 
+
+**Time Range**: N/A
+
+**Format**: CSV
+
+***
+
+# Methods
+
+## Read in data
+
+Read in DFO contamination closures from .xlsx files.
+
+``` {r read_xlsx}
+
+lic_clean_file <- file.path(dir_goal_anx, 'int/licenses_clean.csv')
+
+license_file <- file.path(dir_anx, '_raw_data/fishing_license/Pacific Region Commercial Fishing Licenses En.csv')
+metadata_file <- file.path(dir_anx, '_raw_data/fishing_license/Commercial License Meta Data EN (1).csv')
+
+if(!file.exists(lic_clean_file)) {
+  
+  licenses_raw <- read_csv(license_file) %>%
+    setNames(tolower(names(.)) %>% str_replace_all('[\\s()]+', '_'))
+  
+  
+  for(tmp in names(licenses_raw)) {
+    ### tmpname <- names(x)[1]
+    licenses_raw[[tmp]] <- ifelse(is.na(licenses_raw[[tmp]]) & class(licenses_raw[[tmp]]) == 'character', 
+                                  '', 
+                                  licenses_raw[[tmp]])
+  }
+  
+  metadata <- read_csv(metadata_file, skip = 54) %>%
+    setNames(tolower(names(.)) %>% str_replace_all(' ', '_'))
+  
+  licenses_clean <- licenses_raw %>%
+    left_join(metadata, by = c('licence_prefix' = 'prefix')) %>%
+    mutate(lic_holder = ifelse(licence_holder_type == 'VESSEL',
+                               paste('vessel', licence_holder_vessel),
+                               paste(licence_holder_first_name, licence_holder_midddle_name, licence_holder_last_name)),
+           lic_oper   = ifelse(licence_holder_type == 'VESSEL',
+                               paste('vessel', licence_operator_vessel),
+                               paste(licence_operator_first_name, licence_operator_midddle_name, licence_operator_last_name)),
+           vessel_own = ifelse(licence_holder_type == 'VESSEL',
+                               paste(vessel_owner_first_name, vessel_owner_midddle_name, vessel_owner_last_name),
+                               NA)) %>%
+    mutate(year = licence_suffix,
+           fn = str_detect(tolower(prefix_description), 'aborig|northern native|northernnative'),
+           fn = ifelse(is.na(fn), str_detect(tolower(licence_holder_type), 'aborig'), fn)) %>%
+    select(year, 
+           lic_prefix = licence_prefix, 
+           prefix_desc = prefix_description,
+           lic_tab = licence_tab,
+           fn, area,
+           fishery_group, foreign_vessel,
+           lic_hold_type = licence_holder_type,
+           lic_hold_vessel = licence_holder_vessel,
+           lic_oper_vessel = licence_operator_vessel,
+           lic_holder, lic_oper, vessel_own,
+           vessel_length_m = vessel_length_mr_)
+  
+  write_csv(licenses_clean, lic_clean_file)
+} else {
+  message('File exists: ', lic_clean_file)
+  git_prov(c(license_file, metadata_file), 'input')
+  git_prov(lic_clean_file, 'output')
+}
+
+```
+
+### License areas
+
+This link provides a look-up of different commercial management areas to PFMAs and PFMSAs.  This might be useful for spatializing the licenses.
+
+http://www.pac.dfo-mpo.gc.ca/fm-gp/licence-permis/areas-secteurs-eng.html
+
+The table in this link has been saved as a .csv in the `ao/v2017/raw` folder.
+
+
+## First Nations license holders by fishery group
+
+This bar chart shows the proportion of licenses allocated to First Nations for each fishery group.  The indicated proportion is the *maximum* for that fishery group across all years.
+
+``` {r collate_fishery_groups}
+
+lic_clean <- read_csv(lic_clean_file)
+
+license_fn_yr <- lic_clean %>%
+  select(year,
+         prefix_desc, 
+         fn,
+         lic_prefix, 
+         fishery_group) %>%
+  mutate(fishery_group = tolower(fishery_group)) %>%
+  group_by(year, fishery_group) %>%
+  summarize(n_total = n(),
+         n_fn = sum(fn),
+         pct_fn = n_fn / n_total) %>%
+  ungroup()
+
+license_fn_yr <- license_fn_yr %>%
+  group_by(fishery_group) %>%
+  mutate(max_pct_fn = max(pct_fn, na.rm = TRUE)) %>%
+  ungroup()
+
+bar_by_gp <- license_fn_yr %>%
+  select(max_pct_fn, fishery_group) %>%
+  filter(max_pct_fn > 0) %>%
+  distinct() %>%
+  arrange(desc(max_pct_fn)) %>%
+  mutate(fishery_group = factor(fishery_group, levels = unique(fishery_group))) %>%
+  ggplot(aes(x = fishery_group, y = max_pct_fn)) +
+    geom_bar(stat = 'identity') +
+    theme(axis.text.x = element_text(angle = 75, hjust = 1))
+
+print(bar_by_gp)
+
+```
+
+## First Nations license ownership 
+
+This examines the total fishing license allocation to First Nations across all license types, fishery groups, and regions, by year.
+
+``` {r total_licenses}
+
+lic_clean <- read_csv(lic_clean_file)
+
+license_fn_yr1 <- lic_clean %>%
+  select(year,
+         prefix_desc, 
+         fn,
+          lic_prefix,
+          fishery_group) %>%
+  mutate(fishery_group = tolower(fishery_group)) %>%
+  group_by(year) %>%
+  summarize(n_total = n(),
+         n_fn = sum(fn),
+         pct_fn = n_fn / n_total) %>%
+  ungroup()
+
+lic_total_plot <- ggplot(license_fn_yr1, aes(x = year, y = n_total)) +
+  geom_area(fill = 'grey60', color = 'grey40', size = .25) +
+  geom_area(aes(y = n_fn), fill = 'steelblue3', color = 'grey40', size = .25) +
+  labs(y = 'Number of licenses')
+
+lic_pct_plot <- ggplot(license_fn_yr1, aes(x = year, y = pct_fn)) +
+  geom_line(color = 'steelblue3', size = .5) +
+  labs(y = 'Percent FN licenses')
+
+print(lic_total_plot)
+print(lic_pct_plot)
+
+```
+
+
+## Spatialize licenses
+
+Much of this code was developed for the AO Closures prep script; since there are likely idiosyncracies within the data here compared to the closures data, the code has been copied and customized rather than functionalized.
+
+### Clean areas and subareas
+
+Clean up area and subarea calls from the cleaned data.  No need to keep the license info at this point; can rejoin later.  Many of the descriptions are complex text such as "Area 12, Area 13, except SA 13-1 to 13-12, 13-15 to 13-17, Area 14 (except SA 14-5, 14-8, 14-15, Area 15 (except SA 15-5), Areas 16 to 29 (except SA 17-20, 23-6 and 29-5)" which must be parsed down to areas.
+
+* Remove area-subarea notation and just keep the area level
+* In many cases, areas are listed as, e.g., Areas 3 to 10.  
+    * Expand these to e.g. Areas 3 4 5 6 7 8 9 10.
+    * These individual area numbers are then extracted as individual observations.
+* bind with rows where no "to" clause existed
+* join with lookup table of PFMA area to OHIBC rgn
+
+``` {r}
+
+lic_area_all <- read_csv(lic_clean_file) %>%
+  select(area, year) %>%
+  group_by(area) %>%
+  mutate(year_1 = min(year, na.rm = TRUE),
+         year_n = max(year, na.rm = TRUE)) %>%
+  ungroup() %>%
+  select(-year) %>%
+  distinct() %>%
+  mutate(area = ifelse(is.na(area), 'no area designated', tolower(area)))
+  
+lic_area_lookup <- read_csv(file.path(dir_goal, 'raw/license_area_lookup.csv')) %>%
+  mutate(lic_area = tolower(lic_area),
+         desc     = tolower(desc))
+
+# x <- lic_area_all %>%
+#   filter(area %in% lic_area_lookup$lic_area) %>%
+#   arrange(area)
+# y <- lic_area_all %>%
+#   filter(!area %in% lic_area_lookup$lic_area) %>%
+#   arrange(area)
+# z <- lic_area_lookup %>%
+#   filter(!lic_area %in% lic_area_all$area) %>%
+#   arrange(lic_area)
+### All the remaining unmatched license areas (y) seem to have ended long ago,
+### most before 2000, and only a couple as late as 2002 or 2003.
+### Presumably these license areas are no longer valid, so don't show up
+### in the license area designations.
+
+### Because we are counting within regions rather than area-weighting, it is
+### less important to worry about subareas.  Drop them for simplicity.  This
+### also means not having to worry about "except" or "excludes"
+lic_lookup_clean <- lic_area_lookup %>%
+  select(lic_area, desc) %>%
+  mutate(area_edit = desc,
+         area_edit = str_replace_all(area_edit, '(?<=[0-9])[-—.](?=[0-9])', '~'), ### this line writes subareas as ##~##
+         area_edit = str_replace_all(area_edit, '\\s+', ' '))
+
+### step 2: expand 'to' for areas (e.g. areas 3 to 10).  
+### * Identify clauses, split into 'from'/'to'
+### * create a vector of from:to and convert to string.
+### * str_replace the clause with the expanded vector.
+### * reassemble the entire closure list string
+lic_lookup_to <- lic_lookup_clean %>%
+  filter(str_detect(area_edit, '[0-9] to [0-9]')) %>%
+  mutate(area_split = str_split(tolower(area_edit), ',|;|and')) %>% ### divide at comma or semicolon
+  unnest(area_split) %>%
+  mutate(to_clause = str_extract(area_split, '[0-9]*~?[0-9]+ to [0-9]+~?[0-9]*')) %>%
+  separate(to_clause, into = c('from_num', 'to_num'), sep = '[^0-9]? to ', remove = FALSE) %>%
+  rowwise() %>%
+  ### build vector of Area numerals, skipping sub-areas
+  mutate(to_vec = ifelse(!is.na(from_num) & !str_detect(from_num, '~') & !str_detect(to_num, '~'),
+                         paste(as.integer(from_num):as.integer(to_num), collapse = ', '),
+                         '')) %>%
+  ### build vector of Sub-Area numerals, skipping areas
+  mutate(tmp_area = ifelse(!is.na(from_num) & str_detect(from_num, '~') & str_detect(to_num, '~'),
+                           str_extract(from_num, '[0-9]+(?=~)'), NA),
+         to_vec = ifelse(!is.na(from_num) & str_detect(from_num, '~') & str_detect(to_num, '~'),
+                         paste(tmp_area, as.integer(str_extract(from_num, '(?<=~)[0-9]+')):as.integer(str_extract(to_num, '(?<=~)[0-9]+')), sep = '~', collapse = ', '),
+                         '')) %>%
+  ungroup() %>%
+  mutate(area_split2 = ifelse(!is.na(to_clause),
+                              str_replace(area_split, to_clause, to_vec),
+                              area_split),
+         area_split3 = str_replace_all(area_split2, '[^0-9~]+', ' '),
+         area_split3 = str_trim(area_split3)) %>%
+  select(-area_split, -area_split2, -to_clause, -from_num, -to_num, -to_vec) %>%
+  distinct() %>%
+  filter(!str_detect(area_split3, '[0-9]{4}')) %>% ### ditches four digit #s (i.e. years)
+  group_by(lic_area) %>%
+  summarize(desc      = first(desc),
+            area_edit = paste(area_split3, collapse = ' ')) %>%
+  ungroup()
+  
+lic_lookup_all <- lic_lookup_clean %>%
+  filter(!lic_area %in% lic_lookup_to$lic_area) %>%
+  mutate(area_edit = str_replace_all(area_edit, '[0-9]{4}', ''),
+         area_edit = str_replace_all(area_edit, '[^0-9~]+', ' '),
+         area_edit = str_trim(area_edit)) %>%
+  bind_rows(lic_lookup_to) %>%
+  mutate(pfma_area = str_split(area_edit, ' ')) %>%
+  unnest(pfma_area) %>%
+  separate(pfma_area, c('pfma', 'pfmsa'), '~') %>%
+  mutate(pfma = as.integer(pfma),
+         pfmsa = as.integer(pfmsa)) %>%
+  select(-area_edit) %>%
+  distinct()
+
+### attach OHIBC regions by PFMA
+pfma_lookup <- read_csv(file.path(dir_git, 'prep/fis/v2017/rgns/pfmsubareas_df.csv')) %>%
+  select(rgn_id, pfma_id, pfmsa_id) %>%
+  filter(!is.na(pfma_id) & !is.na(rgn_id)) %>%
+  distinct()
+
+lic_lookup_rgn <- lic_lookup_all %>%
+  filter(is.na(pfmsa)) %>%
+  inner_join(pfma_lookup, by = c('pfma' = 'pfma_id')) %>%
+  bind_rows(lic_lookup_all %>%
+              filter(!is.na(pfmsa)) %>%
+              inner_join(pfma_lookup, by = c('pfma' = 'pfma_id', 'pfmsa' = 'pfmsa_id'))) %>%
+  select(-pfmsa_id, -pfmsa) %>%
+  distinct()
+
+write_csv(lic_lookup_rgn, file.path(dir_goal, 'int/lic_lookup_rgn.csv'))
+
+
+```
+
+#### Closure areas cleaned and expanded
+
+`r DT::datatable(lic_lookup_all)`
+
+``` {r check_areas_vs_licenses}
+
+lic_lookup_rgn <- read_csv(file.path(dir_goal, 'int/lic_lookup_rgn.csv')) %>%
+  filter(!is.na(rgn_id))
+
+lic_clean <- read_csv(lic_clean_file) %>%
+  mutate(area = tolower(area))
+
+lic_fn_by_rgn <- lic_clean %>%
+  inner_join(lic_lookup_rgn, by = c('area' = 'lic_area')) %>%
+  select(-pfma) %>%
+  distinct()
+
+x <- lic_clean %>%
+  group_by(area) %>%
+  mutate(year_1 = min(year, na.rm = TRUE),
+            year_n = max(year, na.rm = TRUE)) %>%
+  ungroup()
+y <- x %>%
+  filter(!year <= 1995) %>%
+  filter(!str_detect(area, 'yukon|stikine|taku')) %>%
+  filter(!is.na(area))
+### still some areas not bound; these all end pre-2003, most pre-1999
+
+sum_fn_by_rgn <- lic_fn_by_rgn %>%
+  group_by(year, rgn_id) %>%
+  summarize(n_fn = sum(fn),
+            n_tot = n(),
+            pct_fn = n_fn/n_tot) %>%
+  filter(year >= 1995) %>% ### no First Nations licenses before 1995 on record
+  filter(year < 2017)      ### incomplete current year
+
+write_csv(sum_fn_by_rgn, file.path(dir_goal, 'output/ao_licenses.csv'))
+
+```
+
+``` {r plot_fn_by_rgn}
+
+sum_fn_by_rgn <- read_csv(file.path(dir_goal, 'output/ao_licenses.csv')) %>%
+  left_join(get_rgn_names(), by = 'rgn_id') %>%
+  mutate(pct_fn = 100 * pct_fn)
+
+plot_fn_by_rgn <- ggplot(sum_fn_by_rgn, aes(x = year, y = pct_fn, group = rgn_name, color = rgn_name)) +
+  ggtheme_plot() +
+  geom_line(size = 1.5, alpha = 0.7) +
+  labs(y = 'Percent of licenses to First Nations',
+       color = 'OHIBC Region')
+
+print(plot_fn_by_rgn)
+
+```
+
+``` {r use_ggmap, eval = FALSE}
+
+
+bc_poly_84 <- readOGR(dsn = dir_spatial %>% path.expand(),
+                          layer = 'ohibc_rgn') %>%
+  spTransform(CRS('+init=epsg:4326'))
+
+bbox <- bc_poly_84@bbox
+
+bc_bbox <- c(left  = bbox[1, 1]  - .2, bottom = bbox[2, 1] - .2, 
+             right = bbox[1, 2] + 1.7, top    = bbox[2, 2] + .2)
+
+bc_rgns <- bc_poly_84@data %>%
+  mutate(id = rownames(.),
+         rgn_id = as.integer(rgn_id))
+
+sum_fn_by_rgn <- read_csv(file.path(dir_goal, 'output/ao_licenses.csv')) %>%
+  mutate(pct_fn = pct_fn * 100)
+
+bc_poly_tidy <- broom::tidy(bc_poly_84) %>%
+  full_join(bc_rgns, by = 'id') %>%
+  full_join(sum_fn_by_rgn, by = 'rgn_id')
+
+basemap <- get_stamenmap(
+  bbox = bc_bbox,
+  zoom = 6,
+  maptype = "toner-lite")
+
+ao_max_pct <- bc_poly_tidy$pct_fn %>% max()
+
+bpMap <- ggmap(basemap) +
+  ggtheme_plot() +
+  theme(axis.text = element_blank(),
+        axis.title = element_blank()) +
+  geom_polygon(data = bc_poly_tidy %>% filter(year %in% seq(1995, 2015, 5)),
+               aes(x = long, y = lat, group = group, fill = pct_fn),
+               color = 'slateblue', size = .25, alpha = .4) +
+  scale_fill_gradientn(colours = brewer.pal(7, 'RdYlBu'), limits = c(0, ao_max_pct)) +
+  labs(title="OHIBC AO") +
+  facet_wrap( ~ year)
+  
+ggsave(filename = file.path(dir_goal, 'int/ao_licenses_mapped.png'),
+       plot = bpMap)
+
+```
+
+![](`r path.expand(file.path(dir_goal, 'int/ao_licenses_mapped.png'))`)
+
+-----
+
+## Other questions
+
+### licenses by length?
+
+Do licensed vessels differ greatly between the First Nations fleet and the non-First Nations fleet?  A significant difference in boat size could indicate a significant difference in the access to catch for one license type vs. another.
+
+``` {r examine_length_as_variable, eval = FALSE}
+
+boats <- read_csv(lic_clean_file, nogit = TRUE) %>%
+  select(year, fishery_group, fn, length = vessel_length_m, lic_holder, lic_oper) %>%
+  mutate(length = ifelse(length == 0, NA, length))
+
+bigboats <- boats %>% 
+  filter(length > 50)
+
+medboats <- boats %>%
+  group_by(year, fn) %>%
+  mutate(mean_l = mean(length, na.rm = TRUE)) %>%
+  ungroup() %>%
+  filter(length <= 40) %>%
+  filter(year %in% c(1995, 2000, 2005, 2010, 2015))
+
+length_hist <- ggplot(medboats, aes(x = length, fill = fn)) +
+  geom_histogram(aes(frame = year), alpha = .6) +
+  geom_vline(aes(xintercept = mean_l, color = fn)) +
+  geom_text(data = medboats %>% 
+              select(year, mean_l, fn) %>% 
+              distinct(),
+            aes(x = mean_l, y = 1, label = paste0('mean = ', round(mean_l, 1), ' m')),
+            hjust = 0, vjust = 0, angle = 90, size = 3) +
+  labs(x = 'vessel length, meters',
+       y = 'license count',
+       fill = 'First Nations?',
+       color = 'First Nations?') +
+  facet_wrap( ~ year)
+
+# print(length_hist)
+
+ggsave(file.path(dir_goal, 'int/ao_licenses_vessel_lengths.png'))
+
+```
+
+![](`r path.expand(file.path(dir_goal, 'int/ao_licenses_vessel_lengths.png'))`)
+
+***
+
+``` {r prov_footer, results = 'asis', eval = FALSE}
+prov_wrapup()
+```
+

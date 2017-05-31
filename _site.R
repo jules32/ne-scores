@@ -7,8 +7,8 @@ suppressPackageStartupMessages({
 })
 
 ## brewed vars
-study_area = "US Northeast"
-gh_repo    = "ohi-northeast"
+study_area = "British Columbia"
+gh_repo    = "ohibc"
 
 ## derived vars
 gh_url     = sprintf('https://github.com/OHI-Science/%s.git', gh_repo)

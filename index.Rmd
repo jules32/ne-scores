@@ -1,5 +1,5 @@
 ---
-title: <center>An Ocean Health Index for US Northeast
+title: <center>An Ocean Health Index for the US Northeast
 author:  
 output:
   html_document:
