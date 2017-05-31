@@ -4,7 +4,7 @@ output: html_document
 ---
 ----
 The Ocean Health Index was developed to measure the benefits that people recieve from the ocean now and into the future. 
-The index was originally developed to measure [global ocean health](http://ohi-science.org/ohi-global). Since then, regional assessments have been done in twenty regions to meet local needs to track sustainable ocean use. 
+The Index was originally developed to measure [global ocean health](http://ohi-science.org/ohi-global). Since then, regional assessments have been done in twenty regions to meet local needs to track sustainable ocean use. 
 <br><br>
 
 
