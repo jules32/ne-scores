@@ -27,8 +27,6 @@ library(raster)
 library(DT)
 library(plotly)
 
-dir_git <- '~/github/ohi-northeast'
-dir_rgn <- file.path(dir_git, 'prep/regions')  ### github: general buffer region shapefiles
 dir_anx <- file.path(dir_M, 'git-annex/neprep')
 
 #round to 2 decimals
