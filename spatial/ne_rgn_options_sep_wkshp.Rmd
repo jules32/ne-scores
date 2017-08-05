@@ -25,7 +25,7 @@ output:
 
 
 ## Load data
-```{r setup, include=FALSE, message=F,warning=F,echo=F}
+```{r setup, include=FALSE, message=F,warning=F}
 knitr::opts_chunk$set(fig.width = 10, fig.height = 8, fig.path = 'figs/',
                       echo = FALSE, message = FALSE, warning = FALSE, root.dir = "ohi-northeast")
 
@@ -40,20 +40,20 @@ library(ggplot2)
 
 ### State boundaries and water
 ```{r}
-states <- st_read(dsn = '.',layer = 'states')%>%
+states <- st_read(dsn = '.',layer = 'states',quiet=T)%>%
           st_transform(p4s_nad83)
 
 states <- st_intersection(states, st_set_crs(st_as_sf(as(raster::extent(-75,-65,39.5,45), "SpatialPolygons")), st_crs(states)))
 
 #state waters with some Maine rivers removed (done in QGIS)
-state_wa <- st_read(dsn = file.path(dir_anx,'spatial'), layer = 'StateWaters_wo_rivs_cleaned')%>%
+state_wa <- st_read(dsn = file.path(dir_anx,'spatial'), layer = 'StateWaters_wo_rivs_cleaned',quiet=T)%>%
               st_transform(p4s_nad83)
 ```
 
 ### Canada EEZ
 ```{r ca_eez}
 
-ca_eez  <- st_read(dsn = file.path(dir_M,'git-annex/globalprep/spatial/d2014/data'),layer = 'regions_gcs')%>%
+ca_eez  <- st_read(dsn = file.path(dir_M,'git-annex/globalprep/spatial/d2014/data'),layer = 'regions_gcs',quiet=T)%>%
                     filter(rgn_nam == 'Canada',
                            rgn_typ == "eez")%>%
                     st_transform(p4s_nad83)
@@ -67,7 +67,7 @@ ca_eez_crop = st_intersection(ca_eez, st_set_crs(st_as_sf(as(raster::extent(wgs_
 Also need to grab the tip of maine and add it to the Scotian Shelf EPU
 ```{r}
 
-eez <- st_read(dsn = '.',layer = 'ne_eez')%>%
+eez <- st_read(dsn = '.',layer = 'ne_eez',quiet=T)%>%
         st_transform(crs = p4s_nad83)
 
 maine <- st_intersection(eez, st_set_crs(st_as_sf(as(raster::extent(-68,-66,44,45), "SpatialPolygons")), st_crs(eez)))
@@ -80,7 +80,7 @@ The EPU's don't encompass all of Maine's waters up to the border with Canada. I'
 
 ```{r epu_extend}
 
-epu <- st_read(file.path(dir_anx, 'spatial/data_for_rgn_options/Extended_EPU'),'EPU_extended')%>%
+epu <- st_read(file.path(dir_anx, 'spatial/data_for_rgn_options/Extended_EPU'),'EPU_extended',quiet=T)%>%
         st_transform(p4s_nad83)%>%
         mutate(longname = c('Georges Bank','Gulf of Maine','Scotian Shelf','Mid-Atlantic Bight'))
 
@@ -108,7 +108,6 @@ epu_ext <- epu%>%
 Whole region, each state (that wants a score), each offshore EPU  
 
 ```{r option_1}
-
 ggplot() +
   geom_sf(data = states,colour = "lightgray",fill = "beige")+
   geom_sf(data = epu_ext,aes(fill = longname))+
@@ -118,8 +117,8 @@ ggplot() +
   labs(fill='Regions') +
  scale_fill_manual(values = c("#A50026","#313695", "#ABD9E9",  "#FEE090", "#D73027", "#E0F3F8","#F46D43",  "#FDAE61", "#74ADD1", "#4575B4"))+ 
   theme(legend.text=element_text(size=12),
-        legend.title = element_text(size = 14))
-
+        legend.title = element_text(size = 14))+ 
+  coord_sf(crs = st_crs(states), datum = NA) 
 ```
 
 # Option 2
@@ -159,7 +158,8 @@ ggplot() +
   labs(fill='Regions') +
  scale_fill_manual(values = c("#313695", "#ABD9E9", "#E0F3F8","#4575B4","#FEE090","#FDAE61"))+ 
   theme(legend.text=element_text(size=12),
-        legend.title = element_text(size = 14))
+        legend.title = element_text(size = 14))+ 
+  coord_sf(crs = st_crs(states), datum = NA) 
 ```
 
 # Option 3
@@ -186,7 +186,8 @@ ggplot() +
   labs(fill='Regions') +
  scale_fill_manual(values = c("#FEE090","#313695", "#ABD9E9", "#E0F3F8","#4575B4"))+ 
   theme(legend.text=element_text(size=12),
-        legend.title = element_text(size = 14))
+        legend.title = element_text(size = 14))+ 
+  coord_sf(crs = st_crs(states), datum = NA) 
 ```
 
 
@@ -204,10 +205,11 @@ ggplot() +
   geom_sf(data = canada,aes(fill = rgn_nam,alpha = 0.4),show.legend = F)+
   geom_sf(data = all_states,aes(fill = region))+
   theme_bw()+
-  ggtitle("Option 3")+ 
+  ggtitle("Overlapping Canada EEZ with EPU")+ 
   labs(fill='Regions') +
  scale_fill_manual(values = c("#FEE090","coral2","#313695", "#ABD9E9", "#E0F3F8","#4575B4"))+ 
   theme(legend.text=element_text(size=12),
-        legend.title = element_text(size = 14))
+        legend.title = element_text(size = 14))+ 
+  coord_sf(crs = st_crs(states), datum = NA) 
 
 ```
