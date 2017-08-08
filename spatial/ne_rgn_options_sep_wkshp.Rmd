@@ -38,6 +38,17 @@ library(sf)
 library(ggplot2)
 ```
 
+## Northeast regional planning boundary
+
+Emailed to use from Emily
+
+```{r ne_roi}
+#NE ocean plan region of interest - provided by Emily changed in 
+ne_roi <- st_read(dsn = file.path(dir_anx,'spatial'),layer = 'ne_plan_poly', quiet = T)%>%
+            st_transform(p4s_nad83)%>%
+          mutate(region = "NE Planning Region")
+```
+
 ### State boundaries and water
 ```{r}
 states <- st_read(dsn = '.',layer = 'states',quiet=T)%>%
@@ -110,12 +121,12 @@ Whole region, each state (that wants a score), each offshore EPU
 ```{r option_1}
 ggplot() +
   geom_sf(data = states,colour = "lightgray",fill = "beige")+
-  geom_sf(data = epu_ext,aes(fill = longname))+
+  geom_sf(data = ne_roi,aes(fill = region))+
   geom_sf(data = state_wa,aes(fill = NAME10))+
   theme_bw()+
   ggtitle("Option 1")+ 
   labs(fill='Regions') +
- scale_fill_manual(values = c("#A50026","#313695", "#ABD9E9",  "#FEE090", "#D73027", "#E0F3F8","#F46D43",  "#FDAE61", "#74ADD1", "#4575B4"))+ 
+ scale_fill_manual(values = c("#A50026",  "#ABD9E9","#313695", "#E0F3F8","#D73027","#FEE090" ,"#F46D43",  "#FDAE61", "#74ADD1", "#4575B4"))+ 
   theme(legend.text=element_text(size=12),
         legend.title = element_text(size = 14))+ 
   coord_sf(crs = st_crs(states), datum = NA) 
@@ -180,11 +191,11 @@ all_states <- state_wa%>%
 ggplot() +
   geom_sf(data = states,colour = "lightgray",fill = "beige")+
   geom_sf(data = epu_ext,aes(fill = longname))+
-  geom_sf(data = all_states,aes(fill = region))+
+  geom_sf(data = ne_roi,aes(fill = region),alpha = 0, lwd = 0.5)+
   theme_bw()+
   ggtitle("Option 3")+ 
   labs(fill='Regions') +
- scale_fill_manual(values = c("#FEE090","#313695", "#ABD9E9", "#E0F3F8","#4575B4"))+ 
+ scale_fill_manual(values = c("#313695", "#ABD9E9", "#E0F3F8","#FFFFFF","#4575B4"))+ 
   theme(legend.text=element_text(size=12),
         legend.title = element_text(size = 14))+ 
   coord_sf(crs = st_crs(states), datum = NA) 
@@ -208,6 +219,57 @@ ggplot() +
   ggtitle("Overlapping Canada EEZ with EPU")+ 
   labs(fill='Regions') +
  scale_fill_manual(values = c("#FEE090","coral2","#313695", "#ABD9E9", "#E0F3F8","#4575B4"))+ 
+  theme(legend.text=element_text(size=12),
+        legend.title = element_text(size = 14))+ 
+  coord_sf(crs = st_crs(states), datum = NA) 
+
+```
+
+# Aggregate EPUS
+
+
+
+```{r agg_epus}
+
+epu_combined <- st_union(epu_ext,by_feature = F)#union all epu units together
+
+df <- data.frame(region = "Offshore") #create dataframe to join to epu_combined (it's of class `sfc` so no dataframe yet)
+
+#I was struggling with how to do this so I copied the example in ?st_geometry. 
+st_geometry(df)<-epu_combined 
+class(df)
+st_geometry(df)
+st_geometry(df) <- epu_combined
+st_geometry(df) <- NULL
+#it works!
+sf <- st_set_geometry(df,epu_combined)
+
+                
+
+ggplot() +
+  geom_sf(data = states,colour = "lightgray",fill = "beige")+
+  geom_sf(data = sf,aes(fill = region))+
+  geom_sf(data = state_wa,aes(fill = NAME10))+
+  theme_bw()+
+  ggtitle("Option 4")+ 
+  labs(fill='Regions') +
+ scale_fill_manual(values = c("#ABD9E9", "#FEE090"  ,"#313695","#A50026","#D73027","#E0F3F8" ,"#F46D43",  "#FDAE61", "#74ADD1", "#4575B4"))+ 
+  theme(legend.text=element_text(size=12),
+        legend.title = element_text(size = 14))+ 
+  coord_sf(crs = st_crs(states), datum = NA) 
+
+```
+
+```{r}
+
+ggplot() +
+  geom_sf(data = states,colour = "lightgray",fill = "beige")+
+  geom_sf(data = sf,aes(fill = region))+
+  geom_sf(data = all_states,aes(fill = region))+
+  theme_bw()+
+  ggtitle("Option 5")+ 
+  labs(fill='Regions') +
+ scale_fill_manual(values = c("#FEE090","#ABD9E9"))+ 
   theme(legend.text=element_text(size=12),
         legend.title = element_text(size = 14))+ 
   coord_sf(crs = st_crs(states), datum = NA) 
