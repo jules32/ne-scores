@@ -164,10 +164,11 @@ ggplot() +
   geom_sf(data = epu_ext,aes(fill = longname))+
   geom_sf(data = north,aes(fill = region))+
   geom_sf(data = south,aes(fill = region))+
+  geom_sf(data = ne_roi,aes(fill = region),alpha = 0, lwd = 0.5)+
   theme_bw()+
   ggtitle("Option 2")+ 
   labs(fill='Regions') +
- scale_fill_manual(values = c("#313695", "#ABD9E9", "#E0F3F8","#4575B4","#FEE090","#FDAE61"))+ 
+ scale_fill_manual(values = c("#313695", "#ABD9E9", "#E0F3F8","#FFFFFF","#4575B4","#FEE090","#FDAE61"))+ 
   theme(legend.text=element_text(size=12),
         legend.title = element_text(size = 14))+ 
   coord_sf(crs = st_crs(states), datum = NA) 
