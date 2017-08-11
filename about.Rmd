@@ -17,7 +17,7 @@ Determining ocean health requires an approach that integrates social, economic, 
  
 We are building a scientifically robust assessment of ocean health for the US Northeast. The OHI framework facilitates transparent and repeatable assessments of ocean health over time, and can be integrated into ongoing policy initiatives to support sustainable ocean management. We will build from previous OHI assessments and tailor the OHI framework to represent the cultural, social, and ecological characteristics and priorities of the US Northeast using the best available information and knowledge.
 
-We will use this website to communicate throughout the process as well as the final results. Our code is available [here](https://github.com/OHI-Science/ohi-northeast).
+We will use this website to share our work as we go, as well as the final results. Our code is available [here](https://github.com/OHI-Science/ohi-northeast).
 
 <br>
 
