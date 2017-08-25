@@ -36,6 +36,7 @@ dir_anx <- file.path(dir_M, 'git-annex/neprep')
 
 library(sf)
 library(ggplot2)
+library(rgeos)
 ```
 
 ## Northeast regional planning boundary
@@ -71,6 +72,7 @@ ca_eez  <- st_read(dsn = file.path(dir_M,'git-annex/globalprep/spatial/d2014/dat
 
 ca_eez_crop = st_intersection(ca_eez, st_set_crs(st_as_sf(as(raster::extent(wgs_ext), "SpatialPolygons")), st_crs(ca_eez)))
 
+st_write(ca_eez_crop, "ca_eez_crop.shp", driver = "ESRI Shapefile")
 ```
 
 ### US EEZ
@@ -102,15 +104,22 @@ ss <- epu%>%
         filter(longname == "Scotian Shelf")%>%
         st_union(maine)%>%
         dplyr::select(EPU,Shape_Leng,Shape_Area,longname,geometry)%>%
-        st_cast("MULTIPOLYGON")
+        st_cast("MULTIPOLYGON") 
 
 #join back to EPU
 
 epu_ext <- epu%>%
            filter(EPU != "SS")%>%
             rbind(ss)%>%
-            st_cast("MULTIPOLYGON")
+            st_cast("MULTIPOLYGON")%>%
+            as(.,'Spatial')
 
+## mask out state waters
+s = as(state_wa, 'Spatial')
+
+epu_ext = epu_ext - s
+
+writeOGR(epu_ext, dsn = ".", layer = "epu_extended", driver = "ESRI Shapefile")
 ```
 
 
