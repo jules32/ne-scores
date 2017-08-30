@@ -12,7 +12,7 @@ pal <- c("#A50026",  "#ABD9E9","#313695", "#E0F3F8","#D73027","#FEE090" ,"#F46D4
 map <-  leaflet() %>% addProviderTiles(providers$CartoDB.Positron) %>%
       setView(lng = -70, lat = 42.5, zoom = 7) %>% 
     # Overlay groups
-      addPolygons(data = ne_roi, fill = FALSE, weight = 0.8, group = "NE Region", color = "black", dashArray = "3") %>%
+      addPolygons(data = ne_sa, fill = FALSE, weight = 0.8, group = "NE Ocean Plan Study Area", color = "black", dashArray = "3") %>%
       addPolygons(data = epu_offshore, fill = TRUE, weight = 0.5, group = "EPU offshore", color = c("#FA8072","#D73027","#FEE090" ,"#F46D43"), fillOpacity = 0.7) %>%
       addPolygons(data = state_wa, weight = 0.6, group = "State Waters", fillOpacity = 0.9, color = palette(blues9)) %>%
       addPolygons(data = epu, fill = TRUE, weight = 0.5, group = "Full EPUs", color = c("#FA8072","#D73027","#FEE090" ,"#F46D43"), fillOpacity = 0.7) %>%
@@ -29,7 +29,7 @@ map <-  leaflet() %>% addProviderTiles(providers$CartoDB.Positron) %>%
       # Layers control
       addLayersControl(
         overlayGroups = c("State Waters", "Maine","New Hampshire","Massachusetts","Rhode Island",
-                          "Connecticut","New York","NE Region","Full EPUs","EPU offshore","Canadian EEZ", "US EEZ", "N Cape Cod", "S Cape Cod"),
+                          "Connecticut","New York","NE Ocean Plan Study Area","Full EPUs","EPU offshore","Canadian EEZ", "US EEZ", "N Cape Cod", "S Cape Cod"),
         options = layersControlOptions(collapsed = FALSE)) %>%
       hideGroup(c("Canadian EEZ", "US EEZ", "Full EPUs", "EPU offshore", "New Hampshire","Maine","Rhode Island",
                   "Connecticut","New York","Massachusetts","N Cape Cod", "S Cape Cod"))
