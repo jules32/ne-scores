@@ -27,10 +27,9 @@ us_alb    <- raster::crs("+proj=aea +lat_1=29.5 +lat_2=45.5 +lat_0=37.5 +lon_0=-
 #state land boundaries
 ne_states  <- readOGR(dsn = paste0(path.expand(dir_git),'/spatial'),layer = 'states',verbose=F)
 
-## ne planning region
-ne_roi <- st_read(dsn = file.path(dir_anx, 'spatial'), layer = 'ne_plan_poly', quiet = T) %>%
-  st_transform(p4s_nad83) %>%
-  mutate(region = "NE Planning Region")
+
+#full northeast region
+ne_sa <- st_read(dsn = ".", layer = "ne_region_plus_states", quiet = T)
 
 ## states
 states <- st_read(dsn = '~/github/ohi-northeast/spatial', layer = 'states', quiet=T) %>%
