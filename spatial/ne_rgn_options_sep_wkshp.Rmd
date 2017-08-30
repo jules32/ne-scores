@@ -39,16 +39,6 @@ library(ggplot2)
 library(rgeos)
 ```
 
-## Northeast regional planning boundary
-
-Emailed to use from Emily
-
-```{r ne_roi}
-#NE ocean plan region of interest - provided by Emily changed in 
-ne_roi <- st_read(dsn = file.path(dir_anx,'spatial'),layer = 'ne_plan_poly', quiet = T)%>%
-            st_transform(p4s_nad83)%>%
-          mutate(region = "NE Planning Region")
-```
 
 ### State boundaries and water
 ```{r}
@@ -58,21 +48,58 @@ states <- st_read(dsn = '.',layer = 'states',quiet=T)%>%
 states <- st_intersection(states, st_set_crs(st_as_sf(as(raster::extent(-75,-65,39.5,45), "SpatialPolygons")), st_crs(states)))
 
 #state waters with some Maine rivers removed (done in QGIS)
-state_wa <- st_read(dsn = file.path(dir_anx,'spatial'), layer = 'StateWaters_wo_rivs_cleaned',quiet=T)%>%
+state_wa <- st_read(dsn = file.path(dir_anx, 'spatial'), layer = 'StateWaters_wo_rivs_cleaned',quiet=T)%>%
               st_transform(p4s_nad83)
+
+all_state_wa <- state_wa %>%
+                group_by(REGION10) %>%
+                summarize()
+      
 ```
+
+### Northeast Ocean Plan Study Area
+
+Emily emailed this shapefile to us to use as the NE Ocean Plan study area. State waters are not included in this shapefile but we need to include state waters within the larger NE study area.
+
+```{r ne_roi}
+#NE ocean plan region of interest - provided by Emily
+
+# ne_roi <- st_read(dsn = file.path(dir_anx,'spatial'),layer = 'ne_plan_poly', quiet = T)%>%
+#             st_transform(p4s_nad83)%>%
+#           mutate(region = "NE Ocean Plan Study Area") %>%
+#          st_cast("MULTIPOLYGON")
+
+#ne study area plus state waters. I had to use this neoceanplanningboundary_polygon shapefile due to weird slivers when mergine the ne_plan_poly with state_wa
+
+# ne <- st_read(dsn = file.path(dir_anx, 'spatial'), layer = 'neoceanplanningboundary_polygon',quiet=T) %>%
+#         st_transform(crs = p4s_nad83) %>%
+#         group_by(Id) %>%
+#         summarize() %>%
+#         st_intersection(., eez)
+# 
+## not sure why this isn't creating just one polygon, so doing a group_by summarize
+# ne_sa <- st_union(ne, state_wa) %>%
+#           mutate(region = "NE Ocean Plan Study Area")
+# 
+# st_write(ne_sa, "ne_region_plus_states.shp", driver = "ESRI Shapefile")
+
+ne_sa <- st_read(dsn = ".", layer = "ne_region_plus_states", quiet = T)
+```
+
 
 ### Canada EEZ
 ```{r ca_eez}
 
-ca_eez  <- st_read(dsn = file.path(dir_M,'git-annex/globalprep/spatial/d2014/data'),layer = 'regions_gcs',quiet=T)%>%
-                    filter(rgn_nam == 'Canada',
-                           rgn_typ == "eez")%>%
-                    st_transform(p4s_nad83)
+# ca_eez  <- st_read(dsn = file.path(dir_M,'git-annex/globalprep/spatial/d2014/data'),layer = 'regions_gcs',quiet=T)%>%
+#                     filter(rgn_nam == 'Canada',
+#                            rgn_typ == "eez")%>%
+#                     st_transform(p4s_nad83)
+# 
+# ca_eez_crop = st_intersection(ca_eez, st_set_crs(st_as_sf(as(raster::extent(wgs_ext), "SpatialPolygons")), st_crs(ca_eez)))
+# 
+# st_write(ca_eez_crop, "ca_eez_crop.shp", driver = "ESRI Shapefile")
 
-ca_eez_crop = st_intersection(ca_eez, st_set_crs(st_as_sf(as(raster::extent(wgs_ext), "SpatialPolygons")), st_crs(ca_eez)))
-
-st_write(ca_eez_crop, "ca_eez_crop.shp", driver = "ESRI Shapefile")
+ca_eez_crop <- st_read('.', "ca_eez_crop", quiet=T)
 ```
 
 ### US EEZ
@@ -93,47 +120,102 @@ The EPU's don't encompass all of Maine's waters up to the border with Canada. I'
 
 ```{r epu_extend}
 
-epu <- st_read(file.path(dir_anx, 'spatial/data_for_rgn_options/Extended_EPU'),'EPU_extended',quiet=T)%>%
-        st_transform(p4s_nad83)%>%
-        mutate(longname = c('Georges Bank','Gulf of Maine','Scotian Shelf','Mid-Atlantic Bight'))
+ epu <- st_read(file.path(dir_anx, 'spatial/data_for_rgn_options/Extended_EPU'),'EPU_extended',quiet=T)%>%
+         st_transform(p4s_nad83)%>%
+         mutate(longname = c('Georges Bank','Gulf of Maine','Scotian Shelf','Mid-Atlantic Bight'))
 
-#cropping epu extent for plotting
-epu<- st_intersection(epu, st_set_crs(st_as_sf(as(raster::extent(-75,-65,39.5,45), "SpatialPolygons")), st_crs(epu)))
+ #cropping epu extent for plotting
+ epu<- st_intersection(epu, st_set_crs(st_as_sf(as(raster::extent(-75,-65,39.5,45), "SpatialPolygons")), st_crs(epu)))
 
-ss <- epu%>%
-        filter(longname == "Scotian Shelf")%>%
-        st_union(maine)%>%
-        dplyr::select(EPU,Shape_Leng,Shape_Area,longname,geometry)%>%
-        st_cast("MULTIPOLYGON") 
+ ss <- epu%>%
+         filter(longname == "Scotian Shelf")%>%
+         st_union(maine)%>%
+         dplyr::select(EPU,Shape_Leng,Shape_Area,longname,geometry)%>%
+         st_cast("MULTIPOLYGON")
 
 #join back to EPU
 
-epu_ext <- epu%>%
-           filter(EPU != "SS")%>%
-            rbind(ss)%>%
-            st_cast("MULTIPOLYGON")%>%
-            as(.,'Spatial')
+ epu_ext <- epu%>%
+            filter(EPU != "SS")%>%
+             rbind(ss)%>%
+             st_cast("MULTIPOLYGON")
+ 
+ #st_write(epu_ext, "epu_extended.shp", driver = "ESRI Shapefile")
 
 ## mask out state waters
 s = as(state_wa, 'Spatial')
+epu_ext_shp <- as(epu_ext,'Spatial')
+ 
+epu_ext_offshore = epu_ext_shp - s
 
-epu_ext = epu_ext - s
+# mask with states as well
+e = epu_ext_offshore - as(states,'Spatial')
 
-writeOGR(epu_ext, dsn = ".", layer = "epu_extended", driver = "ESRI Shapefile")
+#writeOGR(epu_ext_offshore, dsn = ".", layer = "epu_extended", driver = "ESRI Shapefile")
+
+epu_ext_offshore <- st_read('.','epu_extended_offshore',quiet=T)
 ```
-
 
 # Option 1
 
-Whole region, each state (that wants a score), each offshore EPU  
+Just the Northeast planning region
 
 ```{r option_1}
 ggplot() +
   geom_sf(data = states,colour = "lightgray",fill = "beige")+
-  geom_sf(data = ne_roi,aes(fill = region))+
-  geom_sf(data = state_wa,aes(fill = NAME10))+
+  geom_sf(data = ne_sa,aes(fill = region))+
   theme_bw()+
   ggtitle("Option 1")+ 
+  labs(fill='Regions') +
+ scale_fill_manual(values = c("#E0F3F8"))+ 
+  theme(legend.text=element_text(size=12),
+        legend.title = element_text(size = 14))+ 
+  coord_sf(crs = st_crs(states), datum = NA) 
+
+
+```
+
+
+# Option 2
+
+Whole region, each offshore EPU 
+
+```{r}
+#intersect state waters with EPU to get the massachussets split
+
+all_states <- state_wa%>%
+              group_by(REGION10)%>%
+              summarize()%>%
+              mutate(region = "All State Waters")
+
+```
+
+```{r option_2}
+ggplot() +
+  geom_sf(data = states,colour = "lightgray",fill = "beige")+
+  geom_sf(data = epu_ext,aes(fill = longname))+
+  geom_sf(data = ne_sa,aes(fill = region),alpha = 0, lwd = 0.5)+
+  theme_bw()+
+  ggtitle("Option 2")+ 
+  labs(fill='Regions') +
+ scale_fill_manual(values = c("#313695", "#ABD9E9", "#E0F3F8","#FFFFFF","#4575B4"))+ 
+  theme(legend.text=element_text(size=12),
+        legend.title = element_text(size = 14))+ 
+  coord_sf(crs = st_crs(states), datum = NA) 
+```
+
+
+# Option 3
+
+Whole region, each state (that wants a score), each offshore EPU  
+
+```{r option_3}
+ggplot() +
+  geom_sf(data = states,colour = "lightgray",fill = "beige")+
+  geom_sf(data = ne_sa,aes(fill = region))+
+  geom_sf(data = state_wa,aes(fill = NAME10))+
+  theme_bw()+
+  ggtitle("Option 3")+ 
   labs(fill='Regions') +
  scale_fill_manual(values = c("#A50026",  "#ABD9E9","#313695", "#E0F3F8","#D73027","#FEE090" ,"#F46D43",  "#FDAE61", "#74ADD1", "#4575B4"))+ 
   theme(legend.text=element_text(size=12),
@@ -141,7 +223,7 @@ ggplot() +
   coord_sf(crs = st_crs(states), datum = NA) 
 ```
 
-# Option 2
+# Option 4
 
 Whole region, state waters north of the Cape, state waters south of the Cape, each offshore EPU  
 
@@ -157,6 +239,8 @@ north <- int%>%
           group_by(region)%>%
           summarize()
 
+#st_write(north, "n_cape_cod.shp", driver = "ESRI Shapefile")
+
 south <- int%>%
           filter(NAME10 %in% c("New York","Rhode Island","Connecticut","Massachusetts"),
                  EPU %in% c("MAB","GB"))%>%
@@ -164,53 +248,26 @@ south <- int%>%
           group_by(region)%>%
           summarize()
 
+#st_write(south, "s_cape_cod.shp", driver = "ESRI Shapefile")
+
 ```
 
-```{r option_2}
+```{r option_4}
 
 ggplot() +
   geom_sf(data = states,colour = "lightgray",fill = "beige")+
   geom_sf(data = epu_ext,aes(fill = longname))+
   geom_sf(data = north,aes(fill = region))+
   geom_sf(data = south,aes(fill = region))+
-  geom_sf(data = ne_roi,aes(fill = region),alpha = 0, lwd = 0.5)+
+  geom_sf(data = ne_sa,aes(fill = region),alpha = 0, lwd = 0.5)+
   theme_bw()+
-  ggtitle("Option 2")+ 
+  ggtitle("Option 4")+ 
   labs(fill='Regions') +
  scale_fill_manual(values = c("#313695", "#ABD9E9", "#E0F3F8","#FFFFFF","#4575B4","#FEE090","#FDAE61"))+ 
   theme(legend.text=element_text(size=12),
         legend.title = element_text(size = 14))+ 
   coord_sf(crs = st_crs(states), datum = NA) 
 ```
-
-# Option 3
-
-Whole region, each offshore EPU 
-
-```{r}
-#intersect state waters with EPU to get the massachussets split
-
-all_states <- state_wa%>%
-              group_by(REGION10)%>%
-              summarize()%>%
-              mutate(region = "All State Waters")
-
-```
-
-```{r option_3}
-ggplot() +
-  geom_sf(data = states,colour = "lightgray",fill = "beige")+
-  geom_sf(data = epu_ext,aes(fill = longname))+
-  geom_sf(data = ne_roi,aes(fill = region),alpha = 0, lwd = 0.5)+
-  theme_bw()+
-  ggtitle("Option 3")+ 
-  labs(fill='Regions') +
- scale_fill_manual(values = c("#313695", "#ABD9E9", "#E0F3F8","#FFFFFF","#4575B4"))+ 
-  theme(legend.text=element_text(size=12),
-        legend.title = element_text(size = 14))+ 
-  coord_sf(crs = st_crs(states), datum = NA) 
-```
-
 
 
 # Overlap of Canada
