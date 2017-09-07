@@ -42,7 +42,7 @@ library(rgeos)
 
 ## State boundaries and water
 ```{r}
-states <- st_read(dsn = '.',layer = 'states',quiet=T)%>%
+states <- st_read(dsn = 'shapefiles',layer = 'states',quiet=T)%>%
           st_transform(p4s_nad83)
 
 coast_st <- states %>%
@@ -94,9 +94,9 @@ Emily emailed this shapefile to us to use as the NE Ocean Plan study area. State
 # ne_sa <- st_union(ne, state_wa) %>%
 #           mutate(region = "NE Ocean Plan Study Area")
 # 
-# st_write(ne_sa, "ne_region_plus_states.shp", driver = "ESRI Shapefile")
+# st_write(ne_sa, dsn = "shapefiles", "ne_region_plus_states.shp", driver = "ESRI Shapefile")
 
-ne_sa <- st_read(dsn = ".", layer = "ne_region_plus_states", quiet = T)
+ne_sa <- st_read(dsn = "shapefiles", layer = "ne_region_plus_states", quiet = T)
 ```
 
 
@@ -110,9 +110,9 @@ ne_sa <- st_read(dsn = ".", layer = "ne_region_plus_states", quiet = T)
 # 
 # ca_eez_crop = st_intersection(ca_eez, st_set_crs(st_as_sf(as(raster::extent(wgs_ext), "SpatialPolygons")), st_crs(ca_eez)))
 # 
-# st_write(ca_eez_crop, "ca_eez_crop.shp", driver = "ESRI Shapefile")
+# st_write(ca_eez_crop,dsn = "shapefiles", layer = "ca_eez_crop.shp", driver = "ESRI Shapefile")
 
-ca_eez_crop <- st_read('.', "ca_eez_crop", quiet=T)
+ca_eez_crop <- st_read('shapefiles', "ca_eez_crop", quiet=T)
 ```
 
 ## US EEZ
@@ -120,7 +120,7 @@ ca_eez_crop <- st_read('.', "ca_eez_crop", quiet=T)
 Also need to grab the tip of maine and add it to the Scotian Shelf EPU
 ```{r}
 
-eez <- st_read(dsn = '.',layer = 'ne_eez',quiet=T)%>%
+eez <- st_read(dsn = 'shapefiles',layer = 'ne_eez',quiet=T)%>%
         st_transform(crs = p4s_nad83)
 
 maine <- st_intersection(eez, st_set_crs(st_as_sf(as(raster::extent(-68,-66,44,45), "SpatialPolygons")), st_crs(eez)))
@@ -153,7 +153,7 @@ The EPU's don't encompass all of Maine's waters up to the border with Canada. I'
              rbind(ss)%>%
              st_cast("MULTIPOLYGON")
  
- #st_write(epu_ext, "epu_extended.shp", driver = "ESRI Shapefile")
+ #st_write(epu_ext, "shapefiles/epu_extended.shp", driver = "ESRI Shapefile")
 
 ## mask out state waters
 s = as(state_wa, 'Spatial')
@@ -164,9 +164,9 @@ epu_ext_offshore = epu_ext_shp - s
 # mask with states as well
 e = epu_ext_offshore - as(states,'Spatial')
 
-#writeOGR(epu_ext_offshore, dsn = ".", layer = "epu_extended", driver = "ESRI Shapefile")
+#writeOGR(epu_ext_offshore, dsn = "shapefiles", layer = "epu_extended", driver = "ESRI Shapefile")
 
-epu_ext_offshore <- st_read('.','epu_extended_offshore',quiet=T)
+epu_ext_offshore <- st_read('shapefiles','epu_extended_offshore',quiet=T)
 ```
 
 # Option 1
@@ -252,7 +252,7 @@ north <- int%>%
           group_by(region)%>%
           summarize()
 
-#st_write(north, "n_cape_cod.shp", driver = "ESRI Shapefile")
+#st_write(north, "shapefiles/n_cape_cod.shp", driver = "ESRI Shapefile")
 
 south <- int%>%
           filter(NAME10 %in% c("New York","Rhode Island","Connecticut","Massachusetts"),
@@ -261,7 +261,7 @@ south <- int%>%
           group_by(region)%>%
           summarize()
 
-#st_write(south, "s_cape_cod.shp", driver = "ESRI Shapefile")
+#st_write(south, "shapefiles/s_cape_cod.shp", driver = "ESRI Shapefile")
 
 ```
 
@@ -361,11 +361,11 @@ ggplot() +
 
 ```{r coastal_counties}
 
-counties <- st_read(dsn = '.',layer = 'ne_counties',quiet=T)%>%
+counties <- st_read(dsn = 'shapefiles',layer = 'ne_counties',quiet=T)%>%
           st_transform(p4s_nad83)
 
 #reading in states again. Yes this is redundant but it includes NJ and PA and is prettier for mapping..
-states <- st_read(dsn = '.',layer = 'states',quiet=T)%>%
+states <- st_read(dsn = 'shapefiles',layer = 'states',quiet=T)%>%
           st_transform(p4s_nad83)
 
 

@@ -54,9 +54,9 @@ us_alb    <- raster::crs("+proj=aea +lat_1=29.5 +lat_2=45.5 +lat_0=37.5 +lon_0=-
 
 ### useful shapefiles
 #state land boundaries
-ne_states  <- readOGR(dsn = paste0(path.expand(dir_git),'/spatial'),layer = 'states',verbose=F)
-rgns       <- readOGR(dsn = paste0(path.expand(dir_git),'/spatial'),layer = 'ne_ohi_rgns', verbose = FALSE) #need to use path.expand because readOGR does not read '~'
-rgns_simp  <- readOGR(dsn = paste0(path.expand(dir_git),'/spatial'),layer = 'ne_ohi_rgns_simp', verbose = FALSE) #need to use path.expand because readOGR does not read '~'
+ne_states  <- readOGR(dsn = paste0(path.expand(dir_git),'/spatial/shapefiles'),layer = 'states',verbose=F)
+rgns       <- readOGR(dsn = paste0(path.expand(dir_git),'/spatial/shapefiles'),layer = 'ne_ohi_rgns', verbose = FALSE) #need to use path.expand because readOGR does not read '~'
+rgns_simp  <- readOGR(dsn = paste0(path.expand(dir_git),'/spatial/shapefiles'),layer = 'ne_ohi_rgns_simp', verbose = FALSE) #need to use path.expand because readOGR does not read '~'
 rgn_data   <- rgns@data
 ocean_ne   <- raster('~/github/ohi-northeast/spatial/ocean_rasters/ocean_ne.tif')
 ocean_rgns <- raster('~/github/ohi-northeast/spatial/ocean_rasters/ocean_rgns.tif')
