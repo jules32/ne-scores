@@ -16,4 +16,4 @@ plot(ne[1])
 
 #save 
 
-st_write(ne, dsn = '.', layer = 'ne_counties.shp', driver = "ESRI Shapefile")
+st_write(ne, layer = 'shapefiles/ne_counties.shp', driver = "ESRI Shapefile")

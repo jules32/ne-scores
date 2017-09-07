@@ -17,4 +17,4 @@ ne@data <- ne@data%>%
 
 out <- spTransform(ne,us_alb)
 
-writeOGR(out,dsn = 'spatial',layer = 'states',driver = 'ESRI Shapefile',overwrite_layer = T)
+writeOGR(out,dsn = 'spatial/shapefiles',layer = 'states',driver = 'ESRI Shapefile',overwrite_layer = T)

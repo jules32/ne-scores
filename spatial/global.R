@@ -25,14 +25,14 @@ us_alb    <- raster::crs("+proj=aea +lat_1=29.5 +lat_2=45.5 +lat_0=37.5 +lon_0=-
 
 ### useful shapefiles
 #state land boundaries
-ne_states  <- readOGR(dsn = paste0(path.expand(dir_git),'/spatial'),layer = 'states',verbose=F)
+ne_states  <- readOGR(dsn = paste0(path.expand(dir_git),'/spatial/shapefiles'),layer = 'states',verbose=F)
 
 
 #full northeast region
 ne_sa <- st_read(dsn = ".", layer = "ne_region_plus_states", quiet = T)
 
 ## states
-states <- st_read(dsn = '~/github/ohi-northeast/spatial', layer = 'states', quiet=T) %>%
+states <- st_read(dsn = '~/github/ohi-northeast/spatial/shapefiles', layer = 'states', quiet=T) %>%
   st_transform(p4s_nad83)
 
 states <- st_intersection(states, st_set_crs(st_as_sf(as(raster::extent(-75,-65,39.5,45), "SpatialPolygons")), st_crs(states)))
@@ -43,16 +43,16 @@ state_wa <- st_read(dsn = file.path(dir_anx,'spatial'), layer = 'StateWaters_wo_
 
 ## canada EEZ
 
-ca_eez <- st_read(dsn = "~/github/ohi-northeast/spatial", layer = "ca_eez_crop", quiet = T)
+ca_eez <- st_read(dsn = "~/github/ohi-northeast/spatial/shapefiles", layer = "ca_eez_crop", quiet = T)
 
 ## EPUs
 epu <- st_read(dsn = ".", 'epu_extended',quiet=T)
 
-epu_offshore <- st_read(dsn = "~/github/ohi-northeast/spatial", layer = "epu_extended_offshore", quiet = T)
+epu_offshore <- st_read(dsn = "~/github/ohi-northeast/spatial/shapefiles", layer = "epu_extended_offshore", quiet = T)
 
 ## US EEZ
 
-eez <- st_read(dsn = '~/github/ohi-northeast/spatial',layer = 'ne_eez',quiet=T)%>%
+eez <- st_read(dsn = '~/github/ohi-northeast/spatial/shapefiles',layer = 'ne_eez',quiet=T)%>%
   st_transform(crs = p4s_nad83)
 
 ## Define each region
@@ -77,8 +77,8 @@ NY = state_wa %>%
 
 ## South of Cape Cod
 
-s_cape <- st_read(dsn = ".", layer = "s_cape_cod")
+s_cape <- st_read(dsn = "./shapefiles", layer = "s_cape_cod")
 
 ## North of Cape Cod
 
-n_cape <- st_read(dsn = ".", layer = "n_cape_cod")
+n_cape <- st_read(dsn = "./shapefiles", layer = "n_cape_cod")
