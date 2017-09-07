@@ -9,6 +9,6 @@ rgns       <- readOGR(dsn = paste0(path.expand(dir_git),'/spatial'),layer = 'ne_
 
 rgns_simp <- gSimplify(rgns, tol = 100, topologyPreserve = TRUE)
 rgns_simp <- SpatialPolygonsDataFrame(rgns_simp,data=as.data.frame(rgns@data))
-writeOGR(rgns_simp,dsn = 'spatial',layer = 'ne_ohi_rgns_simp',driver="ESRI Shapefile")
+writeOGR(rgns_simp,dsn = 'spatial/shapefiles',layer = 'ne_ohi_rgns_simp',driver="ESRI Shapefile")
 
 # Removing small polygons
