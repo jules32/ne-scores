@@ -24,7 +24,7 @@ output:
 (3) Whole region, each offshore EPU  
 
 
-## Load data
+# Load data
 ```{r setup, include=FALSE, message=F,warning=F}
 knitr::opts_chunk$set(fig.width = 10, fig.height = 8, fig.path = 'figs/',
                       echo = FALSE, message = FALSE, warning = FALSE, root.dir = "ohi-northeast")
@@ -40,10 +40,23 @@ library(rgeos)
 ```
 
 
-### State boundaries and water
+## State boundaries and water
 ```{r}
 states <- st_read(dsn = '.',layer = 'states',quiet=T)%>%
           st_transform(p4s_nad83)
+
+coast_st <- states %>%
+            filter(!NAME %in% c("Pennsylvania","New Jersey"))
+
+ggplot() +
+  geom_sf(data = coast_st,aes(fill = NAME))+
+  theme_bw()+ 
+  labs(fill='States') +
+scale_fill_manual(values = blues9)+
+  theme(legend.text=element_text(size=12),
+        legend.title = element_text(size = 14))+ 
+  coord_sf(crs = st_crs(states), datum = NA) 
+
 
 states <- st_intersection(states, st_set_crs(st_as_sf(as(raster::extent(-75,-65,39.5,45), "SpatialPolygons")), st_crs(states)))
 
@@ -54,10 +67,10 @@ state_wa <- st_read(dsn = file.path(dir_anx, 'spatial'), layer = 'StateWaters_wo
 all_state_wa <- state_wa %>%
                 group_by(REGION10) %>%
                 summarize()
-      
+
 ```
 
-### Northeast Ocean Plan Study Area
+## Northeast Ocean Plan Study Area
 
 Emily emailed this shapefile to us to use as the NE Ocean Plan study area. State waters are not included in this shapefile but we need to include state waters within the larger NE study area.
 
@@ -87,7 +100,7 @@ ne_sa <- st_read(dsn = ".", layer = "ne_region_plus_states", quiet = T)
 ```
 
 
-### Canada EEZ
+## Canada EEZ
 ```{r ca_eez}
 
 # ca_eez  <- st_read(dsn = file.path(dir_M,'git-annex/globalprep/spatial/d2014/data'),layer = 'regions_gcs',quiet=T)%>%
@@ -102,7 +115,7 @@ ne_sa <- st_read(dsn = ".", layer = "ne_region_plus_states", quiet = T)
 ca_eez_crop <- st_read('.', "ca_eez_crop", quiet=T)
 ```
 
-### US EEZ
+## US EEZ
 
 Also need to grab the tip of maine and add it to the Scotian Shelf EPU
 ```{r}
@@ -114,7 +127,7 @@ maine <- st_intersection(eez, st_set_crs(st_as_sf(as(raster::extent(-68,-66,44,4
 
 ```
 
-### Ecological Production Units
+## Ecological Production Units
 
 The EPU's don't encompass all of Maine's waters up to the border with Canada. I'm using the EEZ to extend the Northernmost EPU to Canada.
 
@@ -342,3 +355,28 @@ ggplot() +
   coord_sf(crs = st_crs(states), datum = NA) 
 
 ```
+
+
+# Coastal County and State Map
+
+```{r coastal_counties}
+
+counties <- st_read(dsn = '.',layer = 'ne_counties',quiet=T)%>%
+          st_transform(p4s_nad83)
+
+#reading in states again. Yes this is redundant but it includes NJ and PA and is prettier for mapping..
+states <- st_read(dsn = '.',layer = 'states',quiet=T)%>%
+          st_transform(p4s_nad83)
+
+
+ggplot() +
+  geom_sf(data = states,colour = "lightgray",fill = "beige")+
+  geom_sf(data = counties,aes(fill = NAME_1))+
+  theme_bw()+ 
+  labs(fill='Counties') +
+scale_fill_manual(values = blues9)+
+  theme(legend.text=element_text(size=12),
+        legend.title = element_text(size = 14))+ 
+  coord_sf(crs = st_crs(states), datum = NA) 
+```
+
