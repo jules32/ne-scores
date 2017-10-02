@@ -21,7 +21,7 @@ knitr::opts_chunk$set(fig.width = 8, fig.height = 6, fig.path = 'figs/', message
 
 dir_git <- '~/github/ohi-northeast'
 dir_rgn <- file.path(dir_git, 'prep/regions')  ### github: general buffer region shapefiles
-source(file.path(dir_git, 'src/R/common.R'))  ### an OHIBC specific version of common.R
+source(file.path(dir_git, 'src/R/common.R'))  ### an OHI-Northeast specific version of common.R
 
 library(raster)
 library(DT)
@@ -53,11 +53,13 @@ The Economies sub-goal is calculated using coastal GDP data from the [National O
 
 ##Bureau of Economic Analysis
 
-**Downloaded**: July 26 2016  
+**Downloaded**: Accessed October 2, 2017 with R package
 **Description**: Regional GDP in chained [2009] $USD for RI, ME, MA, CT and NH  
 **Native data resolution**: State level  
-**Time range**: 1997 - 2015  
+**Time range**: 1997 - 2016  
 **Format**: Tabular  
+
+https://github.com/us-bea/bea.R
 
 ***
 
@@ -79,20 +81,44 @@ DT::datatable(data, rownames=F, caption = 'Employment in the Tourism & Recreatio
 
 ```
 
-```{r bea_data}
-#read in state-wide GDP data. 
+More info on the BEA data: https://bea.gov/newsreleases/regional/gdp_state/qgsp_newsrelease.htm
 
-#gdp is in millions so we need to multiply by 1,000,000
-st_gdp <- read.csv('us_state_gdp_bea.csv', skip = 4,nrows = 7)%>%
-            dplyr::select(-Fips)%>%
-            melt()%>%
-            mutate(Year    = as.integer(gsub("X","",as.character(variable))),
-                   st_gdp  = value*100000,
-                   State   = Area)%>%
-            dplyr::select(-value,-variable, -Area)
+```{r bea_data}
+
+#install.packages('bea.R')
+library(bea.R)
+
+#install.packages("striprtf")
+library(striprtf)
+
+#read in API access key
+beaKey <- read_rtf(file.path(dir_M,'git-annex/neprep/keys/BureauofEconAnalysis.rtf'))
+
+## use beaParams to find the parameters the API call needs to get the Regional GDP data we want.
+#beaParams(beaKey, "RegionalProduct") #this function lists the necessary parameters to feed into the beaGet function
+
+beaSpecs <- list(
+	'UserID' = beaKey ,
+	'Method' = 'GetData',
+	'datasetname' = 'RegionalProduct', #name of the table
+	'Component' = 'RGDP_SAN',          #this gets the gdp by state annually in 2009 dollars
+	'GeoFips' = 'STATE',               #all states (filtered later)
+	'IndustryID' = 1,                  #all industries
+	'Year' = 'ALL',
+	'ResultFormat' = 'json'
+);
+
+st_gdp <- beaGet(beaSpecs) %>%
+  filter(GeoName %in% c("Connecticut", "New Hampshire", "Maine", "Massachusetts", "Rhode Island", "New York")) %>%
+  select(-Code, -GeoFips, -CL_UNIT, -UNIT_MULT) %>%
+  gather(key = "Year", value  = "GDP", -GeoName) %>%
+  mutate(st_gdp = GDP*100000) %>% #multiply GDP by 1,000,000
+  separate(Year, c('X', 'Year'), sep="_") %>%
+  select(-X, -GDP) %>%
+  rename(State = GeoName) %>%
+  mutate(Year = as.integer(Year))
 
 DT::datatable(st_gdp, caption = 'Gross Domestic Product by State (2009 Dollars), provided by the Bureau of Economic Analysis',rownames=FALSE)
-
 
 ```
 
@@ -111,7 +137,7 @@ where $C_{i}$ is the number of coastal jobs in year *i*, $C_{r}$ is the number o
 
 ```{r gdp}
 
-gdp<- data%>%
+gdp <- data%>%
       mutate(County = ifelse(grepl("All",County),"Statewide",County))%>%
           filter(County == 'Statewide')%>%
           mutate(hist_gdp = GDP_2009[which.min(Year)])%>%
@@ -154,3 +180,4 @@ Available: http://www.OceanEconomics.org/Market/oceanEcon.asp [17 May 2016]
 
 
 U.S. Bureau of Economic Analysis, “GDP & Personal Income: Regional Data,” http://bea.gov/iTable/index_regional.cfm (accessed July 26 2016). 
+
