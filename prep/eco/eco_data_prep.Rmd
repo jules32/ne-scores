@@ -179,5 +179,5 @@ National Ocean Economics Program. Ocean Economic Data by Sector & Industry., ONL
 Available: http://www.OceanEconomics.org/Market/oceanEcon.asp [17 May 2016]
 
 
-U.S. Bureau of Economic Analysis, “GDP & Personal Income: Regional Data,” http://bea.gov/iTable/index_regional.cfm (accessed July 26 2016). 
+U.S. Bureau of Economic Analysis, “GDP & Personal Income: Regional Data,” http://bea.gov/iTable/index_regional.cfm (accessed October 2, 2017). 
 
