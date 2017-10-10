@@ -34,14 +34,14 @@ library(raster)
 library(DT)
 
 dir_git <- '~/github/ohi-northeast'
-dir_rgn <- file.path(dir_git, 'prep/regions')  ### github: general buffer region shapefiles
+#dir_rgn <- file.path(dir_git, 'prep/regions')  ### github: general buffer region shapefiles
 dir_anx <- file.path(dir_M, 'git-annex/neprep')
 
-source(file.path(dir_git, '~/github/ohi-northeast/src/R/common.R'))  ### an OHINE specific version of common.R
+source('~/github/ohi-northeast/src/R/common.R'))  ### an OHINE specific version of common.R
 
 ### goal specific folders and info
 goal      <- 'tr'
-scenario  <- 'v2016'
+scenario  <- 'v2017'
 dir_goal  <- file.path(dir_git, 'prep', goal, scenario)
 dir_goal_anx <- file.path(dir_anx, goal, scenario)
 
