@@ -17,3 +17,10 @@ plot(ne[1])
 #save 
 
 st_write(ne, layer = 'shapefiles/ne_counties.shp', driver = "ESRI Shapefile")
+
+west <- st_as_sf(us) %>%
+        filter(NAME_1 %in% c("Washington", "Oregon", "California", "Nevada", "Idaho","Utah", "Montana", "Colorado", "Wyoming", "Arizona", "New Mexico")) %>%
+        st_union()
+
+ggplot() +
+  geom_sf(data = west)
