@@ -327,6 +327,39 @@ ggsave('figs/liv_scores.png')
 ```
 
 
+**Looking specifically at New Hampshire**
+
+New Hampshire shows a significant jump. It looks like this is due to a large improvement in both Employment and Wages in 2011. This increase seems to stray from the pattern of Statewide values being roughly equal to the total Employment/Wages of the two counties. On 10/10/17 I reached out to Pat Johnston to ask for clarification on the data.
+
+```{r}
+
+nh_data <- data %>%
+  filter(State == "New Hampshire") %>%
+      mutate(County     = ifelse(grepl("All", County), "Statewide", County)) %>%
+      filter(Sector == "All Ocean Sectors") %>%
+      select(State, County, Year, Employment) %>%
+      unique() %>%
+      spread(County, value = Employment)  %>%
+  mutate(rock_plus_straf = Rockingham+Strafford) %>%
+  select(Year, Statewide,rock_plus_straf, Rockingham, Strafford)
+
+DT::datatable(nh_data)
+
+nh_wages <- data %>%
+  filter(State == "New Hampshire") %>%
+      mutate(County     = ifelse(grepl("All", County), "Statewide", County)) %>%
+      filter(Sector == "All Ocean Sectors") %>%
+      select(State, County, Year, Wages_2012) %>%
+      unique() %>%
+      spread(County, value = Wages_2012) %>%
+  mutate(rock_plus_straf = Rockingham+Strafford) %>%
+  select(Year, Statewide,rock_plus_straf, Rockingham, Strafford)
+  
+DT::datatable(nh_wages)
+
+```
+
+
 ***
 
 #Citation information  
