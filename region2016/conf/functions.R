@@ -1095,8 +1095,8 @@ LIV_ECO = function(layers, subgoal){
   le_wages = SelectLayersData(layers, layers='le_wage_sector_year') %>%
     dplyr::select(rgn_id = id_num, year, sector = category, wage_usd = val_num)
 
-  le_jobs  = SelectLayersData(layers, layers='le_jobs_sector_year') %>%
-    dplyr::select(rgn_id = id_num, year, sector = category, jobs = val_num)
+  le_jobs  = SelectLayersData(layers, layers='liv_jobs') %>%
+    dplyr::select(rgn_id, Year, jobs = Employment)
 
   le_workforce_size = SelectLayersData(layers, layers='le_workforcesize_adj') %>%
     dplyr::select(rgn_id = id_num, year, jobs_all = val_num)
@@ -1106,16 +1106,16 @@ LIV_ECO = function(layers, subgoal){
 
 
   # multipliers from Table S10 (Halpern et al 2012 SOM)
-  multipliers_jobs = data.frame('sector' = c('tour','cf', 'mmw', 'wte','mar'),
-                                'multiplier' = c(1, 1.582, 1.915, 1.88, 2.7)) # no multiplers for tour (=1)
-  # multipliers_rev  = data.frame('sector' = c('mar', 'tour'), 'multiplier' = c(1.59, 1)) # not used because GDP data is not by sector
+  # multipliers_jobs = data.frame('sector' = c('tour','cf', 'mmw', 'wte','mar'),
+  #                               'multiplier' = c(1, 1.582, 1.915, 1.88, 2.7)) # no multiplers for tour (=1)
+  # # multipliers_rev  = data.frame('sector' = c('mar', 'tour'), 'multiplier' = c(1.59, 1)) # not used because GDP data is not by sector
 
 
   # calculate employment counts
-  le_employed = le_workforce_size %>%
-    left_join(le_unemployment, by = c('rgn_id', 'year')) %>%
-    mutate(proportion_employed = (100 - pct_unemployed) / 100,
-           employed            = jobs_all * proportion_employed)
+  # le_employed = le_workforce_size %>%
+  #   left_join(le_unemployment, by = c('rgn_id', 'year')) %>%
+  #   mutate(proportion_employed = (100 - pct_unemployed) / 100,
+  #          employed            = jobs_all * proportion_employed)
 
   # reworded from SOM p.26-27
   #reference point for wages is the reference region (r) with the highest average wages across all sectors.
