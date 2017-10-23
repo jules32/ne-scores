@@ -1,11 +1,12 @@
-"","County","rgn_name","rgn_id"
-"1","Barnstable","Massachusetts-Gulf of Maine",4
-"2","Barnstable","Massachusetts-Virginian",5
-"3","Bristol","Massachusetts-Virginian",5
-"4","Nantucket","Massachusetts-Virginian",5
-"5","Dukes","Massachusetts-Virginian",5
-"6","Plymouth","Massachusetts-Virginian",5
-"7","Plymouth","Massachusetts-Gulf of Maine",4
-"8","Norfolk","Massachusetts-Gulf of Maine",4
-"9","Essex","Massachusetts-Gulf of Maine",4
-"10","Suffolk","Massachusetts-Gulf of Maine",4
+"State","County","rgn_name","rgn_id","area_km2","rgn_abrev"
+"Massachusetts","Barnstable","Massachusetts-Gulf of Maine",4,3462,MA
+"Massachusetts","Barnstable","Massachusetts-Virginian",5,2945,MA
+"Massachusetts","Bristol","Massachusetts-Virginian",5,2945,MA
+"Massachusetts","Nantucket","Massachusetts-Virginian",5,2945,MA
+"Massachusetts","Dukes","Massachusetts-Virginian",5,2945,MA
+"Massachusetts","Plymouth","Massachusetts-Virginian",5,2945,MA
+"Massachusetts","Plymouth","Massachusetts-Gulf of Maine",4,3462,MA
+"Massachusetts","Norfolk","Massachusetts-Gulf of Maine",4,3462,MA
+"Massachusetts","Essex","Massachusetts-Gulf of Maine",4,3462,MA
+"Massachusetts","Suffolk","Massachusetts-Gulf of Maine",4,3462,MA
+"Massachusetts","Middlesex","Massachusetts-Gulf of Maine",4,3462,MA
