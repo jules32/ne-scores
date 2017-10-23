@@ -1,0 +1,71 @@
+State,Year,rgn_id,rgn_name,rgn_employment
+Connecticut,2014,3,Connecticut,50871
+Connecticut,2013,3,Connecticut,50410
+Connecticut,2012,3,Connecticut,47551
+Connecticut,2011,3,Connecticut,45906
+Connecticut,2010,3,Connecticut,44638
+Connecticut,2009,3,Connecticut,44623
+Connecticut,2008,3,Connecticut,44952
+Connecticut,2007,3,Connecticut,43847
+Connecticut,2006,3,Connecticut,43103
+Connecticut,2005,3,Connecticut,43084
+Maine,2014,7,Maine,47189
+Maine,2013,7,Maine,46319
+Maine,2012,7,Maine,45654
+Maine,2011,7,Maine,45007
+Maine,2010,7,Maine,43712
+Maine,2009,7,Maine,42564
+Maine,2008,7,Maine,43587
+Maine,2007,7,Maine,41967
+Maine,2006,7,Maine,41633
+Maine,2005,7,Maine,42419
+Rhode Island,2014,1,Rhode Island,42252
+Rhode Island,2013,1,Rhode Island,41043
+Rhode Island,2012,1,Rhode Island,39650
+Rhode Island,2011,1,Rhode Island,38370
+Rhode Island,2010,1,Rhode Island,37649
+Rhode Island,2009,1,Rhode Island,37585
+Rhode Island,2008,1,Rhode Island,39495
+Rhode Island,2007,1,Rhode Island,39611
+Rhode Island,2006,1,Rhode Island,38633
+Rhode Island,2005,1,Rhode Island,38578
+Massachusetts,2014,4,Massachusetts-Gulf of Maine,38168.5
+Massachusetts,2014,5,Massachusetts-Virginian,16382
+Massachusetts,2013,4,Massachusetts-Gulf of Maine,36665.5
+Massachusetts,2013,5,Massachusetts-Virginian,15228.5
+Massachusetts,2012,4,Massachusetts-Gulf of Maine,36794
+Massachusetts,2012,5,Massachusetts-Virginian,16051
+Massachusetts,2011,4,Massachusetts-Gulf of Maine,35742
+Massachusetts,2011,5,Massachusetts-Virginian,15454
+Massachusetts,2010,4,Massachusetts-Gulf of Maine,33948
+Massachusetts,2010,5,Massachusetts-Virginian,15169
+Massachusetts,2009,4,Massachusetts-Gulf of Maine,32993.5
+Massachusetts,2009,5,Massachusetts-Virginian,15453.5
+Massachusetts,2008,4,Massachusetts-Gulf of Maine,33824.5
+Massachusetts,2008,5,Massachusetts-Virginian,15766.5
+Massachusetts,2007,4,Massachusetts-Gulf of Maine,33491
+Massachusetts,2007,5,Massachusetts-Virginian,16382.5
+Massachusetts,2006,4,Massachusetts-Gulf of Maine,31509.5
+Massachusetts,2006,5,Massachusetts-Virginian,14319
+Massachusetts,2005,4,Massachusetts-Gulf of Maine,32354.5
+Massachusetts,2005,5,Massachusetts-Virginian,14705.5
+New Hampshire,2014,6,New Hampshire,8348
+New Hampshire,2013,6,New Hampshire,8410
+New Hampshire,2012,6,New Hampshire,8271
+New Hampshire,2011,6,New Hampshire,7293
+New Hampshire,2010,6,New Hampshire,7491
+New Hampshire,2009,6,New Hampshire,7338
+New Hampshire,2008,6,New Hampshire,7601
+New Hampshire,2007,6,New Hampshire,7932
+New Hampshire,2006,6,New Hampshire,8240
+New Hampshire,2005,6,New Hampshire,7710
+New York,2014,2,New York,338005
+New York,2013,2,New York,319020
+New York,2012,2,New York,303289
+New York,2011,2,New York,287104
+New York,2010,2,New York,269256
+New York,2009,2,New York,257215
+New York,2008,2,New York,258365
+New York,2007,2,New York,249513
+New York,2006,2,New York,238629
+New York,2005,2,New York,233633
