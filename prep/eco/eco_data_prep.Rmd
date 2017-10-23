@@ -45,10 +45,10 @@ The Economies sub-goal is calculated using coastal GDP data from the [National O
 
 ##National ocean Economics Program (NOEP)
 
-**Downloaded**: Received from Pat Johston on May 17, 2016.  
-**Description**:  GDP [2009 $USD] per sector for RI, ME, MA, CT and NH counties from 2005 to 2013. The data also include number of establishments, jobs and wages for each sector - state - year.  
+**Downloaded**: Received from Pat Johston on October 3, 2017.  
+**Description**:  GDP [2012 $USD] per sector for RI, ME, MA, CT, NY and NH counties from 2005 to 2014. The data also include number of establishments, jobs and wages for each sector - state - year.  
 **Native data resolution**: County level   
-**Time range**: 2005 - 2013  
+**Time range**: 2005 - 2014  
 **Format**:  Tabular  
 
 ##Bureau of Economic Analysis
@@ -92,7 +92,7 @@ library(bea.R)
 library(striprtf)
 
 #read in API access key
-beaKey <- read_rtf(file.path(dir_M,'git-annex/neprep/keys/BureauofEconAnalysis.rtf'))
+beaKey <- read_rtf(file.path(dir_M,'git-annex/neprep/keys/BureauofEconomicAnalysis.rtf'))
 
 ## use beaParams to find the parameters the API call needs to get the Regional GDP data we want.
 #beaParams(beaKey, "RegionalProduct") #this function lists the necessary parameters to feed into the beaGet function
