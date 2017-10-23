@@ -11,6 +11,7 @@ dir_M             <- c('Windows' = '//mazu.nceas.ucsb.edu/ohi',
 dir_git <- '~/github/ohi-northeast'
 dir_rgn <- file.path(dir_git, 'prep/regions')  ### github: general buffer region shapefiles
 dir_anx <- file.path(dir_M, 'git-annex/neprep')
+dir_calc <- file.path(dir_git, 'region2016') #where the calculations happen
 
 # WARN rather than stop if directory doesn't exist
 if (!file.exists(sprintf('%s/',dir_M))){
@@ -54,14 +55,14 @@ us_alb    <- raster::crs("+proj=aea +lat_1=29.5 +lat_2=45.5 +lat_0=37.5 +lon_0=-
 
 ### useful shapefiles
 #state land boundaries
-ne_states  <- readOGR(dsn = paste0(path.expand(dir_git),'/spatial/shapefiles'),layer = 'states',verbose=F)
-rgns       <- readOGR(dsn = paste0(path.expand(dir_git),'/spatial/shapefiles'),layer = 'ne_ohi_rgns', verbose = FALSE) #need to use path.expand because readOGR does not read '~'
-rgns_simp  <- readOGR(dsn = paste0(path.expand(dir_git),'/spatial/shapefiles'),layer = 'ne_ohi_rgns_simp', verbose = FALSE) #need to use path.expand because readOGR does not read '~'
-rgn_data   <- rgns@data
-ocean_ne   <- raster('~/github/ohi-northeast/spatial/ocean_rasters/ocean_ne.tif')
-ocean_rgns <- raster('~/github/ohi-northeast/spatial/ocean_rasters/ocean_rgns.tif')
+ne_states  <- sf::st_read(dsn = paste0(path.expand(dir_git),'/spatial/shapefiles'),layer = 'states')
+rgns       <- sf::st_read(dsn = paste0(path.expand(dir_git),'/spatial/shapefiles'),layer = 'ne_ohi_rgns') #need to use path.expand because readOGR does not read '~'
+rgns_simp  <- sf::st_read(dsn = paste0(path.expand(dir_git),'/spatial/shapefiles'),layer = 'ne_ohi_rgns_simp') #need to use path.expand because readOGR does not read '~'
+rgn_data   <- data.frame(rgns) %>% select(-geometry)
+ocean_ne   <- raster::raster('~/github/ohi-northeast/spatial/ocean_rasters/ocean_ne.tif')
+ocean_rgns <- raster::raster('~/github/ohi-northeast/spatial/ocean_rasters/ocean_rgns.tif')
 zones      <- ocean_rgns #for zonal stats
-three_nm <- rgns[rgns@data$rgn_id %in% c(1:7),]   #use the state water boundaries as the 3 nautical mile shapefile
+three_nm <- rgns %>% filter(rgn_id < 8)   #use the state water boundaries as the 3 nautical mile shapefile
 
 ### Define spectral color scheme for plotting maps
 cols      = rev(colorRampPalette(brewer.pal(9, 'Spectral'))(255)) # rainbow color scheme
