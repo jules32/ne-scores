@@ -21,12 +21,10 @@ output:
 knitr::opts_chunk$set(fig.width = 8, fig.height = 6, fig.path = 'figs/', message = FALSE, warning = FALSE)
 
 dir_git <- '~/github/ohi-northeast'
-#dir_rgn <- file.path(dir_git, 'prep/regions')  ### github: general buffer region shapefiles
-source(file.path(dir_git, 'src/R/common.R'))  ### an OHIBC specific version of common.R
+source(file.path(dir_git, 'src/R/common.R'))  ### an OHI-NE specific version of common.R
 
 library(tidyverse)
 library(readxl)
-#library(raster)
 library(DT)
 library(plotly)
 #install.packages("striprtf")
@@ -34,8 +32,6 @@ library(striprtf)
 
 dir_anx <- file.path(dir_M, 'git-annex/neprep')
 
-#round to 2 decimals
-options(digits=2, scipen = 999)
 ```
 
 #Summary
@@ -81,24 +77,120 @@ noep_data_1 <- read_excel(file.path(dir_anx, '_raw_data/NOEP/New_England_ocean_s
   
 ## read in ENOW sheet which contains data for 2005 - 2014 
 noep_data_2 <- read_excel(file.path(dir_anx, '_raw_data/NOEP/New_England_ocean_series.xlsx'), sheet = "ENOW")
+```
 
-## moving forward just with the more recent data series
+Moving forward just with the more recent data series. Data is provided for each individual coastal county as well as "All Counties" in each state. There is an important distinction between using "All Counties" and simply summing up all state county data. Some data at the county level is supressed due to regulation. But when reported at the State level, this data may be released. We see this when looking at New Hampshires marine transportation data. The sum of NH's two coastal counties for jobs does not equal the reported value for jobs for "All New Hampshire Counties". This is most likely due to data supression at the county level. Therefore we use the sum of all counties rather than the data reported for "All Counties".
 
-data <- noep_data_2 %>%
-       filter(Sector=='All Ocean Sectors') %>%
-        mutate(Employment     = as.numeric(gsub(",","",.$Employment)),
-               Establishments = as.numeric(gsub(",","",.$Establishments)),
-               Wages          = as.numeric(gsub(",","",.$Wages)),
-               Wages_2012     = as.numeric(gsub(",","",.$Wages_2012)),
-               GDP            = as.numeric(gsub(",","",.$GDP)),
-               GDP_2012       = as.numeric(gsub(",","",.$GDP_2012)))
+```{r}
+# need to read in the MA counties since they are divided across two bioregions
 
+ma_ctys <- read_csv("~/github/ohi-northeast/src/tables/MA_counties.csv")
 
-DT::datatable(data, rownames=F, caption = 'Employment in the Tourism & Recreation sector of Coastal Jobs in New England provided by NOEP')
+clean_data <- noep_data_2 %>%
+       filter(Sector == 'All Ocean Sectors') %>%
+        left_join(rgn_data, by = c("State" = "rgn_name")) %>%
+        left_join(ma_ctys, by = c("State", "County")) %>%
+        mutate(rgn_id = ifelse(is.na(rgn_id.x), rgn_id.y, rgn_id.x),
+               rgn_name = ifelse(is.na(rgn_name), State, rgn_name)) %>%
+  select(-rgn_id.x, -rgn_id.y, -area_km2.x, -area_km2.y, -rgn_abrev.x, -rgn_abrev.y) %>%
+        mutate(Employment     = ifelse(rgn_name %in% c("Massachusetts-Gulf of Maine", "Massachusetts-Virginian"), 
+                                      as.numeric(gsub(",","",.$Employment))/2, as.numeric(gsub(",","",.$Employment))),
+               Establishments = ifelse(rgn_name %in% c("Massachusetts-Gulf of Maine", "Massachusetts-Virginian"), 
+                                       as.numeric(gsub(",","",.$Establishments))/2, as.numeric(gsub(",","",.$Establishments))),
+               Wages          = ifelse(rgn_name %in% c("Massachusetts-Gulf of Maine", "Massachusetts-Virginian"), 
+                                       as.numeric(gsub(",","",.$Wages))/2, as.numeric(gsub(",","",.$Wages))),
+               Wages_2012     = ifelse(rgn_name %in% c("Massachusetts-Gulf of Maine", "Massachusetts-Virginian"),
+                                       as.numeric(gsub(",","",.$Wages_2012))/2, as.numeric(gsub(",","",.$Wages_2012))),
+               GDP            = ifelse(rgn_name %in% c("Massachusetts-Gulf of Maine", "Massachusetts-Virginian"),
+                                       as.numeric(gsub(",","",.$GDP))/2, as.numeric(gsub(",","",.$GDP))),
+               GDP_2012       = ifelse(rgn_name %in% c("Massachusetts-Gulf of Maine", "Massachusetts-Virginian"),
+                                       as.numeric(gsub(",","",.$GDP_2012))/2, as.numeric(gsub(",","",.$GDP_2012))))
+
+DT::datatable(clean_data, rownames=F, caption = 'Employment in the Tourism & Recreation sector of Coastal Jobs in New England provided by NOEP')
 
 ```
 
+Meta-analysis to look at county compared to state totals, just for employment.
+
+```{r state_vs_county_totals}
+
+states <-  c("Maine", "New Hampshire", "Rhode Island", "Massachusetts", "New York", "Connecticut")
+
+meta <- function(state){
+  
+  all <- clean_data %>%
+    filter(State == state,
+           str_detect(County, "All")) %>%
+    select(Year, Employment) %>%
+    rename(all_ctys_employment = Employment)
+  
+  out <- clean_data %>%
+     filter(State == state,
+            str_detect(County, "All") == FALSE) %>%
+     select(State, County, Year, Employment) %>%
+     group_by(Year) %>%
+    summarize(totals = sum(Employment, na.rm = T)) %>%
+    left_join(all) %>%
+    rename(county_totals = totals,
+           statewide = all_ctys_employment) %>%
+    gather(key = spatial_res, value = Employment, -Year) %>%
+    mutate(State = state)
+  
+return(out)
+}
+
+t <- map_df(states, meta)
+
+ggplot(t, aes(x = Year, y = Employment, color = spatial_res))+
+    geom_line() +
+    facet_wrap(~State, scales = "free")
+```
+
+There are some clear discrepancies in the dataset between the total number of jobs reported at the state level ("statewide") and the sum of all employment numbers at the County level. New york and Massachusetts have parallel trends, so using either data stream should result in the same final score. New Hampshire has significantly more statewide jobs beginning in 2011 due to data supression up until that point. We can assume that if data were not suppressed pre-2011 statewide, we would also see parallel trends in New Hampshire as well. Operating under that assumption, we can use the county level data. Rhode Island, Connecticut and Maine show low employment numbers in earlier years when adding up at the county level. This could be due to a lack of data. For example, Saghadoc county in Maine has no data up until 2010, when the jump happens. This suggests we should use the statewide data for Maine. There is no missing data in Connecticut or Rhode Island. This might suggest data suppression in those earlier years at the county level. Therefore the statewide data should be used. 
+
+
+```{r}
+
+#select the data for ME, CT and RI, which is going to use the data reported for "All x counties"
+state_data <- clean_data %>%
+  filter(str_detect(County, "All"),
+         State %in% c("Maine", "Connecticut", "Rhode Island")) %>%
+  select(State, Year, rgn_id, rgn_name, rgn_employment = Employment, rgn_wages = Wages_2012, rgn_estab = Establishments)
+  
+county_data <- clean_data %>%
+  filter(str_detect(County, "All")== FALSE,
+         State %in% c("Massachusetts", "New York", "New Hampshire")) %>%
+  group_by(rgn_id, Year) %>%
+  mutate(rgn_employment = sum(Employment, na.rm = T),
+         rgn_wages = sum(Wages_2012, na.rm = T),
+         rgn_estab = sum(Establishments, na.rm = T)) %>% #employment by region
+  select(State, Year, rgn_id, rgn_name, rgn_employment, rgn_wages, rgn_estab) %>%
+  distinct()
+
+jobs_data <- bind_rows(state_data, county_data) %>%
+  select(-rgn_wages, -rgn_estab) %>%
+  write_csv(file.path(dir_calc, "layers/liv_coast_jobs.csv"))
+
+```
+
+## Visualize jobs by region
+
+```{r}
+
+ggplot(jobs_data, aes(x = Year, y = rgn_employment)) +
+  geom_line()+
+  facet_wrap(~ rgn_name, scales = "free")
+
+
+```
+
+<br>
+*****
+<br>
+
 ## BLS data
+
+We use the BLS data to get information on statewide employment.
 
 The Bureau of Labor Statistics has a clunky online data query that is less than ideal for downloading data. They do have an API and I found a couple different R packages for accessing it. For now, I'm using [`blscrapeR`](https://github.com/keberwein/blscrapeR) which fortunately has a function to access state data by month. Since we are interested in annual averages, it requires some additional aggregating but seems to work quite well and is able to access data from 1976 - current, although we just need 2005 - 2014 to match the NOEP data.
 
@@ -133,10 +225,23 @@ st_emp <- get_bls_state(date_mth = out, seasonality = FALSE) %>%
          yr_avg_employed_rate   = mean(employed_rate),
          yr_avg_unemployed_rate = mean(unemployed_rate)) %>%
   ungroup() %>%
-  select(state, Year, yr_avg_employed, yr_avg_employed_rate, yr_avg_unemployed_rate) %>%
+  select(state, Year, yr_avg_employed) %>%
   rename(State = state) %>%
   mutate(Year = as.numeric(Year)) %>%
-  distinct()
+  distinct() 
+
+write_csv(st_emp, file.path(dir_calc, "layers/liv_state_jobs.csv"))
+
+```
+
+## Visualize
+
+```{r}
+
+ggplot(st_emp%>%filter(Year>2004), aes(x = Year, y = yr_avg_employed)) +
+  geom_line() +
+  facet_wrap(~State, scales = "free") +
+  labs(y = "Annual average employment")
 
 ```
 
@@ -155,7 +260,7 @@ where $C_{i}$ is the number of coastal jobs in year *i*, $C_{r}$ is the number o
 
 ```{r jobs}
 
-jobs <- data %>%
+jobs <- clean_data %>%
       rename(coast_jobs = Employment) %>%
       mutate(County     = ifelse(grepl("All", County), "Statewide", County),
              hist_jobs  = coast_jobs[which.min(Year)]) %>%
@@ -169,6 +274,12 @@ jobs <- data %>%
       as.data.frame() %>%
       select(State, Year, hist_jobs, cst_chg, hist_st_jobs, st_chg, score) %>%
       unique()
+
+## save to output
+# add rgn id
+# select only year, rgn id and value
+
+write_csv(jobs, "output/le_jobs.csv")
 
 ```
 
