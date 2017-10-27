@@ -41,6 +41,8 @@ library(raster)
 
 rm(packages)
 
+select <- dplyr::select
+
 #spatial information
 
 ## extent for region of interest
@@ -58,7 +60,10 @@ us_alb    <- raster::crs("+proj=aea +lat_1=29.5 +lat_2=45.5 +lat_0=37.5 +lon_0=-
 ne_states  <- sf::st_read(dsn = paste0(path.expand(dir_git),'/spatial/shapefiles'),layer = 'states')
 rgns       <- sf::st_read(dsn = paste0(path.expand(dir_git),'/spatial/shapefiles'),layer = 'ne_ohi_rgns') #need to use path.expand because readOGR does not read '~'
 rgns_simp  <- sf::st_read(dsn = paste0(path.expand(dir_git),'/spatial/shapefiles'),layer = 'ne_ohi_rgns_simp') #need to use path.expand because readOGR does not read '~'
-rgn_data   <- data.frame(rgns) %>% select(-geometry)
+rgn_data   <- data.frame(rgns) %>% 
+  select(-geometry) %>% 
+  mutate(rgn_name = as.character(rgn_name),
+         state = ifelse(str_detect(rgn_name, "Massachusetts"), "Massachusetts", rgn_name))
 ocean_ne   <- raster::raster('~/github/ohi-northeast/spatial/ocean_rasters/ocean_ne.tif')
 ocean_rgns <- raster::raster('~/github/ohi-northeast/spatial/ocean_rasters/ocean_rgns.tif')
 zones      <- ocean_rgns #for zonal stats
