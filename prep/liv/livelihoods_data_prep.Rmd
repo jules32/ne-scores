@@ -17,8 +17,8 @@ output:
 ---
 
 
-``` {r setup, echo=F, message = FALSE, warning = FALSE}
-knitr::opts_chunk$set(fig.width = 8, fig.height = 6, fig.path = 'figs/', message = FALSE, warning = FALSE)
+``` {r setup, echo=F, message = FALSE, warning = FALSE, results = 'hide'}
+knitr::opts_chunk$set(fig.width = 10, fig.height = 6, fig.path = 'figs/', message = FALSE, warning = FALSE)
 
 dir_git <- '~/github/ohi-northeast'
 source(file.path(dir_git, 'src/R/common.R'))  ### an OHI-NE specific version of common.R
@@ -37,13 +37,13 @@ dir_anx <- file.path(dir_M, 'git-annex/neprep')
 
 #Summary
 
-The Livelihoods sub-goal is calculated using coastal employment data from the [National Ocean Economics Program](http://www.oceaneconomics.org/), and State-wide employment from the [Bureau of Labor Statistics](http://www.bls.gov/data/).
+The Livelihoods sub-goal is calculated using coastal employment and wage data from the [National Ocean Economics Program](http://www.oceaneconomics.org/), and state-wide employment and wage data from the [Bureau of Labor Statistics](http://www.bls.gov/data/).
 
 ***
 
 # Data Sources
 
-### National ocean Economics Program (NOEP)
+## National ocean Economics Program (NOEP)
 
 **Downloaded**: Received from Pat Johston on October 3, 2017.  
 **Description**:  Total number of jobs and wages per sector for RI, ME, MA, CT, NY and NH counties from 2005 to 2013. The data also include number of establishments and GDP for each sector - state - year.  
@@ -52,12 +52,12 @@ The Livelihoods sub-goal is calculated using coastal employment data from the [N
 **Format**:  Tabular  
 
 
-### US Bureau of Labor Statistics
+## US Bureau of Labor Statistics
 
-**Downloaded**: May 17, 2016  
-**Description**: Total Annual Employment (in thousands) per State from 1990 to 2015  
-**Native data resolution**: State level  
-**Time Range:** 2005 to 2015  
+**Downloaded**: `r date()` 
+**Description**: Total Annual Employment (in thousands) & Average annual wages (USD)  
+**Native data resolution**: County level  
+**Time Range:** 1990 to 2016  
 **Format:** Tabular  
 
 
@@ -89,7 +89,7 @@ noep_data_2 <- read_excel(file.path(dir_anx, '_raw_data/NOEP/New_England_ocean_s
 
 Moving forward just with the more recent data series. Data is provided for each individual coastal county as well as "All Counties" in each state. There is an important distinction between using "All Counties" and simply summing up all state county data. Some data at the county level is supressed due to regulation. But when reported at the State level, this data may be released. We see this when looking at New Hampshires marine transportation data. The sum of NH's two coastal counties for jobs does not equal the reported value for jobs for "All New Hampshire Counties". This is most likely due to data supression at the county level. Therefore we use the sum of all counties rather than the data reported for "All Counties".
 
-```{r}
+```{r split_MA}
 # need to read in the MA counties since they are divided across two bioregions
 
 ma_ctys <- read_csv("~/github/ohi-northeast/src/tables/MA_counties.csv")
@@ -122,7 +122,7 @@ DT::datatable(clean_data, rownames=F, caption = 'Employment in the Tourism & Rec
 
 Look at county compared to state totals, just for employment.
 
-```{r state_vs_county_totals}
+```{r noep_state_vs_county_totals}
 
 states <-  c("Maine", "New Hampshire", "Rhode Island", "Massachusetts", "New York", "Connecticut")
 
@@ -154,13 +154,14 @@ t <- map_df(states, meta) %>%
 
 ggplot(t, aes(x = Year, y = Employment, color = spatial_res))+
     geom_line() +
-    facet_wrap(~State, scales = "free")
+    facet_wrap(~State, scales = "free") +
+  scale_color_manual(" ", labels = c("Sum of county reported employment", "Statewide reported employment"), values = c("blue", "red"))
 ```
 
 There are some clear discrepancies in the dataset between the total number of jobs reported at the state level ("statewide") and the sum of all employment numbers at the County level. New york and Massachusetts have parallel trends, so using either data stream should result in the same final score. New Hampshire has significantly more statewide jobs beginning in 2011 due to data supression up until that point. We can assume that if data were not suppressed pre-2011 statewide, we would also see parallel trends in New Hampshire as well. Operating under that assumption, we can use the county level data. Rhode Island, Connecticut and Maine show low employment numbers in earlier years when adding up at the county level. This could be due to a lack of data. For example, Saghadoc county in Maine has no data up until 2010, when the jump happens. This suggests we should use the statewide data for Maine. There is no missing data in Connecticut or Rhode Island. This might suggest data suppression in those earlier years at the county level. Therefore the statewide data should be used. 
 
 
-```{r}
+```{r combine_noep_state_county_data}
 
 #select the data for ME, CT and RI, which is going to use the data reported for "All x counties"
 state_data <- clean_data %>%
@@ -184,18 +185,22 @@ coast_jobs <- bind_rows(state_data, county_data) %>%
 write.csv(coast_jobs, file.path(dir_calc, "layers/le_coast_jobs.csv"))
 ```
 
-### Visualize
 
-```{r}
+```{r rgn_coastal_employment}
 
 ggplot(coast_jobs, aes(x = year, y = rgn_employment)) +
   geom_line()+
-  facet_wrap(~ rgn_name, scales = "free")
+  facet_wrap(~ rgn_name, scales = "free") +
+  ylab("Number of jobs") + 
+  xlab("Year") +
+  ggtitle("Total employment in coastal jobs")
 
 ```
 
 <br>
-*****
+
+***
+
 <br>
 
 ## State jobs
@@ -214,7 +219,7 @@ blsKey <- read_rtf(file.path(dir_M,'git-annex/neprep/keys/BureauofLaborStatistic
 set_bls_key(blsKey, overwrite=TRUE)
 ```
 
-```{r}
+```{r get_bls_job_data}
 # the R package is a little clunky in that it requires a query using months + years.
 out <- c()
 
@@ -245,14 +250,14 @@ write.csv(st_jobs, file.path(dir_calc, "layers/le_state_jobs.csv"))
 
 ```
 
-#### Visualize
-
-```{r}
+```{r statewide_jobs_bls}
 
 ggplot(st_jobs%>%filter(year > 2004), aes(x = year, y = yr_avg_employed)) +
   geom_line() +
   facet_wrap(~state, scales = "free") +
-  labs(y = "Annual average employment")
+  ylab("Number of jobs") +
+  xlab("Year") +
+  ggtitle("Annual average employment statewide")
 
 ```
 
@@ -286,11 +291,10 @@ write.csv(jobs_st_ref, file.path(dir_calc, "layers/le_state_jobs_ref.csv"))
 
 ```
 
-### Visualize
 
 **Jobs directly related to ocean in coastal counties**
 
-```{r}
+```{r coastal_jobs_and_ref_point}
 c <- coast_jobs %>%
   left_join(jobs_cst_ref) %>%
   select(rgn_id, year, rgn_employment, ref, rgn_name) %>%
@@ -298,11 +302,16 @@ c <- coast_jobs %>%
 
 ggplot(c, aes(x = year, y = jobs, color = data)) +
   geom_line() +
-  facet_wrap(~rgn_name, scales = "free")
+  facet_wrap(~rgn_name, scales = "free") +
+  ylab("Number of jobs") +
+  xlab("Year") +
+  ggtitle("Regional employment in coastal jobs") +
+  scale_color_manual(" ", labels = c("Mean employment over the \nprevious 5 years","Annual employment"), values = c("red", "blue"))
 ```
 
 **Statewide employment**
-The straight line represents the reference point which is equal to the number of jobs in 2005.
+
+Combine annual reported statewide jobs with the reference period.
 ```{r}
 s <- st_jobs %>%
   left_join(jobs_st_ref) %>%
@@ -312,7 +321,11 @@ s <- st_jobs %>%
 
 ggplot(s, aes(x = year, y = jobs, color = data)) +
   geom_line() +
-  facet_wrap(~rgn_name, scales = "free")
+  facet_wrap(~rgn_name, scales = "free")+
+  ylab("Number of jobs") +
+  xlab("Year") +
+  ggtitle("Statewide Employment") +
+  scale_color_manual(" ", labels = c("Reference period \n(average employment in previous 5 years)", "Annual average employment"), values = c("red", "blue"))
 ```
 
 ***
@@ -339,13 +352,14 @@ write.csv(coast_wages, file.path(dir_calc, "layers/le_coast_wages.csv"))
 
 ```
 
-### Visualize
 
-```{r}
+```{r coastal_wages_plot}
 ggplot(coast_wages, aes(x = year, y = wages_per_job)) +
   geom_line() +
-  ylab("Wage per capita") +
-  facet_wrap(~ rgn_name, scales = "free")
+  ylab("Wages (2012 USD$)") +
+  facet_wrap(~ rgn_name, scales = "free") +
+  ggtitle("Wages per capita") +
+  xlab("Year")
 ```
 
 ## State wages
@@ -354,7 +368,7 @@ The BLS identifies their data tables with specific codes called [seriesIDs](http
 
 The table `bls_code_lookup.csv` was created manually by matching each SeriesID with the appropriate state and county.
 
-```{r wages}
+```{r get_bls_wages}
 
 ## read in the codes that the BLS website uses to identify specific datasets
 wage_codes <- read_rtf('data/ne_wages_codes') %>%
@@ -392,24 +406,25 @@ write_csv(bls_wages, file.path(dir_calc,"layers/le_state_wages.csv"))
 
 ```
 
-### Visualize
 
-```{r plot_wages}
+```{r statewide_wages_plot}
 
 #by state
 
-ggplot(bls_wages,aes(x = year, y = annual_wage)) +
+ggplot(bls_wages, aes(x = year, y = annual_wage)) +
   geom_line() +
-  facet_wrap(~state, scales = "free")
+  facet_wrap(~state, scales = "free") +
+  ylab("Average wages per job (USD$)") +
+  xlab("Year") +
+  ggtitle("Statewide wages per job from the Bureau of Labor Statistics")
 
 ```
 
 ## Reference point
 
-
 Our reference point is the average wages per capita over the previous 5 years.
 
-```{r wages_ref_point}
+```{r coastal_wages_ref_points}
 
 wages_cst_ref <- coast_wages %>%
   arrange(year) %>%
@@ -420,6 +435,27 @@ wages_cst_ref <- coast_wages %>%
   select(state, year, rgn_id, rgn_name, ref = coast_wages_prev_5yr)
 
 write.csv(wages_cst_ref, file.path(dir_calc, "layers/le_coast_wages_ref.csv"))
+```
+
+**Wages per job directly related to ocean in coastal counties**
+
+```{r coastal_wages_and_ref_point}
+
+c <- coast_wages %>%
+  left_join(wages_cst_ref) %>%
+  select(rgn_id, year, wages_per_job, ref, rgn_name) %>%
+  gather(data, wages, -rgn_id,-year, -rgn_name)
+
+ggplot(c, aes(x = year, y = wages, color = data)) +
+  geom_line() +
+  facet_wrap(~rgn_name, scales = "free") +
+  ylab("Wages per job (2009 USD$") +
+  xlab("Year") +
+  ggtitle("Average annual wages for coastal jobs") +
+  scale_color_manual(" ", labels = c("Mean wages over the \nprevious 5 years","Annual average wages"), values = c("red", "blue"))
+```
+
+```{r state_wages_ref_points}
 
 wages_st_ref <- bls_wages %>%
   arrange(year) %>%
@@ -434,47 +470,97 @@ write.csv(wages_st_ref, file.path(dir_calc, "layers/le_state_wages_ref.csv"))
 
 ```
 
+```{r state_wages_and_ref_point}
+c <- bls_wages %>%
+  left_join(wages_st_ref) %>%
+  select(rgn_id, year, annual_wage, ref, rgn_name) %>%
+  gather(data, wages, -rgn_id,-year, -rgn_name, -state)
+
+ggplot(c, aes(x = year, y = wages, color = data)) +
+  geom_line() +
+  facet_wrap(~rgn_name, scales = "free") +
+  ylab("Wages per job (USD$") +
+  xlab("Year") +
+  ggtitle("Average annual wages statewide") +
+  scale_color_manual(" ", labels = c("Annual average wages","Mean wages over the \nprevious 5 years"), values = c("blue", "red"))
+```
+
 ***
 
 #Results
 
 While this is done in the OHI toolbox, the calculated results are duplicated here. TODO
 
-```{r liv_score, eval=F}
+```{r jobs_score}
+  ##combining the employment data and calculating the change compared to reference period
+  
+  ##coastal jobs
+  coast_jobs <- coast_jobs %>%
+    rename(coast_jobs = rgn_employment) %>%
+    left_join(jobs_cst_ref) %>%    #join with the reference point data
+    filter(!is.na(ref)) %>%     #remove years with NA for mean jobs (same as removing years pre-2010)
+    rename(coast_mean_jobs = ref) %>%
+    mutate(cst_chg = coast_jobs/coast_mean_jobs)
 
-# Combine wages and jobs data
-
-liv <- jobs%>%
-        left_join(wages)%>%
-       mutate(liv_score = (score + wages_score)/2)
-
-liv_plot <- ggplot(liv, aes(x = Year, y = liv_score, group = County))+
-  ggtheme_plot+
-  geom_point(aes(color = County)) +
-  geom_line(aes(color = County))+
-  scale_y_continuous(limits = c(0, 1))+
-  ggtitle("Livelihood Scores for the Northeast Regions")+
-  labs(y = 'Score')
-            
-            
-#aggregate by state (take the mean)
-            
-liv_st <- liv%>%
-            group_by(State, Year)%>%
-            summarise(st_score = mean(liv_score, na.rm=T))
-
-liv_st_plot <- ggplot(liv_st, aes(x = Year, y = st_score, group = State)) +
-  ggtheme_plot +
-  geom_point(aes(color = State)) +
-            geom_line(aes(color = State)) +
-            scale_y_continuous(limits = c(0,1)) +
-            ggtitle("Livelihood Scores for the Northeast Regions")+ 
-  labs(y = 'Score')
-
-ggplotly(liv_st_plot)
-
-ggsave('figs/liv_scores.png') 
+  ##state jobs
+  state_jobs <- st_jobs %>%
+    rename(state_jobs = yr_avg_employed) %>%
+    left_join(jobs_st_ref) %>%     #join with the reference point data
+    filter(!is.na(ref)) %>%     #remove years with NA for mean jobs (same as removing years pre-2010)
+    rename(state_mean_jobs = ref)%>%
+    mutate(st_chg = state_jobs/state_mean_jobs)
+    
+  #combine coastal and state data, calculate jobs scores
+  jobs_score <- coast_jobs %>%
+    left_join(state_jobs) %>%
+    mutate(job_score = ifelse((cst_chg/st_chg) > 1, 1, cst_chg/st_chg)) %>%
+    select(rgn_id, year, job_score)
 ```
+
+```{r wages_scores}
+  
+  ## Wages scores
+  #combining the coastal wage data and calculate the change
+  cst_wages <- coast_wages %>%
+    left_join(wages_cst_ref) %>%    #join with the reference point data
+    filter(!is.na(ref)) %>%       #remove years with NA for wages (same as removing years pre-2010)
+    rename(coast_mean_wages = ref) %>%
+    mutate(cst_chg = wages_per_job/coast_mean_wages)
+  
+  #combining the state level wage data
+  state_wages <- bls_wages %>%
+    left_join(wages_st_ref) %>%     #join with the reference point data
+    filter(!is.na(ref)) %>%       #remove years with NA for wages (same as removing years pre-2010)
+    rename(state_mean_wages = ref)%>%
+    mutate(st_chg = annual_wage/state_mean_wages)
+  
+  #combine coastal and state data, calculate
+  wages_score <- cst_wages %>%
+    left_join(state_wages) %>%
+    mutate(wages_score = ifelse((cst_chg/st_chg) > 1, 1, cst_chg/st_chg)) %>%
+    select(rgn_id, year, wages_score)
+```  
+
+## Livelihoods status
+
+Combine jobs and wages scores per region and divide by two
+```{r liv_status}  
+  # status
+  liv_status <- jobs_score %>%
+    left_join(wages_score) %>%
+    mutate(score = (job_score + wages_score)/2,
+           dimension = "status") %>%
+    select(year, region_id = rgn_id, score, dimension) %>%
+  left_join(rgn_data, by = c("region_id" = "rgn_id"))
+
+ggplot(liv_status, aes(x = year, y = score, color = rgn_name))+
+  geom_line() +
+  ggtitle("Livelihoods subgoal status scores") +
+  ylab("Score") +
+  xlab("Year")
+
+```
+
 
 ***
 
