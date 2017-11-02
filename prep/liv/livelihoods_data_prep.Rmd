@@ -514,7 +514,11 @@ While this is done in the OHI toolbox, the calculated results are duplicated her
   jobs_score <- coast_jobs %>%
     left_join(state_jobs) %>%
     mutate(job_score = ifelse((cst_chg/st_chg) > 1, 1, cst_chg/st_chg)) %>%
-    select(rgn_id, year, job_score)
+    select(rgn_id, year, job_score) %>%
+    left_join(rgn_data)
+  
+  ggplot(jobs_score, aes(x = year, y = job_score, color = rgn_name)) +
+    geom_line()
 ```
 
 ```{r wages_scores}
@@ -538,7 +542,11 @@ While this is done in the OHI toolbox, the calculated results are duplicated her
   wages_score <- cst_wages %>%
     left_join(state_wages) %>%
     mutate(wages_score = ifelse((cst_chg/st_chg) > 1, 1, cst_chg/st_chg)) %>%
-    select(rgn_id, year, wages_score)
+    select(rgn_id, year, wages_score) %>%
+    left_join(rgn_data)
+  
+    ggplot(wages_score, aes(x = year, y = wages_score, color = rgn_name)) +
+    geom_line()
 ```  
 
 ## Livelihoods status
