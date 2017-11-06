@@ -3,7 +3,7 @@ title: 'OHI-Northeast: Livelihoods'
 author: "*Compiled on `r date()` by `r Sys.info()['user']`*"
 output: 
   html_document:
-    code_folding: show
+    code_folding: hide
     toc: true
     toc_depth: 3
     toc_float: yes
@@ -37,11 +37,11 @@ dir_anx <- file.path(dir_M, 'git-annex/neprep')
 
 #Summary
 
-The Livelihoods sub-goal is calculated using coastal employment and wage data from the [National Ocean Economics Program](http://www.oceaneconomics.org/), and state-wide employment and wage data from the [Bureau of Labor Statistics](http://www.bls.gov/data/).
+The Livelihoods sub-goal is calculated using Ocean Economy employment and wage data from the [National Ocean Economics Program](http://www.oceaneconomics.org/). There are two components to this goal model, **jobs (or employment)** and **wages**. NOEP provides data on the number of jobs, and total wages for jobs that directly or indirectly depend upon the ocean. Annual job and wage growth is measured by comparing total employment and mean annual wages to the average employment and wages of the previous 3 years. The target for region job growth is set to be equal to or greater than the national average, calculated using data from the Bureau of Labor Statistics. The target for mean annual wage growth is set at 3.5%, reflecting the [*Nominal Wage Growth Target*](http://www.epi.org/nominal-wage-tracker/) as set by the Federal Reserve.
 
 ***
 
-# Data Sources
+# Data Source
 
 ## National ocean Economics Program (NOEP)
 
@@ -51,25 +51,15 @@ The Livelihoods sub-goal is calculated using coastal employment and wage data fr
 **Time range**: 2005 - 2014  
 **Format**:  Tabular  
 
-
-## US Bureau of Labor Statistics
-
-**Downloaded**: `r date()` 
-**Description**: Total Annual Employment (in thousands) & Average annual wages (USD)  
-**Native data resolution**: County level  
-**Time Range:** 1990 to 2016  
-**Format:** Tabular  
-
-
 ***
 
 # Jobs
 
 The livelihoods jobs score, $j '$, is calculated using the following equation; 
 
-$$j ' = \frac{\frac{C_{i}}{C_{r}}}{\frac{T_{i}}{T_{r}}}$$
+$$j ' = \frac{\frac{C_{i}}{C_{r}}}{\frac{A_{i}}{A_{r}}}$$
 
-where $C_{i}$ is the number of coastal jobs in year *i*, $C_{r}$ is the average number of coastal jobs over the previous 5 years (*i*-6 to *i* - 1), ${T_{i}}$ is the total number of jobs statewide for year *i* and ${T_{r}}$ is the average number of statewide jobs over the previous 5 years.
+where $C_{i}$ is the number of coastal jobs in year *i*, $C_{r}$ is the average number of coastal jobs over the previous 3 years (*i* - 4 to *i* - 1), ${A_{i}}$ is the total number of jobs nationwide for year *i* and ${A_{r}}$ is the average number of jobs nationwide over the previous 3 years.
 
 
 ## Coastal jobs
@@ -120,7 +110,7 @@ DT::datatable(clean_data, rownames=F, caption = 'Employment in the Tourism & Rec
 
 ### Meta-analysis
 
-Look at county compared to state totals, just for employment.
+To identify inconsistencies in the data, we take a look at the reported employment values at both the county level and statewide. One would expect that the sum of the county employment values would equal what is reported for the "Statewide" employment values. It seems that this is not the case.
 
 ```{r noep_state_vs_county_totals}
 
@@ -203,91 +193,22 @@ ggplot(coast_jobs, aes(x = year, y = rgn_employment)) +
 
 <br>
 
-## State jobs
-
-We use the BLS data to get information on statewide employment.
-
-The Bureau of Labor Statistics has a clunky online data query that is less than ideal for downloading data. They do have an API and I found a couple different R packages for accessing it. For now, I'm using [`blscrapeR`](https://github.com/keberwein/blscrapeR) which fortunately has a function to access state data by month. Since we are interested in annual averages, it requires some additional aggregating but seems to work quite well and is able to access data from 1976 - current, although we just need 2005 - 2014 to match the NOEP data.
-
-
-```{r, echo = F, message = F, results='hide'}
-
-#devtools::install_github("keberwein/blscrapeR")
-library(blscrapeR)
-#read in API access key that is saved on Mazu
-blsKey <- read_rtf(file.path(dir_M,'git-annex/neprep/keys/BureauofLaborStatistics.rtf'))
-set_bls_key(blsKey, overwrite=TRUE)
-```
-
-```{r get_bls_job_data}
-# the R package is a little clunky in that it requires a query using months + years.
-out <- c()
-
-for(i in 1990:2016){
-mths <- c(paste0("January ", i), paste0("February ", i), paste0("March ", i), paste0("April ", i), paste0("May ", i), 
-                 paste0("June ", i), paste0("July ", i), paste0("August ", i), paste0("September ", i), paste0("October ", i), 
-          paste0("November ", i), paste0("December ", i))
-
-out <- c(mths, out)
-}
-
-## use get_bls_state to query a text file of state data
-st_jobs <- get_bls_state(date_mth = out, seasonality = FALSE) %>%
-  separate(month, into = c("Year", "month", "day"), sep = "-") %>%
-  filter(state %in% c("New York", "Massachusetts", "Connecticut", "Rhode Island", "Maine", "New Hampshire")) %>%
-  group_by(state, Year, state_abb) %>%
-  mutate(yr_avg_employed        = mean(employed),
-         yr_avg_employed_rate   = mean(employed_rate),
-         yr_avg_unemployed_rate = mean(unemployed_rate)) %>%
-  ungroup() %>%
-  select(state, year = Year, yr_avg_employed) %>%
-  mutate(year = as.numeric(year)) %>%
-  distinct() %>%
-  left_join(rgn_data, by = "state") %>%
-  select(-area_km2, -rgn_abrev)
-
-write.csv(st_jobs, file.path(dir_calc, "layers/le_state_jobs.csv"))
-
-```
-
-```{r statewide_jobs_bls}
-
-ggplot(st_jobs%>%filter(year > 2004), aes(x = year, y = yr_avg_employed)) +
-  geom_line() +
-  facet_wrap(~state, scales = "free") +
-  ylab("Number of jobs") +
-  xlab("Year") +
-  ggtitle("Annual average employment statewide")
-
-```
-
 
 ## Reference point
 
-Our reference point is the average number of jobs over the previous 5 years.
+Our reference point is the average number of jobs over the previous 3 years.
 
 ```{r jobs_ref_point}
 
 jobs_cst_ref <- coast_jobs %>%
   arrange(year) %>%
   group_by(rgn_id) %>%
-  mutate(coast_jobs_5yr = rollapply(rgn_employment, 5, FUN=mean, align = "right", na.rm=F, partial = T),
-         coast_jobs_prev_5yr = lag(coast_jobs_5yr, n = 1)) %>%
-  filter(year > 2009) %>%
-  select(state, year, rgn_id, rgn_name, ref = coast_jobs_prev_5yr)
+  mutate(coast_jobs_3yr = rollapply(rgn_employment, 3, FUN=mean, align = "right", na.rm=F, partial = T),
+         coast_jobs_prev_3yr = lag(coast_jobs_3yr, n = 1)) %>%
+  filter(year > 2007) %>%
+  select(state, year, rgn_id, rgn_name, ref = coast_jobs_prev_3yr)
 
 write.csv(jobs_cst_ref, file.path(dir_calc, "layers/le_coast_jobs_ref.csv"))
-
-jobs_st_ref <- st_jobs %>%
-  arrange(year) %>%
-  group_by(rgn_id) %>%
-  filter(year > 2004) %>% #need to select only years 2005 and on to match NOEP dataset
-  mutate(state_jobs_5yr = rollapply(yr_avg_employed, 5, FUN=mean, align = "right", na.rm=F, partial = T),
-         state_jobs_prev_5yr = lag(state_jobs_5yr, n = 1)) %>%
-  filter(year > 2009) %>%
-  select(state, year, rgn_id, rgn_name, ref = state_jobs_prev_5yr)
-  
-write.csv(jobs_st_ref, file.path(dir_calc, "layers/le_state_jobs_ref.csv"))
 
 ```
 
@@ -306,26 +227,7 @@ ggplot(c, aes(x = year, y = jobs, color = data)) +
   ylab("Number of jobs") +
   xlab("Year") +
   ggtitle("Regional employment in coastal jobs") +
-  scale_color_manual(" ", labels = c("Mean employment over the \nprevious 5 years","Annual employment"), values = c("red", "blue"))
-```
-
-**Statewide employment**
-
-Combine annual reported statewide jobs with the reference period.
-```{r}
-s <- st_jobs %>%
-  left_join(jobs_st_ref) %>%
-  filter(!is.na(ref)) %>%
-  select(rgn_id, year, yr_avg_employed, ref, rgn_name) %>%
-  gather(data, jobs, -rgn_id,-year, -rgn_name)
-
-ggplot(s, aes(x = year, y = jobs, color = data)) +
-  geom_line() +
-  facet_wrap(~rgn_name, scales = "free")+
-  ylab("Number of jobs") +
-  xlab("Year") +
-  ggtitle("Statewide Employment") +
-  scale_color_manual(" ", labels = c("Reference period \n(average employment in previous 5 years)", "Annual average employment"), values = c("red", "blue"))
+  scale_color_manual(" ", labels = c("Mean employment over the \nprevious 3 years","Annual employment"), values = c("red", "blue"))
 ```
 
 ***
@@ -334,13 +236,13 @@ ggplot(s, aes(x = year, y = jobs, color = data)) +
 
 The livelihoods wages score, $g'$ is calculated using the following equation;
 
-$$g ' = \frac{\frac{C_{i}}{C_{r}}}{\frac{T_{i}}{T_{r}}}$$
+$$g ' = \frac{\frac{W_{i}}{W_{r}}}{{1.035}}$$
 
-where $C_{i}$ is the number of total wages for regional coastal employment in year *i*, $C_{r}$ is the average wages for coastal employment over the previous 5 years (*i*-6 to *i* - 1), ${T_{i}}$ is total wages statewide for year *i* and ${T_{r}}$ is the average statewide wages over the previous 5 years.
+where $W_{i}$ is the mean annual wage for regional coastal employment in year *i*, and $W_{r}$ is the mean wage for coastal employment over the previous 3 years (*i* - 4 to *i* - 1). The change in wages (${\frac{W_{i}}{W_{r}}}$) is then divided by the target, 1.035, representing the 3.5% Nominal Wage Growth Target established by the Federal Reserve.
 
 ## Coastal wages
 
-We already prepped this NOEP dataset above and can just create a new dataframe, `coast_wages` by selecting the `rgn_wages` column rather than `rgn_employment`. Wages are also standardized by total employment to give us a measure of wages per capita as opposed to total wages.
+We already cleaned up this NOEP dataset above and can just create a new dataframe, `coast_wages` by selecting the `rgn_wages` column rather than `rgn_employment`. Wages are also standardized by total employment to give us a measure of wages per capita as opposed to total wages.
 
 ```{r coast_wages}
 
@@ -362,77 +264,19 @@ ggplot(coast_wages, aes(x = year, y = wages_per_job)) +
   xlab("Year")
 ```
 
-## State wages
-
-The BLS identifies their data tables with specific codes called [seriesIDs](https://www.bls.gov/help/hlpforma.htm). Unfortunately the only way to get the list of codes that represent the data we want is to [manually query their site](https://data.bls.gov/cgi-bin/dsrv?en) and collect them and save them in a text file for use with the BLS R package. These codes were collected by doing a manual query on bls.gov for the tables we want, which include Average Annual Pay for all counties in our regoin.
-
-The table `bls_code_lookup.csv` was created manually by matching each SeriesID with the appropriate state and county.
-
-```{r get_bls_wages}
-
-## read in the codes that the BLS website uses to identify specific datasets
-wage_codes <- read_rtf('data/ne_wages_codes') %>%
-  gsub(pattern = "E", replacement = " E") %>%
-  strsplit(split = " ") %>%
-  unlist()
-
-state_lookup <- read_csv("data/bls_code_lookup.csv")
-
-## only 50 seriesIDs can be submitted to the API at once. Since there are more than 50 seriesIDs we need to do it in batches
-bls_data_1 <- bls_api(wage_codes[2:51],
-              startyear = 2005, endyear = 2014, registrationKey = "BLS_KEY") %>%
-  as.data.frame()
-bls_data_2 <- bls_api(wage_codes[52:102],
-              startyear = 2005, endyear = 2014, registrationKey = "BLS_KEY") %>%
-  as.data.frame()
-bls_data_3 <- bls_api(wage_codes[103:length(wage_codes)],
-              startyear = 2005, endyear = 2014, registrationKey = "BLS_KEY") %>%
-  as.data.frame()
-
-## combine them all 
-bls_wages <- bls_data_1 %>%
-  rbind(bls_data_2) %>%
-  rbind(bls_data_3) %>%
-  mutate(seriesID = as.character(.$seriesID)) %>%
-  left_join(state_lookup, by = c("seriesID" = "code")) %>%
-  filter(county == "Statewide") %>%
-  group_by(state, year) %>%
-  select(year, state, annual_wage = value) %>%
-  distinct() %>%
-  left_join(st_jobs, by = c("state", "year")) %>%
-  select(year, state, annual_wage, rgn_id, rgn_name)
-
-write_csv(bls_wages, file.path(dir_calc,"layers/le_state_wages.csv"))
-
-```
-
-
-```{r statewide_wages_plot}
-
-#by state
-
-ggplot(bls_wages, aes(x = year, y = annual_wage)) +
-  geom_line() +
-  facet_wrap(~state, scales = "free") +
-  ylab("Average wages per job (USD$)") +
-  xlab("Year") +
-  ggtitle("Statewide wages per job from the Bureau of Labor Statistics")
-
-```
-
 ## Reference point
 
-Our reference point is the average wages per capita over the previous 5 years.
+Our reference point is the mean annual wage per job over the previous 3 years.
 
 ```{r coastal_wages_ref_points}
 
 wages_cst_ref <- coast_wages %>%
   arrange(year) %>%
   group_by(rgn_id) %>%
-  mutate(coast_wages_5yr = rollapply(wages_per_job, 5, FUN=mean, align = "right", na.rm=F, partial = T),
-         coast_wages_prev_5yr = lag(coast_wages_5yr, n = 1)) %>%
-  filter(year > 2009) %>%
-  select(state, year, rgn_id, rgn_name, ref = coast_wages_prev_5yr)
+  mutate(coast_wages_3yr = rollapply(wages_per_job, 3, FUN=mean, align = "right", na.rm=F, partial = T),
+         coast_wages_prev_3yr = lag(coast_wages_3yr, n = 1)) %>%
+  filter(year > 2007) %>%
+  select(state, year, rgn_id, rgn_name, ref = coast_wages_prev_3yr)
 
 write.csv(wages_cst_ref, file.path(dir_calc, "layers/le_coast_wages_ref.csv"))
 ```
@@ -449,77 +293,80 @@ c <- coast_wages %>%
 ggplot(c, aes(x = year, y = wages, color = data)) +
   geom_line() +
   facet_wrap(~rgn_name, scales = "free") +
-  ylab("Wages per job (2009 USD$") +
+  ylab("Wages per job (2012 USD$") +
   xlab("Year") +
   ggtitle("Average annual wages for coastal jobs") +
-  scale_color_manual(" ", labels = c("Mean wages over the \nprevious 5 years","Annual average wages"), values = c("red", "blue"))
+  scale_color_manual(" ", labels = c("Mean wages over the \nprevious 3 years","Annual average wages"), values = c("red", "blue"))
 ```
 
-```{r state_wages_ref_points}
-
-wages_st_ref <- bls_wages %>%
-  arrange(year) %>%
-  group_by(rgn_id) %>%
-  filter(year > 2004) %>% #need to select only years 2005 and on to match NOEP dataset
-  mutate(state_wages_5yr = rollapply(annual_wage, 5, FUN=mean, align = "right", na.rm=F, partial = T),
-         state_wages_prev_5yr = lag(state_wages_5yr, n = 1)) %>%
-  filter(year > 2009) %>%
-  select(state, year, rgn_id, rgn_name, ref = state_wages_prev_5yr)
-  
-write.csv(wages_st_ref, file.path(dir_calc, "layers/le_state_wages_ref.csv"))
-
-```
-
-```{r state_wages_and_ref_point}
-c <- bls_wages %>%
-  left_join(wages_st_ref) %>%
-  select(rgn_id, year, annual_wage, ref, rgn_name) %>%
-  gather(data, wages, -rgn_id,-year, -rgn_name, -state)
-
-ggplot(c, aes(x = year, y = wages, color = data)) +
-  geom_line() +
-  facet_wrap(~rgn_name, scales = "free") +
-  ylab("Wages per job (USD$") +
-  xlab("Year") +
-  ggtitle("Average annual wages statewide") +
-  scale_color_manual(" ", labels = c("Annual average wages","Mean wages over the \nprevious 5 years"), values = c("blue", "red"))
-```
 
 ***
 
+#Setting targets
+
+Using Bureau of Labor Statistics data, we can get the nationwide average job growth and use this as our target for coastal job growth.
+
+```{r}
+#devtools::install_github("keberwein/blscrapeR")
+library(blscrapeR)
+#read in API access key that is saved on Mazu
+blsKey <- read_rtf(file.path(dir_M,'git-annex/neprep/keys/BureauofLaborStatistics.rtf'))
+set_bls_key(blsKey, overwrite=TRUE)
+```
+
+```{r bls_us_jobs_stats}
+
+us_employment <- bls_api("ENUUS00010010",
+              startyear = 2001, endyear = 2016, registrationKey = "BLS_KEY", annualaverage=TRUE) %>%
+  as.data.frame() %>%
+  filter(periodName == "Annual") %>%
+  select(year, us_jobs = value) %>%
+  arrange(year) %>%
+  mutate(us_jobs_3yr = rollapply(us_jobs, 3, FUN=mean, align = "right", na.rm=F, partial = T),
+         us_jobs_prev_3yr = lag(us_jobs_3yr, n = 1),
+         us_job_growth = us_jobs/us_jobs_prev_3yr) %>%
+  select(year, us_job_growth)
+
+ggplot(us_employment, aes(x = year, y = us_job_growth)) +
+  geom_line() +
+  ylab("Job growth compared to previous 3 years")
+
+```
+
 #Results
 
-While this is done in the OHI toolbox, the calculated results are duplicated here. TODO
+While this is done in the OHI toolbox, the calculated results are duplicated here.
+
+## Jobs
 
 ```{r jobs_score}
   ##combining the employment data and calculating the change compared to reference period
   
   ##coastal jobs
-  coast_jobs <- coast_jobs %>%
+  cst_jobs <- coast_jobs %>%
     rename(coast_jobs = rgn_employment) %>%
     left_join(jobs_cst_ref) %>%    #join with the reference point data
     filter(!is.na(ref)) %>%     #remove years with NA for mean jobs (same as removing years pre-2010)
     rename(coast_mean_jobs = ref) %>%
     mutate(cst_chg = coast_jobs/coast_mean_jobs)
 
-  ##state jobs
-  state_jobs <- st_jobs %>%
-    rename(state_jobs = yr_avg_employed) %>%
-    left_join(jobs_st_ref) %>%     #join with the reference point data
-    filter(!is.na(ref)) %>%     #remove years with NA for mean jobs (same as removing years pre-2010)
-    rename(state_mean_jobs = ref)%>%
-    mutate(st_chg = state_jobs/state_mean_jobs)
-    
   #combine coastal and state data, calculate jobs scores
-  jobs_score <- coast_jobs %>%
-    left_join(state_jobs) %>%
-    mutate(job_score = ifelse((cst_chg/st_chg) > 1, 1, cst_chg/st_chg)) %>%
+  jobs_score <- cst_jobs %>%
+    left_join(us_employment) %>%        #add in the national statistics for job growth
+    mutate(job_score = ifelse(cst_chg >= us_job_growth, 1, cst_chg/us_job_growth)*100) %>% 
     select(rgn_id, year, job_score) %>%
     left_join(rgn_data)
   
   ggplot(jobs_score, aes(x = year, y = job_score, color = rgn_name)) +
-    geom_line()
+    geom_line() +
+      ylab("Score")+
+      ggtitle("Jobs score")
 ```
+
+
+## Wages 
+
+According to the Federal Reserve, the *Nominal Wage Growth Target* is 3 - 3.5% annually. [EPI report explaining this in more detail](http://www.epi.org/nominal-wage-tracker/).
 
 ```{r wages_scores}
   
@@ -530,28 +377,23 @@ While this is done in the OHI toolbox, the calculated results are duplicated her
     filter(!is.na(ref)) %>%       #remove years with NA for wages (same as removing years pre-2010)
     rename(coast_mean_wages = ref) %>%
     mutate(cst_chg = wages_per_job/coast_mean_wages)
-  
-  #combining the state level wage data
-  state_wages <- bls_wages %>%
-    left_join(wages_st_ref) %>%     #join with the reference point data
-    filter(!is.na(ref)) %>%       #remove years with NA for wages (same as removing years pre-2010)
-    rename(state_mean_wages = ref)%>%
-    mutate(st_chg = annual_wage/state_mean_wages)
+
   
   #combine coastal and state data, calculate
   wages_score <- cst_wages %>%
-    left_join(state_wages) %>%
-    mutate(wages_score = ifelse((cst_chg/st_chg) > 1, 1, cst_chg/st_chg)) %>%
+    mutate(wages_score = ifelse(cst_chg > 1.035, 1, cst_chg/1.035)*100) %>%
     select(rgn_id, year, wages_score) %>%
     left_join(rgn_data)
   
     ggplot(wages_score, aes(x = year, y = wages_score, color = rgn_name)) +
-    geom_line()
+    geom_line() +
+      ylab("Score")+
+      ggtitle("Wages score")
 ```  
 
 ## Livelihoods status
 
-Combine jobs and wages scores per region and divide by two
+Combine jobs and wages scores per region and divide by two.
 ```{r liv_status}  
   # status
   liv_status <- jobs_score %>%
@@ -572,7 +414,7 @@ ggplot(liv_status, aes(x = year, y = score, color = rgn_name))+
 
 ***
 
-#Citation information  
+#References
 
 National Ocean Economics Program. Ocean Economic Data by Sector & Industry., ONLINE. 2012.
 Available: http://www.OceanEconomics.org/Market/oceanEcon.asp [17 May 2016]
