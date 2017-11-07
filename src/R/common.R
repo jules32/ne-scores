@@ -27,7 +27,7 @@ if (length(setdiff(packages, rownames(installed.packages()))) > 0) {
 }
 
 #round everything to 2 decimal places
-options(digits=2, scipen = 999)
+options(digits=3, scipen = 999)
 
 #libraries
 library(tidyverse)
