@@ -58,18 +58,12 @@ HABCPCS,hab_extent,hab_extent_gl2016.csv,km2,km2,Habitat extent,"Area of habitat
 HABCPCS,hab_health,hab_health_gl2016.csv,health,proportion,Habitat condition,Current condition of habitat relative to historical condition,rgn_id,,habitat,,health,,TRUE,,,0.422873323,1,TRUE,,,,9,FALSE
 HABCPCS,hab_trend,hab_trend_gl2016.csv,trend,trend,Habitat condition trend,Estimated change in habitat condition during most recent 5 years,rgn_id,,habitat,,trend,,TRUE,,,-1,0.0218,FALSE,,,,9,FALSE
 ICO,ico_spp_iucn_status,ico_spp_iucn_status_gl2016.csv,category,IUCN risk category,IUCN extinction risk,IUCN extinction risk category for iconic species located within each region,rgn_id,,sciname,year,,category,TRUE,2000,2016,,,FALSE,iucn_sid,,1836,9,
-LE,le_gdp,le_gdp_gl2016placeholder.csv,usd,2012 USD,GDP,Gross Domestic Product (GDP),rgn_id,,,year,usd,,TRUE,2016,2016,2016,2016,FALSE,,,,9,FALSE
-LE,le_state_jobs_ref,le_state_jobs_ref.csv,ref,jobs,mean statewide employment,mean employment over the previous five years,rgn_id,,,year,ref,,TRUE,2005,2014,2016,2016,FALSE,,,,9,FALSE
-LE,le_coast_jobs_ref,le_coast_jobs_ref.csv,ref,jobs,mean coastal employment,mean employment over the previous five years,rgn_id,,,year,ref,,TRUE,1990,2016,2016,2016,FALSE,,,,9,FALSE
-LE,le_state_jobs,le_state_jobs.csv,yr_avg_employed,jobs,statewide jobs,number of jobs statewide across years,rgn_id,,,year,yr_avg_employed,,TRUE,,,,,,,,,,
+LE,le_coast_jobs_ref,le_coast_jobs_ref.csv,ref,jobs,mean coastal employment,mean employment over the previous year,rgn_id,,,year,ref,,TRUE,1990,2016,2016,2016,FALSE,,,,9,FALSE
 LE,le_coast_jobs,le_coast_jobs.csv,rgn_employment,jobs,coastal jobs,number of jobs directly related to the ocean across years,rgn_id,,,year,rgn_employment,,TRUE,,,,,,,,,,
 LE,le_coast_wages,le_coast_wages.csv,wages_per_job,dollars,coastal wages,total wages associated with coastal employment,rgn_id,,,year,wages_per_job,,TRUE,,,,,,,,,,
-LE,le_state_wages,le_state_wages.csv,annual_wage,dollars,statewide wages,total wages associated with employment statewide,rgn_id,,,year,wages_per_job,,TRUE,,,,,,,,,,
-LE,le_coast_wages_ref,le_coast_wages_ref.csv,ref,dollars,mean coastal wages,mean wages per capita over the previous five years,rgn_id,,,year,ref,,TRUE,,,,,,,,,,
-LE,le_state_wages_ref,le_state_wages_ref.csv,ref,dollars,mean statewide wages,mean wages per capita over the previous five years,rgn_id,,,year,ref,,TRUE,,,,,,,,,,
-LE,le_popn,le_popn_gl2016.csv,count,number of people,Total human population,Human population of OHI regions,rgn_id,,,year,count,,TRUE,1960,2012,180671000,313914040,FALSE,,,,9,FALSE
-LE,le_sector_weight,le_sector_weight_gl2016.csv,weight,value,Sector weight by jobs,Proportion of jobs within each sector,rgn_id,,sector,,weight,,TRUE,,,1,1,TRUE,,,,9,FALSE
-LE,le_unemployment,le_unemployment_gl2016placeholder.csv,percent,proportion,Unemployment,Modeled LE data,rgn_id,,,year,percent,,TRUE,2016,2016,2016,2016,FALSE,,,,9,FALSE
+LE,le_coast_wages_ref,le_coast_wages_ref.csv,ref,dollars,mean coastal wages,mean wages per capita in the previous year,rgn_id,,,year,ref,,TRUE,,,,,,,,,,
+LE,eco_coast_gdp,eco_coast_gdp.csv,rgn_gdp,dollars,GDP,annual GDP,rgn_id,,,,,,,,,,,,,,,,
+LE,eco_coast_gdp_ref,eco_coast_gdp_ref.csv,ref,dollars,GDP,annual GDP for previous year,rgn_id,,,,,,,,,,,,,,,,
 LSP,lsp_prot_area_inland1km,lsp_prot_area_inland1km_gl2016.csv,a_prot_1km,km2,Inland coastal protected areas,Protected areas located 1 km inland,rgn_id,,,year,a_prot_1km,,TRUE,2000,2015,29396.75,30449.5,FALSE,,,,9,FALSE
 LSP,lsp_prot_area_offshore3nm,lsp_prot_area_offshore3nm_gl2016.csv,a_prot_3nm,km2,Offshore coastal protected areas,Protected areas located 3nm offshore,rgn_id,,,year,a_prot_3nm,,TRUE,2000,2015,35598.25,39846,FALSE,,,,9,FALSE
 LSP,rgn_area_inland1km,rgn_area_inland1km_gl2016.csv,area,km2,Inland area,Inland area of OHI regions within 1km of shoreline,rgn_id,,,,area,,TRUE,,,83935,83935,FALSE,,,,9,FALSE
