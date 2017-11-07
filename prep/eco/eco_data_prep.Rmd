@@ -3,6 +3,7 @@ title: 'OHI-Northeast: Economies'
 author: "*Compiled on `r date()` by `r Sys.info()['user']`*"
 output: 
   html_document:
+    code_folding: hide
     toc: true
     toc_depth: 3
     toc_float: yes
@@ -16,23 +17,22 @@ output:
 ---
 
 
-``` {r setup, echo=F, message = FALSE, warning = FALSE}
-knitr::opts_chunk$set(fig.width = 8, fig.height = 6, fig.path = 'figs/', message = FALSE, warning = FALSE, echo=F)
+``` {r setup, echo=F, message = FALSE, warning = FALSE, results = 'hide'}
+knitr::opts_chunk$set(fig.width = 8, fig.height = 6, fig.path = 'figs/', message = FALSE, warning = FALSE)
 
 dir_git <- '~/github/ohi-northeast'
 dir_rgn <- file.path(dir_git, 'prep/regions')  ### github: general buffer region shapefiles
 source(file.path(dir_git, 'src/R/common.R'))  ### an OHI-Northeast specific version of common.R
 
-library(raster)
+library(readxl)
 library(DT)
-library(plotly)
 library(dplyr)
-library(reshape2)
+library(zoo)
 
 dir_anx <- file.path(dir_M, 'git-annex/neprep')
 
 #round to 2 decimals
-options(digits=2, scipen = 999)
+options(digits=3, scipen = 999)
 ```
 
 #Summary
@@ -63,121 +63,195 @@ https://github.com/us-bea/bea.R
 
 ***
 
-# Analysis
+# Load data
 
-Filter raw data
 
-```{r noep_data}
+## Coastal GDP
 
-#read in raw data and filter for Sector == All Ocean Sectors
-data <- read.csv(file.path(dir_anx,"_raw_data/NOEP/NewEngland_sectors_counties-2.csv"),
-                stringsAsFactors=F)%>%
-        filter(Sector=='All Ocean Sectors')%>%
-        dplyr::select(-Employment, -Establishments, -Wages,-Wages_2009)%>%
-        mutate(GDP            = as.numeric(gsub(",","",.$GDP)),
-               GDP_2009       = as.numeric(gsub(",","",.$GDP_2009)))
+Two sets of data from NOEP are provided, one for the timeframe 1990 - 2004 and the other from 2005 - 2014. NOEP recommends not using these two together due to inconsistincies across the two, especially in regards to GDP. While both are read in here, we only use the 2005 - 2014 data to calculate the LIV goal for now.
 
-DT::datatable(data, rownames=F, caption = 'Employment in the Tourism & Recreation sector of Coastal Jobs in New England provided by NOEP')
+```{r coastal_data}
+
+## Read in raw data which came in .xlsx format with 2 sheets. 
+
+## read in NOEP sheet for all data 1990 - 2004
+noep_data_1 <- read_excel(file.path(dir_anx, '_raw_data/NOEP/New_England_ocean_series.xlsx'), sheet = "NOEP")
+  
+## read in ENOW sheet which contains data for 2005 - 2014 
+noep_data_2 <- read_excel(file.path(dir_anx, '_raw_data/NOEP/New_England_ocean_series.xlsx'), sheet = "ENOW")
+```
+
+Moving forward just with the more recent data series. Data is provided for each individual coastal county as well as "All Counties" in each state. There is an important distinction between using "All Counties" and simply summing up all state county data. Some data at the county level is supressed due to regulation. But when reported at the State level, this data may be released. We see this when looking at New Hampshires marine transportation data. The sum of NH's two coastal counties for jobs does not equal the reported value for jobs for "All New Hampshire Counties". This is most likely due to data supression at the county level. Therefore we use the sum of all counties rather than the data reported for "All Counties".
+
+We need to read in the MA counties since they are divided across two bioregions
+```{r split_MA}
+
+ma_ctys <- read_csv("~/github/ohi-northeast/src/tables/MA_counties.csv")
+
+clean_data <- noep_data_2 %>%
+       filter(Sector == 'All Ocean Sectors') %>%
+        left_join(rgn_data, by = c("State" = "rgn_name")) %>%
+        left_join(ma_ctys, by = c("State", "County")) %>%
+        mutate(rgn_id = ifelse(is.na(rgn_id.x), rgn_id.y, rgn_id.x),
+               rgn_name = ifelse(is.na(rgn_name), State, rgn_name)) %>%
+  select(-rgn_id.x, -rgn_id.y, -area_km2.x, -area_km2.y, -rgn_abrev.x, -rgn_abrev.y) %>%
+        mutate(GDP_2012       = ifelse(rgn_name %in% c("Massachusetts-Gulf of Maine", "Massachusetts-Virginian"),
+                                       as.numeric(gsub(",","",.$GDP_2012))/2, as.numeric(gsub(",","",.$GDP_2012)))) %>%
+  select(State, County, Year, GDP_2012, state, rgn_name, rgn_id)
+
+DT::datatable(clean_data, rownames=F, caption = 'Employment in the Tourism & Recreation sector of Coastal Jobs in New England provided by NOEP')
 
 ```
 
-More info on the BEA data: https://bea.gov/newsreleases/regional/gdp_state/qgsp_newsrelease.htm
 
-```{r bea_data}
 
-#install.packages('bea.R')
-library(bea.R)
+### Meta-analysis
 
-#install.packages("striprtf")
-library(striprtf)
+To identify inconsistencies in the data, we take a look at the reported employment values at both the county level and statewide. One would expect that the sum of the county employment values would equal what is reported for the "Statewide" employment values. It seems that this is not the case.
 
-#read in API access key
-beaKey <- read_rtf(file.path(dir_M,'git-annex/neprep/keys/BureauofEconomicAnalysis.rtf'))
+```{r noep_state_vs_county_totals}
 
-## use beaParams to find the parameters the API call needs to get the Regional GDP data we want.
-#beaParams(beaKey, "RegionalProduct") #this function lists the necessary parameters to feed into the beaGet function
+states <-  c("Maine", "New Hampshire", "Rhode Island", "Massachusetts", "New York", "Connecticut")
 
-beaSpecs <- list(
-	'UserID' = beaKey ,
-	'Method' = 'GetData',
-	'datasetname' = 'RegionalProduct', #name of the table
-	'Component' = 'RGDP_SAN',          #this gets the gdp by state annually in 2009 dollars
-	'GeoFips' = 'STATE',               #all states (filtered later)
-	'IndustryID' = 1,                  #all industries
-	'Year' = 'ALL',
-	'ResultFormat' = 'json'
-);
+meta <- function(state){
+  
+  all <- clean_data %>%
+    filter(State == !!state,
+           str_detect(County, "All")) %>%
+    select(Year, GDP_2012) %>%
+    rename(all_ctys_gdp = GDP_2012)
+  
+  out <- clean_data %>%
+     filter(State == !!state,
+            str_detect(County, "All") == FALSE) %>%
+     select(State, County, Year, GDP_2012) %>%
+     group_by(Year) %>%
+    summarize(totals = sum(GDP_2012, na.rm = T)) %>%
+    left_join(all) %>%
+    rename(county_totals = totals,
+           statewide = all_ctys_gdp) %>%
+    gather(key = spatial_res, value = GDP_2012, -Year) %>%
+    mutate(State = state)
+  
+return(out)
+}
 
-st_gdp <- beaGet(beaSpecs) %>%
-  filter(GeoName %in% c("Connecticut", "New Hampshire", "Maine", "Massachusetts", "Rhode Island", "New York")) %>%
-  select(-Code, -GeoFips, -CL_UNIT, -UNIT_MULT) %>%
-  gather(key = "Year", value  = "GDP", -GeoName) %>%
-  mutate(st_gdp = GDP*100000) %>% #multiply GDP by 1,000,000
-  separate(Year, c('X', 'Year'), sep="_") %>%
-  select(-X, -GDP) %>%
-  rename(State = GeoName) %>%
-  mutate(Year = as.integer(Year))
+t <- map_df(states, meta) %>%
+  distinct()
 
-DT::datatable(st_gdp, caption = 'Gross Domestic Product by State (2009 Dollars), provided by the Bureau of Economic Analysis',rownames=FALSE)
-
+ggplot(t, aes(x = Year, y = GDP_2012, color = spatial_res))+
+    geom_line() +
+    facet_wrap(~State, scales = "free") +
+  scale_color_manual(" ", labels = c("Sum of county reported GDP", "Statewide reported GDP"), values = c("blue", "red"))
 ```
 
+There are some clear discrepancies in the dataset between the total number of jobs reported at the state level ("statewide") and the sum of GDP reported at the county level. Connecticut and Rhode Island numbers almost perfectly align so either datastream would be ok to use. New york and Massachusetts have parallel trends, so using either data stream should result in nearly the same final score as well. New Hampshire has significantly higher GDP beginning in 2011 due to data supression up until that point. We can assume that if data were not suppressed pre-2011 statewide, we would also see parallel trends in New Hampshire as well. Operating under that assumption, we can use the county level data. Maine shows low GDP in earlier years when adding up at the county level. This could be due to a lack of data. For example, Saghadoc county in Maine has no data up until 2010, when the jump happens. This suggests we should use the statewide data for Maine.
+
+**Decision**: Use state level data for Rhode Island, New York, Connecticut, Maine. Use County level data for Massachusetts because we need to split counties across the two MA regions, and use county level data for New hampshire due to the data supression issue.
+
+
+```{r combine_noep_state_county_data}
+
+#select the data for ME, CT NY, and RI, which is going to use the data reported for "All x counties"
+state_data <- clean_data %>%
+  filter(str_detect(County, "All"),
+         State %in% c("Maine", "Connecticut", "New York", "Rhode Island")) %>%
+  select(state = State, year = Year, rgn_id, rgn_name, rgn_gdp = GDP_2012)
+  
+county_data <- clean_data %>%
+  filter(str_detect(County, "All")== FALSE,
+         State %in% c("Massachusetts", "New Hampshire")) %>%
+  group_by(rgn_id, Year) %>%
+  mutate(rgn_gdp = sum(GDP_2012, na.rm = T)) %>% #gdp by region
+  select(state = State, year = Year, rgn_id, rgn_name, rgn_gdp) %>%
+  distinct()
+
+coast_gdp <- bind_rows(state_data, county_data)
+
+write.csv(coast_gdp, file.path(dir_calc, "layers/eco_coast_gdp.csv"))
+```
+
+
+```{r rgn_coastal_gdp}
+
+ggplot(coast_gdp, aes(x = year, y = rgn_gdp)) +
+  geom_line()+
+  facet_wrap(~ rgn_name, scales = "free") +
+  ylab("2012 $USD") + 
+  xlab("Year") +
+  ggtitle("Total GDP")
+
+```
 
 
 ***
 
 #Methods
 
-The economies score, $xeco '$, is calculated using the following equation; 
+The economies score, $x_{eco}'$, is calculated using the following equation; 
 
-$$j ' = \frac{\frac{C_{i}}{C_{r}}}{\frac{T_{i}}{T_{r}}}$$
+$$x_{eco}' = \frac{\frac{E_{i}}{E_{r}}}{1.025}$$
 
-where $C_{i}$ is the number of coastal jobs in year *i*, $C_{r}$ is the number of coastal jobs in 2005, ${T_{i}}$ is the total number of jobs statewide for year *i* and ${T_{r}}$ is the number of jobs statewide in 2005.
+where $E_{i}$ is the total GDP in year *i*, and $E_{r}$ is the mean annual GDP for the previous year. The growth rate, ${\frac{E_{i}}{E_{r}}}$, is compared to the target GDP growth rate of 2.5% (proportionally, 1.025).
 
 
-```{r gdp}
+## Calculate annual growth rate
 
-gdp <- data%>%
-      mutate(County = ifelse(grepl("All",County),"Statewide",County))%>%
-          filter(County == 'Statewide')%>%
-          mutate(hist_gdp = GDP_2009[which.min(Year)])%>%
-          left_join(st_gdp,by=c('State','Year'))%>%
-          mutate(cst_chg = GDP_2009/hist_gdp, #use historical reference point from 2005
-                 hist_st_gdp = st_gdp[which.min(Year)],
-                 st_chg = st_gdp/hist_st_gdp,
-                 score = ifelse((cst_chg/st_chg)>1,1,cst_chg/st_chg))%>%as.data.frame()
+The annual GDP growth rate is calculated by comparing every year's GDP total to the previous year.
+
+```{r gdp_ref_point}
+
+gdp_cst_ref <- coast_gdp %>%
+  arrange(year) %>%
+  group_by(rgn_id) %>%
+  mutate(coast_gdp_1yr = rollapply(rgn_gdp, 1, FUN=mean, align = "right", na.rm=F, partial = T),
+         coast_gdp_prev_1yr = lag(coast_gdp_1yr, n = 1)) %>%
+  select(state, year, rgn_id, rgn_name, ref = coast_gdp_prev_1yr)
+
+write.csv(gdp_cst_ref, file.path(dir_calc, "layers/eco_coast_gdp_ref.csv"))
 
 ```
-
-#Results
-
-
-```{r plot_eco}
-
-eco_plot <- ggplot(gdp,aes(x = Year,y = score, group=State))+
-  ggtheme_plot+
-  geom_point(aes(color = State)) +
-            geom_line(aes(color = State))+
-            scale_y_continuous(limits = c(0,1))+
-            ggtitle("Economies Scores for the Northeast Regions")+
-  labs(y = 'Score')
-
-ggplotly(eco_plot)
-
-ggsave('figs/eco_scores.png')                        
-            
-```
-
 
 
 
 ***
 
-#Citation information  
+
+## Setting a GDP target (reference point)
+
+According to the Federal Reserve, a target GDP growth rate is 2-3% per year. We'll set a target of 2.5% each year. We will calculate growth for each year and compare that growth rate to the target of 2.5%. If regions are meeting or exceeding the 2.5% GPD target they will score 100. If not, they will receive a score equal to their growth rate divided by 2.5%.
+
+
+#Results
+
+
+```{r eco_status}
+
+  #combining the coastal GDP data and calculate the change
+  cst_gdp <- coast_gdp %>%
+    left_join(gdp_cst_ref) %>%    #join with the reference point data
+    filter(!is.na(ref)) %>%       #remove years with NA for wages (same as removing years pre-2010)
+    rename(coast_mean_gdp = ref) %>%
+    mutate(cst_chg = rgn_gdp/coast_mean_gdp)
+
+  
+  #combine coastal and state data, calculate
+  gdp_score <- cst_gdp %>%
+    mutate(score = ifelse(cst_chg > 1.025, 1, cst_chg/1.025)*100) %>%
+    select(rgn_id, year, score) %>%
+    left_join(rgn_data)
+  
+    ggplot(gdp_score, aes(x = year, y = score, color = rgn_name)) +
+    geom_line() +
+      ylab("Score")+
+      ggtitle("Economies subgoal scores")
+```  
+
+
+***
+
+#References
 
 National Ocean Economics Program. Ocean Economic Data by Sector & Industry., ONLINE. 2012.
-Available: http://www.OceanEconomics.org/Market/oceanEcon.asp [17 May 2016]
-
-
-U.S. Bureau of Economic Analysis, “GDP & Personal Income: Regional Data,” http://bea.gov/iTable/index_regional.cfm (accessed October 2, 2017). 
+Available: http://www.OceanEconomics.org/Market/oceanEcon.asp [3 October 2017]
 
