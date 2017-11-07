@@ -60,6 +60,7 @@ HABCPCS,hab_trend,hab_trend_gl2016.csv,trend,trend,Habitat condition trend,Estim
 ICO,ico_spp_iucn_status,ico_spp_iucn_status_gl2016.csv,category,IUCN risk category,IUCN extinction risk,IUCN extinction risk category for iconic species located within each region,rgn_id,,sciname,year,,category,TRUE,2000,2016,,,FALSE,iucn_sid,,1836,9,
 LE,le_coast_jobs_ref,le_coast_jobs_ref.csv,ref,jobs,mean coastal employment,mean employment over the previous year,rgn_id,,,year,ref,,TRUE,1990,2016,2016,2016,FALSE,,,,9,FALSE
 LE,le_coast_jobs,le_coast_jobs.csv,rgn_employment,jobs,coastal jobs,number of jobs directly related to the ocean across years,rgn_id,,,year,rgn_employment,,TRUE,,,,,,,,,,
+LE,le_usa_jobs,le_usa_jobs.csv,us_job_growth,rate,growth rate,annual job growth rate,rgn_id,,,,,,,,,,,,,,,,
 LE,le_coast_wages,le_coast_wages.csv,wages_per_job,dollars,coastal wages,total wages associated with coastal employment,rgn_id,,,year,wages_per_job,,TRUE,,,,,,,,,,
 LE,le_coast_wages_ref,le_coast_wages_ref.csv,ref,dollars,mean coastal wages,mean wages per capita in the previous year,rgn_id,,,year,ref,,TRUE,,,,,,,,,,
 LE,eco_coast_gdp,eco_coast_gdp.csv,rgn_gdp,dollars,GDP,annual GDP,rgn_id,,,,,,,,,,,,,,,,
