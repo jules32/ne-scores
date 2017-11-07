@@ -1126,39 +1126,25 @@ LIV_ECO = function(layers, subgoal){
   ## read in all wages and jobs data
 
   # wages
-  le_st_wages = SelectLayersData(layers, layers='le_state_wages') %>%
-    dplyr::select(rgn_id = id_num, year, wage_usd = val_num)
   
   le_cst_wages = SelectLayersData(layers, layers='le_coast_wages') %>%
     dplyr::select(rgn_id = id_num, year, wage_usd = val_num)
 
   ## wages ref points
-  le_st_wages_ref = SelectLayersData(layers, layers='le_state_wages_ref') %>%
-    dplyr::select(rgn_id = id_num, year, wage_usd = val_num)
   
   le_cst_wages_ref = SelectLayersData(layers, layers='le_coast_wages_ref') %>%
     dplyr::select(rgn_id = id_num, year, wage_usd = val_num)
 
   #jobs
-  le_st_jobs  = SelectLayersData(layers, layers='le_state_jobs') %>%
-    dplyr::select(rgn_id = id_num, year, jobs = val_num)
   
   le_cst_jobs  = SelectLayersData(layers, layers='le_coast_jobs') %>%
     dplyr::select(rgn_id = id_num, year, jobs = val_num)
   
   #jobs ref point
-  ## The value is equal to the previous 5 years average. So value for 2010 is the mean # of jobs from 2005 - 2009.
-  le_st_jobs_ref  = SelectLayersData(layers, layers='le_state_jobs_ref') %>%
-    dplyr::select(rgn_id = id_num, year, mean_jobs = val_num)
 
-  #five year average # coastal jobs. The value is equal to the previous 5 years average. So value for 2010 is the mean # of jobs from 2005 - 2009.
+  #five year average # coastal jobs.
   le_cst_jobs_ref  = SelectLayersData(layers, layers='le_coast_jobs_ref') %>%
     dplyr::select(rgn_id = id_num, year, mean_jobs = val_num)
-  
-  # multipliers from Table S10 (Halpern et al 2012 SOM)
-  # multipliers_jobs = data.frame('sector' = c('tour','cf', 'mmw', 'wte','mar'),
-  #                               'multiplier' = c(1, 1.582, 1.915, 1.88, 2.7)) # no multiplers for tour (=1)
-  # # multipliers_rev  = data.frame('sector' = c('mar', 'tour'), 'multiplier' = c(1.59, 1)) # not used because GDP data is not by sector
 
   ## Jobs scores
 
@@ -1176,14 +1162,6 @@ LIV_ECO = function(layers, subgoal){
     filter(!is.na(mean_jobs)) %>%     #remove years with NA for mean jobs (same as removing years pre-2010)
     rename(coast_mean_jobs = mean_jobs) %>%
     mutate(cst_chg = coast_jobs/coast_mean_jobs)
-
-  ##state jobs
-  state_jobs <- le_st_jobs %>%
-    rename(state_jobs = jobs) %>%
-    left_join(le_st_jobs_ref) %>%     #join with the reference point data
-    filter(!is.na(mean_jobs)) %>%     #remove years with NA for mean jobs (same as removing years pre-2010)
-    rename(state_mean_jobs = mean_jobs)%>%
-    mutate(st_chg = state_jobs/state_mean_jobs)
     
   #combine coastal and state data, calculate jobs scores
   jobs_score <- coast_jobs %>%
@@ -1200,14 +1178,6 @@ LIV_ECO = function(layers, subgoal){
     filter(!is.na(wage_usd)) %>%       #remove years with NA for wages (same as removing years pre-2010)
     rename(coast_mean_wages = wage_usd) %>%
     mutate(cst_chg = coast_wages/coast_mean_wages)
-  
-  #combining the state level wage data
-  state_wages <- le_st_wages %>%
-    rename(state_wages = wage_usd) %>%
-    left_join(le_st_wages_ref) %>%     #join with the reference point data
-    filter(!is.na(wage_usd)) %>%       #remove years with NA for wages (same as removing years pre-2010)
-    rename(state_mean_wages = wage_usd)%>%
-    mutate(st_chg = state_wages/state_mean_wages)
   
   #combine coastal and state data, calculate
   wages_score <- coast_wages %>%
