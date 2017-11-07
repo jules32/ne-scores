@@ -26,7 +26,6 @@ source(file.path(dir_git, 'src/R/common.R'))  ### an OHI-NE specific version of 
 library(tidyverse)
 library(readxl)
 library(DT)
-library(plotly)
 #install.packages("striprtf")
 library(striprtf)
 library(zoo)
@@ -37,7 +36,7 @@ dir_anx <- file.path(dir_M, 'git-annex/neprep')
 
 #Summary
 
-The Livelihoods sub-goal is calculated using Ocean Economy employment and wage data from the [National Ocean Economics Program](http://www.oceaneconomics.org/). There are two components to this goal model, **jobs (or employment)** and **wages**. NOEP provides data on the number of jobs, and total wages for jobs that directly or indirectly depend upon the ocean. Annual job and wage growth is measured by comparing total employment and mean annual wages to the average employment and wages of the previous 3 years. The target for region job growth is set to be equal to or greater than the national average, calculated using data from the Bureau of Labor Statistics. The target for mean annual wage growth is set at 3.5%, reflecting the [*Nominal Wage Growth Target*](http://www.epi.org/nominal-wage-tracker/) as set by the Federal Reserve.
+The Livelihoods sub-goal is calculated using Ocean Economy employment and wage data from the [National Ocean Economics Program](http://www.oceaneconomics.org/). There are two components to this goal model, **jobs (or employment)** and **wages**. NOEP provides data on the number of jobs, and total wages for jobs that directly or indirectly depend upon the ocean. Annual job and wage growth is measured by comparing total employment and mean annual wages to the average employment and wages of the previous year. The target for region job growth is set to be equal to or greater than the national average, calculated using data from the Bureau of Labor Statistics. The target for mean annual wage growth is set at 3.5%, reflecting the [*Nominal Wage Growth Target*](http://www.epi.org/nominal-wage-tracker/) as set by the Federal Reserve.
 
 ***
 
@@ -57,9 +56,9 @@ The Livelihoods sub-goal is calculated using Ocean Economy employment and wage d
 
 The livelihoods jobs score, $j '$, is calculated using the following equation; 
 
-$$j ' = \frac{\frac{C_{i}}{C_{r}}}{\frac{A_{i}}{A_{r}}}$$
+$$j ' = \frac{\frac{C_{i}}{C_{r}}}{\frac{A_{i}}{A_{i-1}}}$$
 
-where $C_{i}$ is the number of coastal jobs in year *i*, $C_{r}$ is the average number of coastal jobs over the previous 3 years (*i* - 4 to *i* - 1), ${A_{i}}$ is the total number of jobs nationwide for year *i* and ${A_{r}}$ is the average number of jobs nationwide over the previous 3 years.
+where $C_{i}$ is the number of coastal jobs in year *i*, $C_{i-1}$ is the average number of coastal jobs for the previous year, ${A_{i}}$ is the total number of jobs nationwide for year *i* and ${A_{i-1}}$ is the average number of jobs nationwide for the previous year.
 
 
 ## Coastal jobs
@@ -196,17 +195,16 @@ ggplot(coast_jobs, aes(x = year, y = rgn_employment)) +
 
 ## Reference point
 
-Our reference point is the average number of jobs over the previous 3 years.
+Our reference point is the average number of jobs over the previous year.
 
 ```{r jobs_ref_point}
 
 jobs_cst_ref <- coast_jobs %>%
   arrange(year) %>%
   group_by(rgn_id) %>%
-  mutate(coast_jobs_3yr = rollapply(rgn_employment, 3, FUN=mean, align = "right", na.rm=F, partial = T),
-         coast_jobs_prev_3yr = lag(coast_jobs_3yr, n = 1)) %>%
-  filter(year > 2007) %>%
-  select(state, year, rgn_id, rgn_name, ref = coast_jobs_prev_3yr)
+  mutate(coast_jobs_1yr = rollapply(rgn_employment, 1, FUN=mean, align = "right", na.rm=F, partial = T),
+         coast_jobs_prev_1yr = lag(coast_jobs_1yr, n = 1)) %>%
+  select(state, year, rgn_id, rgn_name, ref = coast_jobs_prev_1yr)
 
 write.csv(jobs_cst_ref, file.path(dir_calc, "layers/le_coast_jobs_ref.csv"))
 
@@ -236,9 +234,9 @@ ggplot(c, aes(x = year, y = jobs, color = data)) +
 
 The livelihoods wages score, $g'$ is calculated using the following equation;
 
-$$g ' = \frac{\frac{W_{i}}{W_{r}}}{{1.035}}$$
+$$g ' = \frac{\frac{W_{i}}{W_{i-1}}}{{1.035}}$$
 
-where $W_{i}$ is the mean annual wage for regional coastal employment in year *i*, and $W_{r}$ is the mean wage for coastal employment over the previous 3 years (*i* - 4 to *i* - 1). The change in wages (${\frac{W_{i}}{W_{r}}}$) is then divided by the target, 1.035, representing the 3.5% Nominal Wage Growth Target established by the Federal Reserve.
+where $W_{i}$ is the mean annual wage for regional coastal employment in year *i*, and $W_{i-1}$ is the mean wage for coastal employment for the previous year. The change in wages (${\frac{W_{i}}{W_{i-1}}}$) is then divided by the target, 1.035, representing the 3.5% Nominal Wage Growth Target established by the Federal Reserve.
 
 ## Coastal wages
 
@@ -273,10 +271,9 @@ Our reference point is the mean annual wage per job over the previous 3 years.
 wages_cst_ref <- coast_wages %>%
   arrange(year) %>%
   group_by(rgn_id) %>%
-  mutate(coast_wages_3yr = rollapply(wages_per_job, 3, FUN=mean, align = "right", na.rm=F, partial = T),
-         coast_wages_prev_3yr = lag(coast_wages_3yr, n = 1)) %>%
-  filter(year > 2007) %>%
-  select(state, year, rgn_id, rgn_name, ref = coast_wages_prev_3yr)
+  mutate(coast_wages_1yr = rollapply(wages_per_job, 1, FUN=mean, align = "right", na.rm=F, partial = T),
+         coast_wages_prev_1yr = lag(coast_wages_1yr, n = 1)) %>%
+  select(state, year, rgn_id, rgn_name, ref = coast_wages_prev_1yr)
 
 write.csv(wages_cst_ref, file.path(dir_calc, "layers/le_coast_wages_ref.csv"))
 ```
@@ -296,7 +293,7 @@ ggplot(c, aes(x = year, y = wages, color = data)) +
   ylab("Wages per job (2012 USD$") +
   xlab("Year") +
   ggtitle("Average annual wages for coastal jobs") +
-  scale_color_manual(" ", labels = c("Mean wages over the \nprevious 3 years","Annual average wages"), values = c("red", "blue"))
+  scale_color_manual(" ", labels = c("Mean wages for the \nprevious year","Annual average wages"), values = c("red", "blue"))
 ```
 
 
@@ -322,14 +319,14 @@ us_employment <- bls_api("ENUUS00010010",
   filter(periodName == "Annual") %>%
   select(year, us_jobs = value) %>%
   arrange(year) %>%
-  mutate(us_jobs_3yr = rollapply(us_jobs, 3, FUN=mean, align = "right", na.rm=F, partial = T),
-         us_jobs_prev_3yr = lag(us_jobs_3yr, n = 1),
-         us_job_growth = us_jobs/us_jobs_prev_3yr) %>%
+  mutate(us_jobs_1yr = rollapply(us_jobs, 1, FUN=mean, align = "right", na.rm=F, partial = T),
+         us_jobs_prev_1yr = lag(us_jobs_1yr, n = 1),
+         us_job_growth = us_jobs/us_jobs_prev_1yr) %>%
   select(year, us_job_growth)
 
 ggplot(us_employment, aes(x = year, y = us_job_growth)) +
   geom_line() +
-  ylab("Job growth compared to previous 3 years")
+  ylab("Job growth compared to previous year")
 
 ```
 
