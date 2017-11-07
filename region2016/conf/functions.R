@@ -1126,25 +1126,25 @@ LIV_ECO = function(layers, subgoal){
   ## read in all wages and jobs data
 
   # wages
-  
   le_cst_wages = SelectLayersData(layers, layers='le_coast_wages') %>%
     dplyr::select(rgn_id = id_num, year, wage_usd = val_num)
 
   ## wages ref points
-  
   le_cst_wages_ref = SelectLayersData(layers, layers='le_coast_wages_ref') %>%
     dplyr::select(rgn_id = id_num, year, wage_usd = val_num)
 
   #jobs
-  
   le_cst_jobs  = SelectLayersData(layers, layers='le_coast_jobs') %>%
     dplyr::select(rgn_id = id_num, year, jobs = val_num)
   
   #jobs ref point
 
-  #five year average # coastal jobs.
   le_cst_jobs_ref  = SelectLayersData(layers, layers='le_coast_jobs_ref') %>%
     dplyr::select(rgn_id = id_num, year, mean_jobs = val_num)
+  
+  #nationwide job growth
+  le_usa_jobs = SelectLayersData(layers, layers='le_usa_jobs') %>%
+    dplyr::select(year, us_job_growth)
 
   ## Jobs scores
 
@@ -1165,8 +1165,8 @@ LIV_ECO = function(layers, subgoal){
     
   #combine coastal and state data, calculate jobs scores
   jobs_score <- coast_jobs %>%
-    left_join(state_jobs) %>%
-    mutate(job_score = ifelse((cst_chg/st_chg) > 1, 1, cst_chg/st_chg)) %>%
+    left_join(le_usa_jobs) %>%
+    mutate(job_score = ifelse(cst_chg > us_job_growth, 1, cst_chg/us_job_growth)) %>%
     select(rgn_id, year, job_score)
   
   
@@ -1181,8 +1181,7 @@ LIV_ECO = function(layers, subgoal){
   
   #combine coastal and state data, calculate
   wages_score <- coast_wages %>%
-    left_join(state_wages) %>%
-    mutate(wages_score = ifelse((cst_chg/st_chg) > 1, 1, cst_chg/st_chg)) %>%
+    mutate(wages_score = ifelse(cst_chg > 1.035, 1, cst_chg/1.035)) %>%
     select(rgn_id, year, wages_score)
   
   # LIV calculations ----
