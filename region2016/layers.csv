@@ -63,8 +63,8 @@ LE,le_coast_jobs,le_coast_jobs.csv,rgn_employment,jobs,coastal jobs,number of jo
 LE,le_usa_jobs,le_usa_jobs.csv,us_job_growth,rate,growth rate,annual job growth rate,rgn_id,,,,,,,,,,,,,,,,
 LE,le_coast_wages,le_coast_wages.csv,wages_per_job,dollars,coastal wages,total wages associated with coastal employment,rgn_id,,,year,wages_per_job,,TRUE,,,,,,,,,,
 LE,le_coast_wages_ref,le_coast_wages_ref.csv,ref,dollars,mean coastal wages,mean wages per capita in the previous year,rgn_id,,,year,ref,,TRUE,,,,,,,,,,
-LE,eco_coast_gdp,eco_coast_gdp.csv,rgn_gdp,dollars,GDP,annual GDP,rgn_id,,,,,,,,,,,,,,,,
-LE,eco_coast_gdp_ref,eco_coast_gdp_ref.csv,ref,dollars,GDP,annual GDP for previous year,rgn_id,,,,,,,,,,,,,,,,
+LE,eco_coast_gdp,eco_coast_gdp.csv,cst_chg,rate,GDP growth rate,GDP growth rate for coastal jobs,rgn_id,,,,,,,,,,,,,,,,
+LE,eco_usa_gdp,eco_usa_gdp.csv,GDP_growth_rate,rate,GDP growth rate,nationwide GDP growth rate,rgn_id,,,,,,,,,,,,,,,,
 LSP,lsp_prot_area_inland1km,lsp_prot_area_inland1km_gl2016.csv,a_prot_1km,km2,Inland coastal protected areas,Protected areas located 1 km inland,rgn_id,,,year,a_prot_1km,,TRUE,2000,2015,29396.75,30449.5,FALSE,,,,9,FALSE
 LSP,lsp_prot_area_offshore3nm,lsp_prot_area_offshore3nm_gl2016.csv,a_prot_3nm,km2,Offshore coastal protected areas,Protected areas located 3nm offshore,rgn_id,,,year,a_prot_3nm,,TRUE,2000,2015,35598.25,39846,FALSE,,,,9,FALSE
 LSP,rgn_area_inland1km,rgn_area_inland1km_gl2016.csv,area,km2,Inland area,Inland area of OHI regions within 1km of shoreline,rgn_id,,,,area,,TRUE,,,83935,83935,FALSE,,,,9,FALSE
