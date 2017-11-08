@@ -168,19 +168,6 @@ county_data <- clean_data %>%
 
 coast_gdp <- bind_rows(state_data, county_data)
 
-write.csv(coast_gdp, file.path(dir_calc, "layers/eco_coast_gdp.csv"))
-```
-
-
-```{r rgn_coastal_gdp}
-
-ggplot(coast_gdp, aes(x = year, y = rgn_gdp)) +
-  geom_line()+
-  facet_wrap(~ rgn_name, scales = "free") +
-  ylab("2012 $USD") + 
-  xlab("Year") +
-  ggtitle("Total GDP")
-
 ```
 
 
@@ -188,11 +175,11 @@ ggplot(coast_gdp, aes(x = year, y = rgn_gdp)) +
 
 #Methods
 
-The economies score, $x_{eco}'$, is calculated using the following equation; 
+The economies score, $x_{eco}'$, is calculated for each region using the following equation; 
 
-$$x_{eco}' = \frac{\frac{E_{i}}{E_{r}}}{1.025}$$
+$$x_{eco}' = \frac{\frac{E_{i}}{E_{r}}}{USGDP_{i}}$$
 
-where $E_{i}$ is the total GDP in year *i*, and $E_{r}$ is the mean annual GDP for the previous year. The growth rate, ${\frac{E_{i}}{E_{r}}}$, is compared to the target GDP growth rate of 2.5% (proportionally, 1.025).
+where $E_{i}$ is the total GDP in year *i*, and $E_{r}$ is the mean annual GDP for the previous year. The growth rate, ${\frac{E_{i}}{E_{r}}}$, is compared to the national average GDP growth rate for year *i*.
 
 
 ## Calculate annual growth rate
@@ -208,36 +195,75 @@ gdp_cst_ref <- coast_gdp %>%
          coast_gdp_prev_1yr = lag(coast_gdp_1yr, n = 1)) %>%
   select(state, year, rgn_id, rgn_name, ref = coast_gdp_prev_1yr)
 
-write.csv(gdp_cst_ref, file.path(dir_calc, "layers/eco_coast_gdp_ref.csv"))
+#combining the coastal GDP data and calculate the change
+  cst_gdp <- coast_gdp %>%
+    left_join(gdp_cst_ref) %>%    #join with the reference point data
+    filter(!is.na(ref)) %>%       #remove years with NA for wages (same as removing years pre-2010)
+    mutate(cst_chg = (rgn_gdp/ref))
+  
+  ggplot(cst_gdp, aes(x = year, y = (cst_chg-1)*100, color = rgn_name)) +
+    geom_hline(yintercept = 1) +
+    geom_line() +
+    ylab("Annual GDP growth rate (%)")
+
+write.csv(cst_gdp, file.path(dir_calc, "layers/eco_coast_gdp.csv"))
 
 ```
 
 
-
 ***
-
 
 ## Setting a GDP target (reference point)
 
-According to the Federal Reserve, a target GDP growth rate is 2-3% per year. We'll set a target of 2.5% each year. We will calculate growth for each year and compare that growth rate to the target of 2.5%. If regions are meeting or exceeding the 2.5% GPD target they will score 100. If not, they will receive a score equal to their growth rate divided by 2.5%.
+We use the national GDP annual growth rate as a reference point, similar to how we measure Job Growth for the Livelihoods subgoal. We use data from the US Bureau of Economic Analysis. More info on the BEA data: https://bea.gov/newsreleases/regional/gdp_state/qgsp_newsrelease.htm
 
+```{r us_gdp_growth_rate}
+#install.packages('bea.R')
+library(bea.R)
+
+#install.packages("striprtf")
+library(striprtf)
+
+#read in API access key
+beaKey <- read_rtf(file.path(dir_M,'git-annex/neprep/keys/BureauofEconomicAnalysis.rtf'))
+
+## use beaParams to find the parameters the API call needs to get the Regional GDP data we want.
+#beaParams(beaKey, "RegionalProduct") #this function lists the necessary parameters to feed into the beaGet function
+
+beaSpecs <- list(
+	'UserID' = beaKey ,
+	'Method' = 'GetData',
+	'datasetname' = 'NIPA', #name of the table
+	'Frequency' = 'A',      #reported annually  
+	'TableName' = 'T10101', #this table is GDP growth rate             
+	'Year' = 'ALL'
+);
+
+us_gdp <- beaGet(beaSpecs) %>%
+  filter(LineDescription == "Gross domestic product") %>%
+  select(-TableID, -TableName, -SeriesCode, -LineNumber, -LineDescription, -METRIC_NAME, -CL_UNIT, -UNIT_MULT) %>%
+  gather(key = "Year", value  = "GDP_growth_rate") %>%
+  separate(Year, c('X', 'Year'), sep="_") %>%
+  select(-X) %>%
+  filter(Year > 2000) %>%
+  mutate(year = as.numeric(Year))
+
+ggplot(us_gdp, aes(x = year, y = GDP_growth_rate)) +
+  geom_line()
+
+write.csv(us_gdp, file = file.path(dir_calc, "layers/eco_usa_gdp.csv"))
+```
 
 #Results
 
 
 ```{r eco_status}
 
-  #combining the coastal GDP data and calculate the change
-  cst_gdp <- coast_gdp %>%
-    left_join(gdp_cst_ref) %>%    #join with the reference point data
-    filter(!is.na(ref)) %>%       #remove years with NA for wages (same as removing years pre-2010)
-    rename(coast_mean_gdp = ref) %>%
-    mutate(cst_chg = rgn_gdp/coast_mean_gdp)
-
-  
-  #combine coastal and state data, calculate
+  #compare regional gdp growth to nationwide average
   gdp_score <- cst_gdp %>%
-    mutate(score = ifelse(cst_chg > 1.025, 1, cst_chg/1.025)*100) %>%
+    left_join(us_gdp) %>%
+    mutate(GDP_growth_rate = GDP_growth_rate/100 + 1,
+           score = ifelse(cst_chg > GDP_growth_rate, 1, cst_chg/GDP_growth_rate)*100) %>%
     select(rgn_id, year, score) %>%
     left_join(rgn_data)
   
