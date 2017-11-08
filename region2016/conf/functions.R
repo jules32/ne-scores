@@ -1188,7 +1188,7 @@ LIV_ECO = function(layers, subgoal){
 
   # combine jobs and wages scores per region and divide by two
   
-  # status
+  ## status
   liv_status <- jobs_score %>%
     left_join(wages_score) %>%
     mutate(score = (job_score + wages_score)/2,
@@ -1208,78 +1208,49 @@ LIV_ECO = function(layers, subgoal){
     arrange(goal, dimension, region_id)
 
 
+  # ECO data layers
+  
+  #coastal gdp growth rate
+  eco_cst_gdp = SelectLayersData(layers, layers='eco_coast_gdp') %>%
+    dplyr::select(rgn_id = id_num, year, cst_chg)
+  
+  #national gdp growth rate (reference point)
+  eco_usa_gdp = SelectLayersData(layers, layers='eco_usa_gdp') %>%
+    dplyr::select(year, GDP_growth_rate)
+  
+  
   # ECO calculations ----
-  eco = le_gdp %>%
-    mutate(
-      rev_adj = gdp_usd,
-      sector = 'gdp') %>%
-    # adjust rev with national GDP rates if available. Example: (rev_adj = gdp_usd / ntl_gdp)
-    dplyr::select(rgn_id, year, sector, rev_adj)
-
+  
   # ECO status
-  eco_status = eco %>%
-    filter(!is.na(rev_adj)) %>%
-    filter(year >= max(year, na.rm=T) - 4) %>% # reference point is 5 years ago
-    # across sectors, revenue is summed
-    group_by(rgn_id, year) %>%
-    summarize(
-      rev_sum  = sum(rev_adj, na.rm=T)) %>%
-    # reference for revenue [e]: value in the current year (or most recent year) [c], relative to the value in a recent moving reference period [r] defined as 5 years prior to [c]
-    arrange(rgn_id, year) %>%
-    group_by(rgn_id) %>%
-    mutate(
-      rev_sum_first  = first(rev_sum)) %>%
-    # calculate final scores
-    ungroup() %>%
-    mutate(
-      score  = pmin(rev_sum / rev_sum_first, 1) * 100) %>%
-    # get most recent year
-    filter(year == max(year, na.rm=T)) %>%
-    # format
-    mutate(
-      goal      = 'ECO',
-      dimension = 'status') %>%
-    dplyr::select(
-      goal, dimension,
-      region_id = rgn_id,
-      score)
+  
+  #compare regional gdp growth to nationwide average
+  eco_status <- eco_cst_gdp %>%
+    left_join(eco_usa_gdp) %>%
+    mutate(GDP_growth_rate = GDP_growth_rate/100 + 1,
+           score = ifelse(cst_chg > GDP_growth_rate, 1, cst_chg/GDP_growth_rate)*100,
+           dimension = "status") %>%
+    select(region_id = rgn_id, year, score, dimension)
+  
 
   # ECO trend
-  eco_trend = eco %>%
-    filter(!is.na(rev_adj)) %>%
-    filter(year >= max(year, na.rm=T) - 4 ) %>% # 5 year trend
-    # get sector weight as total revenue across years for given region
-    arrange(rgn_id, year, sector) %>%
-    group_by(rgn_id, sector) %>%
-    mutate(
-      weight = sum(rev_adj, na.rm=T)) %>%
-    # get linear model coefficient per region-sector
-    group_by(rgn_id, sector, weight) %>%
-    do(mdl = lm(rev_adj ~ year, data=.)) %>%
-    summarize(
-      weight = weight,
-      rgn_id = rgn_id,
-      sector = sector,
-      # TODO: consider how the units affect trend; should these be normalized? cap per sector or later?
-      sector_trend = pmax(-1, pmin(1, coef(mdl)[['year']] * 5))) %>%
-    # get weighted mean across sectors per region
-    group_by(rgn_id) %>%
-    summarize(
-      score = weighted.mean(sector_trend, weight, na.rm=T)) %>%
-    # format
-    mutate(
-      goal      = 'ECO',
-      dimension = 'trend') %>%
-    dplyr::select(
-      goal, dimension,
-      region_id = rgn_id,
-      score)
+  
+  trend_years <- 2010:2014#(scen_year-4):(scen_year)
+  
+  eco_trend <- trend_calc(status_data=eco_status, trend_years = trend_years) 
+  
+  # ECO scores
+  
+  eco_scores <- eco_status %>%
+    full_join(eco_trend, by=c('region_id', 'dimension', 'score')) %>%
+    mutate(goal = 'ECO') %>%
+    select(goal, dimension, region_id, score) %>%
+    arrange(goal, dimension, region_id)
 
   # report LIV and ECO scores separately
   if (subgoal=='LIV'){
     d = liv_scores
   } else if (subgoal=='ECO'){
-    d = rbind(eco_status, eco_trend)
+    d = eco_scores
   } else {
     stop('LIV_ECO function only handles subgoal of "LIV" or "ECO"')
   }
