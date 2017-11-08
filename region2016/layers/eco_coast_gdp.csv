@@ -1,71 +1,64 @@
-"","state","year","rgn_id","rgn_name","rgn_gdp"
-"1","Connecticut",2014,3,"Connecticut",4013117000
-"2","Connecticut",2013,3,"Connecticut",4093210000
-"3","Connecticut",2012,3,"Connecticut",4108381000
-"4","Connecticut",2011,3,"Connecticut",3880395000
-"5","Connecticut",2010,3,"Connecticut",3889501000
-"6","Connecticut",2009,3,"Connecticut",3619622000
-"7","Connecticut",2008,3,"Connecticut",3604123000
-"8","Connecticut",2007,3,"Connecticut",3590776000
-"9","Connecticut",2006,3,"Connecticut",3216038000
-"10","Connecticut",2005,3,"Connecticut",3149104000
-"11","Maine",2014,7,"Maine",2229155000
-"12","Maine",2013,7,"Maine",2152662000
-"13","Maine",2012,7,"Maine",2157392000
-"14","Maine",2011,7,"Maine",2169401000
-"15","Maine",2010,7,"Maine",2154297000
-"16","Maine",2009,7,"Maine",1997350000
-"17","Maine",2008,7,"Maine",2110820000
-"18","Maine",2007,7,"Maine",2212577000
-"19","Maine",2006,7,"Maine",2206437000
-"20","Maine",2005,7,"Maine",2120888000
-"21","New York",2014,2,"New York",23184491000
-"22","New York",2013,2,"New York",23094593000
-"23","New York",2012,2,"New York",21955775000
-"24","New York",2011,2,"New York",21148764000
-"25","New York",2010,2,"New York",19912789000
-"26","New York",2009,2,"New York",18670863000
-"27","New York",2008,2,"New York",19513799000
-"28","New York",2007,2,"New York",18919746000
-"29","New York",2006,2,"New York",17932814000
-"30","New York",2005,2,"New York",17274527000
-"31","Rhode Island",2014,1,"Rhode Island",2228741000
-"32","Rhode Island",2013,1,"Rhode Island",2140308000
-"33","Rhode Island",2012,1,"Rhode Island",1999896000
-"34","Rhode Island",2011,1,"Rhode Island",1939223000
-"35","Rhode Island",2010,1,"Rhode Island",1905938000
-"36","Rhode Island",2009,1,"Rhode Island",1806143000
-"37","Rhode Island",2008,1,"Rhode Island",1950539000
-"38","Rhode Island",2007,1,"Rhode Island",1977683000
-"39","Rhode Island",2006,1,"Rhode Island",2052698000
-"40","Rhode Island",2005,1,"Rhode Island",2035480000
-"41","Massachusetts",2014,4,"Massachusetts-Gulf of Maine",2661368500
-"42","Massachusetts",2014,5,"Massachusetts-Virginian",829627000
-"43","Massachusetts",2013,4,"Massachusetts-Gulf of Maine",2567880500
-"44","Massachusetts",2013,5,"Massachusetts-Virginian",785130500
-"45","Massachusetts",2012,4,"Massachusetts-Gulf of Maine",2590590000
-"46","Massachusetts",2012,5,"Massachusetts-Virginian",795912500
-"47","Massachusetts",2011,4,"Massachusetts-Gulf of Maine",2217026000
-"48","Massachusetts",2011,5,"Massachusetts-Virginian",753932500
-"49","Massachusetts",2010,4,"Massachusetts-Gulf of Maine",2063455500
-"50","Massachusetts",2010,5,"Massachusetts-Virginian",803815500
-"51","Massachusetts",2009,4,"Massachusetts-Gulf of Maine",1891681500
-"52","Massachusetts",2009,5,"Massachusetts-Virginian",804615000
-"53","Massachusetts",2008,4,"Massachusetts-Gulf of Maine",1958854500
-"54","Massachusetts",2008,5,"Massachusetts-Virginian",809765000
-"55","Massachusetts",2007,4,"Massachusetts-Gulf of Maine",1940059500
-"56","Massachusetts",2007,5,"Massachusetts-Virginian",916489000
-"57","Massachusetts",2006,4,"Massachusetts-Gulf of Maine",1792155000
-"58","Massachusetts",2006,5,"Massachusetts-Virginian",815283000
-"59","Massachusetts",2005,4,"Massachusetts-Gulf of Maine",1750176500
-"60","Massachusetts",2005,5,"Massachusetts-Virginian",810926000
-"61","New Hampshire",2014,6,"New Hampshire",469666000
-"62","New Hampshire",2013,6,"New Hampshire",447887000
-"63","New Hampshire",2012,6,"New Hampshire",447448000
-"64","New Hampshire",2011,6,"New Hampshire",358165000
-"65","New Hampshire",2010,6,"New Hampshire",333964000
-"66","New Hampshire",2009,6,"New Hampshire",306204000
-"67","New Hampshire",2008,6,"New Hampshire",318747000
-"68","New Hampshire",2007,6,"New Hampshire",429028000
-"69","New Hampshire",2006,6,"New Hampshire",482650000
-"70","New Hampshire",2005,6,"New Hampshire",458234000
+"","state","year","rgn_id","rgn_name","rgn_gdp","ref","cst_chg"
+"1","Connecticut",2014,3,"Connecticut",4013117000,4093210000,0.980432716620941
+"2","Connecticut",2013,3,"Connecticut",4093210000,4108381000,0.996307304507542
+"3","Connecticut",2012,3,"Connecticut",4108381000,3880395000,1.0587532970226
+"4","Connecticut",2011,3,"Connecticut",3880395000,3889501000,0.997658825643701
+"5","Connecticut",2010,3,"Connecticut",3889501000,3619622000,1.07455999549124
+"6","Connecticut",2009,3,"Connecticut",3619622000,3604123000,1.00430035267942
+"7","Connecticut",2008,3,"Connecticut",3604123000,3590776000,1.00371702384109
+"8","Connecticut",2007,3,"Connecticut",3590776000,3216038000,1.11652163313991
+"9","Connecticut",2006,3,"Connecticut",3216038000,3149104000,1.02125493473699
+"10","Maine",2014,7,"Maine",2229155000,2152662000,1.03553414330722
+"11","Maine",2013,7,"Maine",2152662000,2157392000,0.997807537990314
+"12","Maine",2012,7,"Maine",2157392000,2169401000,0.994464370579713
+"13","Maine",2011,7,"Maine",2169401000,2154297000,1.0070111038543
+"14","Maine",2010,7,"Maine",2154297000,1997350000,1.07857761534033
+"15","Maine",2009,7,"Maine",1997350000,2110820000,0.946243639912451
+"16","Maine",2008,7,"Maine",2110820000,2212577000,0.954009736158335
+"17","Maine",2007,7,"Maine",2212577000,2206437000,1.00278276696774
+"18","Maine",2006,7,"Maine",2206437000,2120888000,1.04033640626002
+"19","New York",2014,2,"New York",23184491000,23094593000,1.00389259944958
+"20","New York",2013,2,"New York",23094593000,21955775000,1.05186872246596
+"21","New York",2012,2,"New York",21955775000,21148764000,1.03815877845154
+"22","New York",2011,2,"New York",21148764000,19912789000,1.06206940675161
+"23","New York",2010,2,"New York",19912789000,18670863000,1.06651679678652
+"24","New York",2009,2,"New York",18670863000,19513799000,0.956803080732768
+"25","New York",2008,2,"New York",19513799000,18919746000,1.03139857162987
+"26","New York",2007,2,"New York",18919746000,17932814000,1.05503497666345
+"27","New York",2006,2,"New York",17932814000,17274527000,1.03810738204294
+"28","Rhode Island",2014,1,"Rhode Island",2228741000,2140308000,1.04131788508944
+"29","Rhode Island",2013,1,"Rhode Island",2140308000,1999896000,1.07020965090185
+"30","Rhode Island",2012,1,"Rhode Island",1999896000,1939223000,1.03128727330482
+"31","Rhode Island",2011,1,"Rhode Island",1939223000,1905938000,1.01746384195079
+"32","Rhode Island",2010,1,"Rhode Island",1905938000,1806143000,1.05525310011444
+"33","Rhode Island",2009,1,"Rhode Island",1806143000,1950539000,0.925971231541641
+"34","Rhode Island",2008,1,"Rhode Island",1950539000,1977683000,0.986274847890183
+"35","Rhode Island",2007,1,"Rhode Island",1977683000,2052698000,0.963455413314574
+"36","Rhode Island",2006,1,"Rhode Island",2052698000,2035480000,1.00845893843221
+"37","Massachusetts",2014,4,"Massachusetts-Gulf of Maine",2661368500,2567880500,1.03640667858181
+"38","Massachusetts",2014,5,"Massachusetts-Virginian",829627000,785130500,1.0566740178862
+"39","Massachusetts",2013,4,"Massachusetts-Gulf of Maine",2567880500,2590590000,0.991233850204008
+"40","Massachusetts",2013,5,"Massachusetts-Virginian",785130500,795912500,0.986453284751779
+"41","Massachusetts",2012,4,"Massachusetts-Gulf of Maine",2590590000,2217026000,1.168497798402
+"42","Massachusetts",2012,5,"Massachusetts-Virginian",795912500,753932500,1.05568137731163
+"43","Massachusetts",2011,4,"Massachusetts-Gulf of Maine",2217026000,2063455500,1.07442394565814
+"44","Massachusetts",2011,5,"Massachusetts-Virginian",753932500,803815500,0.937942226792093
+"45","Massachusetts",2010,4,"Massachusetts-Gulf of Maine",2063455500,1891681500,1.09080492672789
+"46","Massachusetts",2010,5,"Massachusetts-Virginian",803815500,804615000,0.999006357077609
+"47","Massachusetts",2009,4,"Massachusetts-Gulf of Maine",1891681500,1958854500,0.965708019661491
+"48","Massachusetts",2009,5,"Massachusetts-Virginian",804615000,809765000,0.99364013016122
+"49","Massachusetts",2008,4,"Massachusetts-Gulf of Maine",1958854500,1940059500,1.00968784720262
+"50","Massachusetts",2008,5,"Massachusetts-Virginian",809765000,916489000,0.883551248296488
+"51","Massachusetts",2007,4,"Massachusetts-Gulf of Maine",1940059500,1792155000,1.08252885492605
+"52","Massachusetts",2007,5,"Massachusetts-Virginian",916489000,815283000,1.12413603619847
+"53","Massachusetts",2006,4,"Massachusetts-Gulf of Maine",1792155000,1750176500,1.02398529519737
+"54","Massachusetts",2006,5,"Massachusetts-Virginian",815283000,810926000,1.0053728700276
+"55","New Hampshire",2014,6,"New Hampshire",469666000,447887000,1.04862610435221
+"56","New Hampshire",2013,6,"New Hampshire",447887000,447448000,1.00098111959379
+"57","New Hampshire",2012,6,"New Hampshire",447448000,358165000,1.24927896360616
+"58","New Hampshire",2011,6,"New Hampshire",358165000,333964000,1.07246589452755
+"59","New Hampshire",2010,6,"New Hampshire",333964000,306204000,1.09065851523821
+"60","New Hampshire",2009,6,"New Hampshire",306204000,318747000,0.960649041402743
+"61","New Hampshire",2008,6,"New Hampshire",318747000,429028000,0.74295150899242
+"62","New Hampshire",2007,6,"New Hampshire",429028000,482650000,0.88890085983632
+"63","New Hampshire",2006,6,"New Hampshire",482650000,458234000,1.05328282056766
