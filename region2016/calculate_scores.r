@@ -17,11 +17,13 @@ library(zoo)       # install.packages('zoo')
 ## calculate scores for each year scenario and save to a single csv file ----
 
 ## set scenario years, empty dataframe
-scenario_years <- c(2012:2017)
+scenario_years <- c(2012:2015)
 scores_all_years <- data.frame()
 
 ## loop through each scenario year
 for (s_year in scenario_years){  # s_year=2015
+ 
+  message(sprintf('--- Calculating Scores for scenario year %s ----', s_year))
   
   ## configure checks
   conf   <-  ohicore::Conf('conf')
