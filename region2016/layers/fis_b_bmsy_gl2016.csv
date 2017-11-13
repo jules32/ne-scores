@@ -556,7 +556,7 @@ rgn_id,stock_id,year,bbmsy
 1,Xiphias_gladius-67,2003,4.93
 1,Xiphias_gladius-67,2004,5.03
 1,Xiphias_gladius-67,2005,5.25
-1,Xiphias_gladius-67,2006,6.0
+1,Xiphias_gladius-67,2006,6
 1,Xiphias_gladius-67,2007,6.93
 1,Xiphias_gladius-67,2008,7.32
 1,Xiphias_gladius-67,2009,8.03
@@ -566,7 +566,7 @@ rgn_id,stock_id,year,bbmsy
 1,Xiphias_gladius-77,2003,4.93
 1,Xiphias_gladius-77,2004,5.03
 1,Xiphias_gladius-77,2005,5.25
-1,Xiphias_gladius-77,2006,6.0
+1,Xiphias_gladius-77,2006,6
 1,Xiphias_gladius-77,2007,6.93
 1,Xiphias_gladius-77,2008,7.32
 1,Xiphias_gladius-77,2009,8.03
@@ -1102,7 +1102,7 @@ rgn_id,stock_id,year,bbmsy
 1,Sebastes_entomelas-67,2002,0.776
 1,Sebastes_entomelas-67,2003,0.826
 1,Sebastes_entomelas-67,2004,0.902
-1,Sebastes_entomelas-67,2005,1.0
+1,Sebastes_entomelas-67,2005,1
 1,Sebastes_entomelas-67,2006,1.1
 1,Sebastes_entomelas-67,2007,1.17
 1,Sebastes_entomelas-67,2008,1.22
@@ -1112,7 +1112,7 @@ rgn_id,stock_id,year,bbmsy
 1,Sebastes_entomelas-77,2002,0.776
 1,Sebastes_entomelas-77,2003,0.826
 1,Sebastes_entomelas-77,2004,0.902
-1,Sebastes_entomelas-77,2005,1.0
+1,Sebastes_entomelas-77,2005,1
 1,Sebastes_entomelas-77,2006,1.1
 1,Sebastes_entomelas-77,2007,1.17
 1,Sebastes_entomelas-77,2008,1.22
@@ -1314,7 +1314,7 @@ rgn_id,stock_id,year,bbmsy
 1,Limanda_aspera-67,2004,2.04
 1,Limanda_aspera-67,2005,2.05
 1,Limanda_aspera-67,2006,2.02
-1,Limanda_aspera-67,2007,2.0
+1,Limanda_aspera-67,2007,2
 1,Limanda_aspera-67,2008,1.93
 1,Limanda_aspera-67,2009,1.81
 1,Limanda_aspera-67,2010,1.75
@@ -1897,7 +1897,7 @@ rgn_id,stock_id,year,bbmsy
 1,Microstomus_pacificus-67,2001,3.025
 1,Microstomus_pacificus-67,2002,3.025
 1,Microstomus_pacificus-67,2003,3.015
-1,Microstomus_pacificus-67,2004,3.0
+1,Microstomus_pacificus-67,2004,3
 1,Microstomus_pacificus-67,2005,2.98
 1,Microstomus_pacificus-67,2006,2.965
 1,Microstomus_pacificus-67,2007,2.995
@@ -2981,7 +2981,7 @@ rgn_id,stock_id,year,bbmsy
 2,Xiphias_gladius-67,2003,4.93
 2,Xiphias_gladius-67,2004,5.03
 2,Xiphias_gladius-67,2005,5.25
-2,Xiphias_gladius-67,2006,6.0
+2,Xiphias_gladius-67,2006,6
 2,Xiphias_gladius-67,2007,6.93
 2,Xiphias_gladius-67,2008,7.32
 2,Xiphias_gladius-67,2009,8.03
@@ -2991,7 +2991,7 @@ rgn_id,stock_id,year,bbmsy
 2,Xiphias_gladius-77,2003,4.93
 2,Xiphias_gladius-77,2004,5.03
 2,Xiphias_gladius-77,2005,5.25
-2,Xiphias_gladius-77,2006,6.0
+2,Xiphias_gladius-77,2006,6
 2,Xiphias_gladius-77,2007,6.93
 2,Xiphias_gladius-77,2008,7.32
 2,Xiphias_gladius-77,2009,8.03
@@ -3527,7 +3527,7 @@ rgn_id,stock_id,year,bbmsy
 2,Sebastes_entomelas-67,2002,0.776
 2,Sebastes_entomelas-67,2003,0.826
 2,Sebastes_entomelas-67,2004,0.902
-2,Sebastes_entomelas-67,2005,1.0
+2,Sebastes_entomelas-67,2005,1
 2,Sebastes_entomelas-67,2006,1.1
 2,Sebastes_entomelas-67,2007,1.17
 2,Sebastes_entomelas-67,2008,1.22
@@ -3537,7 +3537,7 @@ rgn_id,stock_id,year,bbmsy
 2,Sebastes_entomelas-77,2002,0.776
 2,Sebastes_entomelas-77,2003,0.826
 2,Sebastes_entomelas-77,2004,0.902
-2,Sebastes_entomelas-77,2005,1.0
+2,Sebastes_entomelas-77,2005,1
 2,Sebastes_entomelas-77,2006,1.1
 2,Sebastes_entomelas-77,2007,1.17
 2,Sebastes_entomelas-77,2008,1.22
@@ -3739,7 +3739,7 @@ rgn_id,stock_id,year,bbmsy
 2,Limanda_aspera-67,2004,2.04
 2,Limanda_aspera-67,2005,2.05
 2,Limanda_aspera-67,2006,2.02
-2,Limanda_aspera-67,2007,2.0
+2,Limanda_aspera-67,2007,2
 2,Limanda_aspera-67,2008,1.93
 2,Limanda_aspera-67,2009,1.81
 2,Limanda_aspera-67,2010,1.75
@@ -4322,7 +4322,7 @@ rgn_id,stock_id,year,bbmsy
 2,Microstomus_pacificus-67,2001,3.025
 2,Microstomus_pacificus-67,2002,3.025
 2,Microstomus_pacificus-67,2003,3.015
-2,Microstomus_pacificus-67,2004,3.0
+2,Microstomus_pacificus-67,2004,3
 2,Microstomus_pacificus-67,2005,2.98
 2,Microstomus_pacificus-67,2006,2.965
 2,Microstomus_pacificus-67,2007,2.995
@@ -5406,7 +5406,7 @@ rgn_id,stock_id,year,bbmsy
 3,Xiphias_gladius-67,2003,4.93
 3,Xiphias_gladius-67,2004,5.03
 3,Xiphias_gladius-67,2005,5.25
-3,Xiphias_gladius-67,2006,6.0
+3,Xiphias_gladius-67,2006,6
 3,Xiphias_gladius-67,2007,6.93
 3,Xiphias_gladius-67,2008,7.32
 3,Xiphias_gladius-67,2009,8.03
@@ -5416,7 +5416,7 @@ rgn_id,stock_id,year,bbmsy
 3,Xiphias_gladius-77,2003,4.93
 3,Xiphias_gladius-77,2004,5.03
 3,Xiphias_gladius-77,2005,5.25
-3,Xiphias_gladius-77,2006,6.0
+3,Xiphias_gladius-77,2006,6
 3,Xiphias_gladius-77,2007,6.93
 3,Xiphias_gladius-77,2008,7.32
 3,Xiphias_gladius-77,2009,8.03
@@ -5952,7 +5952,7 @@ rgn_id,stock_id,year,bbmsy
 3,Sebastes_entomelas-67,2002,0.776
 3,Sebastes_entomelas-67,2003,0.826
 3,Sebastes_entomelas-67,2004,0.902
-3,Sebastes_entomelas-67,2005,1.0
+3,Sebastes_entomelas-67,2005,1
 3,Sebastes_entomelas-67,2006,1.1
 3,Sebastes_entomelas-67,2007,1.17
 3,Sebastes_entomelas-67,2008,1.22
@@ -5962,7 +5962,7 @@ rgn_id,stock_id,year,bbmsy
 3,Sebastes_entomelas-77,2002,0.776
 3,Sebastes_entomelas-77,2003,0.826
 3,Sebastes_entomelas-77,2004,0.902
-3,Sebastes_entomelas-77,2005,1.0
+3,Sebastes_entomelas-77,2005,1
 3,Sebastes_entomelas-77,2006,1.1
 3,Sebastes_entomelas-77,2007,1.17
 3,Sebastes_entomelas-77,2008,1.22
@@ -6164,7 +6164,7 @@ rgn_id,stock_id,year,bbmsy
 3,Limanda_aspera-67,2004,2.04
 3,Limanda_aspera-67,2005,2.05
 3,Limanda_aspera-67,2006,2.02
-3,Limanda_aspera-67,2007,2.0
+3,Limanda_aspera-67,2007,2
 3,Limanda_aspera-67,2008,1.93
 3,Limanda_aspera-67,2009,1.81
 3,Limanda_aspera-67,2010,1.75
@@ -6747,7 +6747,7 @@ rgn_id,stock_id,year,bbmsy
 3,Microstomus_pacificus-67,2001,3.025
 3,Microstomus_pacificus-67,2002,3.025
 3,Microstomus_pacificus-67,2003,3.015
-3,Microstomus_pacificus-67,2004,3.0
+3,Microstomus_pacificus-67,2004,3
 3,Microstomus_pacificus-67,2005,2.98
 3,Microstomus_pacificus-67,2006,2.965
 3,Microstomus_pacificus-67,2007,2.995
@@ -7831,7 +7831,7 @@ rgn_id,stock_id,year,bbmsy
 4,Xiphias_gladius-67,2003,4.93
 4,Xiphias_gladius-67,2004,5.03
 4,Xiphias_gladius-67,2005,5.25
-4,Xiphias_gladius-67,2006,6.0
+4,Xiphias_gladius-67,2006,6
 4,Xiphias_gladius-67,2007,6.93
 4,Xiphias_gladius-67,2008,7.32
 4,Xiphias_gladius-67,2009,8.03
@@ -7841,7 +7841,7 @@ rgn_id,stock_id,year,bbmsy
 4,Xiphias_gladius-77,2003,4.93
 4,Xiphias_gladius-77,2004,5.03
 4,Xiphias_gladius-77,2005,5.25
-4,Xiphias_gladius-77,2006,6.0
+4,Xiphias_gladius-77,2006,6
 4,Xiphias_gladius-77,2007,6.93
 4,Xiphias_gladius-77,2008,7.32
 4,Xiphias_gladius-77,2009,8.03
@@ -8377,7 +8377,7 @@ rgn_id,stock_id,year,bbmsy
 4,Sebastes_entomelas-67,2002,0.776
 4,Sebastes_entomelas-67,2003,0.826
 4,Sebastes_entomelas-67,2004,0.902
-4,Sebastes_entomelas-67,2005,1.0
+4,Sebastes_entomelas-67,2005,1
 4,Sebastes_entomelas-67,2006,1.1
 4,Sebastes_entomelas-67,2007,1.17
 4,Sebastes_entomelas-67,2008,1.22
@@ -8387,7 +8387,7 @@ rgn_id,stock_id,year,bbmsy
 4,Sebastes_entomelas-77,2002,0.776
 4,Sebastes_entomelas-77,2003,0.826
 4,Sebastes_entomelas-77,2004,0.902
-4,Sebastes_entomelas-77,2005,1.0
+4,Sebastes_entomelas-77,2005,1
 4,Sebastes_entomelas-77,2006,1.1
 4,Sebastes_entomelas-77,2007,1.17
 4,Sebastes_entomelas-77,2008,1.22
@@ -8589,7 +8589,7 @@ rgn_id,stock_id,year,bbmsy
 4,Limanda_aspera-67,2004,2.04
 4,Limanda_aspera-67,2005,2.05
 4,Limanda_aspera-67,2006,2.02
-4,Limanda_aspera-67,2007,2.0
+4,Limanda_aspera-67,2007,2
 4,Limanda_aspera-67,2008,1.93
 4,Limanda_aspera-67,2009,1.81
 4,Limanda_aspera-67,2010,1.75
@@ -9172,7 +9172,7 @@ rgn_id,stock_id,year,bbmsy
 4,Microstomus_pacificus-67,2001,3.025
 4,Microstomus_pacificus-67,2002,3.025
 4,Microstomus_pacificus-67,2003,3.015
-4,Microstomus_pacificus-67,2004,3.0
+4,Microstomus_pacificus-67,2004,3
 4,Microstomus_pacificus-67,2005,2.98
 4,Microstomus_pacificus-67,2006,2.965
 4,Microstomus_pacificus-67,2007,2.995
@@ -10256,7 +10256,7 @@ rgn_id,stock_id,year,bbmsy
 5,Xiphias_gladius-67,2003,4.93
 5,Xiphias_gladius-67,2004,5.03
 5,Xiphias_gladius-67,2005,5.25
-5,Xiphias_gladius-67,2006,6.0
+5,Xiphias_gladius-67,2006,6
 5,Xiphias_gladius-67,2007,6.93
 5,Xiphias_gladius-67,2008,7.32
 5,Xiphias_gladius-67,2009,8.03
@@ -10266,7 +10266,7 @@ rgn_id,stock_id,year,bbmsy
 5,Xiphias_gladius-77,2003,4.93
 5,Xiphias_gladius-77,2004,5.03
 5,Xiphias_gladius-77,2005,5.25
-5,Xiphias_gladius-77,2006,6.0
+5,Xiphias_gladius-77,2006,6
 5,Xiphias_gladius-77,2007,6.93
 5,Xiphias_gladius-77,2008,7.32
 5,Xiphias_gladius-77,2009,8.03
@@ -10802,7 +10802,7 @@ rgn_id,stock_id,year,bbmsy
 5,Sebastes_entomelas-67,2002,0.776
 5,Sebastes_entomelas-67,2003,0.826
 5,Sebastes_entomelas-67,2004,0.902
-5,Sebastes_entomelas-67,2005,1.0
+5,Sebastes_entomelas-67,2005,1
 5,Sebastes_entomelas-67,2006,1.1
 5,Sebastes_entomelas-67,2007,1.17
 5,Sebastes_entomelas-67,2008,1.22
@@ -10812,7 +10812,7 @@ rgn_id,stock_id,year,bbmsy
 5,Sebastes_entomelas-77,2002,0.776
 5,Sebastes_entomelas-77,2003,0.826
 5,Sebastes_entomelas-77,2004,0.902
-5,Sebastes_entomelas-77,2005,1.0
+5,Sebastes_entomelas-77,2005,1
 5,Sebastes_entomelas-77,2006,1.1
 5,Sebastes_entomelas-77,2007,1.17
 5,Sebastes_entomelas-77,2008,1.22
@@ -11014,7 +11014,7 @@ rgn_id,stock_id,year,bbmsy
 5,Limanda_aspera-67,2004,2.04
 5,Limanda_aspera-67,2005,2.05
 5,Limanda_aspera-67,2006,2.02
-5,Limanda_aspera-67,2007,2.0
+5,Limanda_aspera-67,2007,2
 5,Limanda_aspera-67,2008,1.93
 5,Limanda_aspera-67,2009,1.81
 5,Limanda_aspera-67,2010,1.75
@@ -11597,7 +11597,7 @@ rgn_id,stock_id,year,bbmsy
 5,Microstomus_pacificus-67,2001,3.025
 5,Microstomus_pacificus-67,2002,3.025
 5,Microstomus_pacificus-67,2003,3.015
-5,Microstomus_pacificus-67,2004,3.0
+5,Microstomus_pacificus-67,2004,3
 5,Microstomus_pacificus-67,2005,2.98
 5,Microstomus_pacificus-67,2006,2.965
 5,Microstomus_pacificus-67,2007,2.995
@@ -12681,7 +12681,7 @@ rgn_id,stock_id,year,bbmsy
 6,Xiphias_gladius-67,2003,4.93
 6,Xiphias_gladius-67,2004,5.03
 6,Xiphias_gladius-67,2005,5.25
-6,Xiphias_gladius-67,2006,6.0
+6,Xiphias_gladius-67,2006,6
 6,Xiphias_gladius-67,2007,6.93
 6,Xiphias_gladius-67,2008,7.32
 6,Xiphias_gladius-67,2009,8.03
@@ -12691,7 +12691,7 @@ rgn_id,stock_id,year,bbmsy
 6,Xiphias_gladius-77,2003,4.93
 6,Xiphias_gladius-77,2004,5.03
 6,Xiphias_gladius-77,2005,5.25
-6,Xiphias_gladius-77,2006,6.0
+6,Xiphias_gladius-77,2006,6
 6,Xiphias_gladius-77,2007,6.93
 6,Xiphias_gladius-77,2008,7.32
 6,Xiphias_gladius-77,2009,8.03
@@ -13227,7 +13227,7 @@ rgn_id,stock_id,year,bbmsy
 6,Sebastes_entomelas-67,2002,0.776
 6,Sebastes_entomelas-67,2003,0.826
 6,Sebastes_entomelas-67,2004,0.902
-6,Sebastes_entomelas-67,2005,1.0
+6,Sebastes_entomelas-67,2005,1
 6,Sebastes_entomelas-67,2006,1.1
 6,Sebastes_entomelas-67,2007,1.17
 6,Sebastes_entomelas-67,2008,1.22
@@ -13237,7 +13237,7 @@ rgn_id,stock_id,year,bbmsy
 6,Sebastes_entomelas-77,2002,0.776
 6,Sebastes_entomelas-77,2003,0.826
 6,Sebastes_entomelas-77,2004,0.902
-6,Sebastes_entomelas-77,2005,1.0
+6,Sebastes_entomelas-77,2005,1
 6,Sebastes_entomelas-77,2006,1.1
 6,Sebastes_entomelas-77,2007,1.17
 6,Sebastes_entomelas-77,2008,1.22
@@ -13439,7 +13439,7 @@ rgn_id,stock_id,year,bbmsy
 6,Limanda_aspera-67,2004,2.04
 6,Limanda_aspera-67,2005,2.05
 6,Limanda_aspera-67,2006,2.02
-6,Limanda_aspera-67,2007,2.0
+6,Limanda_aspera-67,2007,2
 6,Limanda_aspera-67,2008,1.93
 6,Limanda_aspera-67,2009,1.81
 6,Limanda_aspera-67,2010,1.75
@@ -14022,7 +14022,7 @@ rgn_id,stock_id,year,bbmsy
 6,Microstomus_pacificus-67,2001,3.025
 6,Microstomus_pacificus-67,2002,3.025
 6,Microstomus_pacificus-67,2003,3.015
-6,Microstomus_pacificus-67,2004,3.0
+6,Microstomus_pacificus-67,2004,3
 6,Microstomus_pacificus-67,2005,2.98
 6,Microstomus_pacificus-67,2006,2.965
 6,Microstomus_pacificus-67,2007,2.995
@@ -15106,7 +15106,7 @@ rgn_id,stock_id,year,bbmsy
 7,Xiphias_gladius-67,2003,4.93
 7,Xiphias_gladius-67,2004,5.03
 7,Xiphias_gladius-67,2005,5.25
-7,Xiphias_gladius-67,2006,6.0
+7,Xiphias_gladius-67,2006,6
 7,Xiphias_gladius-67,2007,6.93
 7,Xiphias_gladius-67,2008,7.32
 7,Xiphias_gladius-67,2009,8.03
@@ -15116,7 +15116,7 @@ rgn_id,stock_id,year,bbmsy
 7,Xiphias_gladius-77,2003,4.93
 7,Xiphias_gladius-77,2004,5.03
 7,Xiphias_gladius-77,2005,5.25
-7,Xiphias_gladius-77,2006,6.0
+7,Xiphias_gladius-77,2006,6
 7,Xiphias_gladius-77,2007,6.93
 7,Xiphias_gladius-77,2008,7.32
 7,Xiphias_gladius-77,2009,8.03
@@ -15652,7 +15652,7 @@ rgn_id,stock_id,year,bbmsy
 7,Sebastes_entomelas-67,2002,0.776
 7,Sebastes_entomelas-67,2003,0.826
 7,Sebastes_entomelas-67,2004,0.902
-7,Sebastes_entomelas-67,2005,1.0
+7,Sebastes_entomelas-67,2005,1
 7,Sebastes_entomelas-67,2006,1.1
 7,Sebastes_entomelas-67,2007,1.17
 7,Sebastes_entomelas-67,2008,1.22
@@ -15662,7 +15662,7 @@ rgn_id,stock_id,year,bbmsy
 7,Sebastes_entomelas-77,2002,0.776
 7,Sebastes_entomelas-77,2003,0.826
 7,Sebastes_entomelas-77,2004,0.902
-7,Sebastes_entomelas-77,2005,1.0
+7,Sebastes_entomelas-77,2005,1
 7,Sebastes_entomelas-77,2006,1.1
 7,Sebastes_entomelas-77,2007,1.17
 7,Sebastes_entomelas-77,2008,1.22
@@ -15864,7 +15864,7 @@ rgn_id,stock_id,year,bbmsy
 7,Limanda_aspera-67,2004,2.04
 7,Limanda_aspera-67,2005,2.05
 7,Limanda_aspera-67,2006,2.02
-7,Limanda_aspera-67,2007,2.0
+7,Limanda_aspera-67,2007,2
 7,Limanda_aspera-67,2008,1.93
 7,Limanda_aspera-67,2009,1.81
 7,Limanda_aspera-67,2010,1.75
@@ -16447,7 +16447,7 @@ rgn_id,stock_id,year,bbmsy
 7,Microstomus_pacificus-67,2001,3.025
 7,Microstomus_pacificus-67,2002,3.025
 7,Microstomus_pacificus-67,2003,3.015
-7,Microstomus_pacificus-67,2004,3.0
+7,Microstomus_pacificus-67,2004,3
 7,Microstomus_pacificus-67,2005,2.98
 7,Microstomus_pacificus-67,2006,2.965
 7,Microstomus_pacificus-67,2007,2.995
@@ -17531,7 +17531,7 @@ rgn_id,stock_id,year,bbmsy
 8,Xiphias_gladius-67,2003,4.93
 8,Xiphias_gladius-67,2004,5.03
 8,Xiphias_gladius-67,2005,5.25
-8,Xiphias_gladius-67,2006,6.0
+8,Xiphias_gladius-67,2006,6
 8,Xiphias_gladius-67,2007,6.93
 8,Xiphias_gladius-67,2008,7.32
 8,Xiphias_gladius-67,2009,8.03
@@ -17541,7 +17541,7 @@ rgn_id,stock_id,year,bbmsy
 8,Xiphias_gladius-77,2003,4.93
 8,Xiphias_gladius-77,2004,5.03
 8,Xiphias_gladius-77,2005,5.25
-8,Xiphias_gladius-77,2006,6.0
+8,Xiphias_gladius-77,2006,6
 8,Xiphias_gladius-77,2007,6.93
 8,Xiphias_gladius-77,2008,7.32
 8,Xiphias_gladius-77,2009,8.03
@@ -18077,7 +18077,7 @@ rgn_id,stock_id,year,bbmsy
 8,Sebastes_entomelas-67,2002,0.776
 8,Sebastes_entomelas-67,2003,0.826
 8,Sebastes_entomelas-67,2004,0.902
-8,Sebastes_entomelas-67,2005,1.0
+8,Sebastes_entomelas-67,2005,1
 8,Sebastes_entomelas-67,2006,1.1
 8,Sebastes_entomelas-67,2007,1.17
 8,Sebastes_entomelas-67,2008,1.22
@@ -18087,7 +18087,7 @@ rgn_id,stock_id,year,bbmsy
 8,Sebastes_entomelas-77,2002,0.776
 8,Sebastes_entomelas-77,2003,0.826
 8,Sebastes_entomelas-77,2004,0.902
-8,Sebastes_entomelas-77,2005,1.0
+8,Sebastes_entomelas-77,2005,1
 8,Sebastes_entomelas-77,2006,1.1
 8,Sebastes_entomelas-77,2007,1.17
 8,Sebastes_entomelas-77,2008,1.22
@@ -18289,7 +18289,7 @@ rgn_id,stock_id,year,bbmsy
 8,Limanda_aspera-67,2004,2.04
 8,Limanda_aspera-67,2005,2.05
 8,Limanda_aspera-67,2006,2.02
-8,Limanda_aspera-67,2007,2.0
+8,Limanda_aspera-67,2007,2
 8,Limanda_aspera-67,2008,1.93
 8,Limanda_aspera-67,2009,1.81
 8,Limanda_aspera-67,2010,1.75
@@ -18872,7 +18872,7 @@ rgn_id,stock_id,year,bbmsy
 8,Microstomus_pacificus-67,2001,3.025
 8,Microstomus_pacificus-67,2002,3.025
 8,Microstomus_pacificus-67,2003,3.015
-8,Microstomus_pacificus-67,2004,3.0
+8,Microstomus_pacificus-67,2004,3
 8,Microstomus_pacificus-67,2005,2.98
 8,Microstomus_pacificus-67,2006,2.965
 8,Microstomus_pacificus-67,2007,2.995
@@ -19956,7 +19956,7 @@ rgn_id,stock_id,year,bbmsy
 9,Xiphias_gladius-67,2003,4.93
 9,Xiphias_gladius-67,2004,5.03
 9,Xiphias_gladius-67,2005,5.25
-9,Xiphias_gladius-67,2006,6.0
+9,Xiphias_gladius-67,2006,6
 9,Xiphias_gladius-67,2007,6.93
 9,Xiphias_gladius-67,2008,7.32
 9,Xiphias_gladius-67,2009,8.03
@@ -19966,7 +19966,7 @@ rgn_id,stock_id,year,bbmsy
 9,Xiphias_gladius-77,2003,4.93
 9,Xiphias_gladius-77,2004,5.03
 9,Xiphias_gladius-77,2005,5.25
-9,Xiphias_gladius-77,2006,6.0
+9,Xiphias_gladius-77,2006,6
 9,Xiphias_gladius-77,2007,6.93
 9,Xiphias_gladius-77,2008,7.32
 9,Xiphias_gladius-77,2009,8.03
@@ -20502,7 +20502,7 @@ rgn_id,stock_id,year,bbmsy
 9,Sebastes_entomelas-67,2002,0.776
 9,Sebastes_entomelas-67,2003,0.826
 9,Sebastes_entomelas-67,2004,0.902
-9,Sebastes_entomelas-67,2005,1.0
+9,Sebastes_entomelas-67,2005,1
 9,Sebastes_entomelas-67,2006,1.1
 9,Sebastes_entomelas-67,2007,1.17
 9,Sebastes_entomelas-67,2008,1.22
@@ -20512,7 +20512,7 @@ rgn_id,stock_id,year,bbmsy
 9,Sebastes_entomelas-77,2002,0.776
 9,Sebastes_entomelas-77,2003,0.826
 9,Sebastes_entomelas-77,2004,0.902
-9,Sebastes_entomelas-77,2005,1.0
+9,Sebastes_entomelas-77,2005,1
 9,Sebastes_entomelas-77,2006,1.1
 9,Sebastes_entomelas-77,2007,1.17
 9,Sebastes_entomelas-77,2008,1.22
@@ -20714,7 +20714,7 @@ rgn_id,stock_id,year,bbmsy
 9,Limanda_aspera-67,2004,2.04
 9,Limanda_aspera-67,2005,2.05
 9,Limanda_aspera-67,2006,2.02
-9,Limanda_aspera-67,2007,2.0
+9,Limanda_aspera-67,2007,2
 9,Limanda_aspera-67,2008,1.93
 9,Limanda_aspera-67,2009,1.81
 9,Limanda_aspera-67,2010,1.75
@@ -21297,7 +21297,7 @@ rgn_id,stock_id,year,bbmsy
 9,Microstomus_pacificus-67,2001,3.025
 9,Microstomus_pacificus-67,2002,3.025
 9,Microstomus_pacificus-67,2003,3.015
-9,Microstomus_pacificus-67,2004,3.0
+9,Microstomus_pacificus-67,2004,3
 9,Microstomus_pacificus-67,2005,2.98
 9,Microstomus_pacificus-67,2006,2.965
 9,Microstomus_pacificus-67,2007,2.995

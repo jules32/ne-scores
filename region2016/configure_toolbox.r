@@ -1,6 +1,6 @@
-## configure_repo.r
+## configure_toolbox.r
 
-## configure_repo.r ensures all files in your repo are properly configured.
+## configure_toolbox.r ensures all files in your repo are properly configured.
 ## It must be sourced before calculating OHI scores with ohicore::CalculateAll();
 ## it can be sourced here or is also sourced from calculate_scores.r.
 
@@ -10,15 +10,12 @@
   ## 3. source configure_repo.r to ensure proper configuration
   ## 4. develop goal models in functions.r, running individual goal models line by line
 
-## load ohicore and tidyverse (includes dplyr, tidyr, stringr, etc)
-if (!"ohicore" %in% (.packages())) {
-  suppressWarnings(require(ohicore))
-  library(tidyverse)    # install.packages('tidyverse')
-  library(stringr)
-}
+## load required packages. If not installed, install from the comment
+library(ohicore)   # run install_ohicore.R
+library(tidyverse) # install.packages('tidyverse')
+library(stringr)   # install.packages('stringr')
+library(zoo)       # install.packages('zoo')
 
-## set working directory to the scenario that contains conf and layers directories
-setwd('~/github/ohi-northeast/region2016')
 
 ## load scenario configuration
 conf = ohicore::Conf('conf')
@@ -29,3 +26,6 @@ ohicore::CheckLayers('layers.csv', 'layers', flds_id=conf$config$layers_id_field
 ## load scenario layers for ohicore to access. Layers files are not modified.
 layers = ohicore::Layers('layers.csv', 'layers')
 
+## select corresponding data year to use for pressures and resilience
+scenario_years <- 2016
+layers$data$scenario_year <- scenario_years
