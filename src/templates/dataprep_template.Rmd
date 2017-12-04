@@ -3,7 +3,7 @@ title: 'OHI-Northeast: [NAME OF GOAL/LAYER]'
 author: "*Compiled on `r date()` by `r Sys.info()['user']`*"
 output: 
   html_document:
-    code_folding: show
+    code_folding: hide
     toc: true
     toc_depth: 3
     toc_float: yes
@@ -28,10 +28,6 @@ here is a setup code chunk with many of the common parameters:
 knitr::opts_chunk$set(fig.width = 6, fig.height = 4, fig.path = 'Figs/',
                       echo = FALSE, message = FALSE, warning = FALSE)
 
-library(sp)
-library(rgdal)
-library(raster)
-library(DT)
 
 dir_git <- '~/github/ohi-northeast'
 #dir_rgn <- file.path(dir_git, 'prep/regions')  ### github: general buffer region shapefiles
