@@ -17,7 +17,7 @@ library(zoo)       # install.packages('zoo')
 ## calculate scores for each year scenario and save to a single csv file ----
 
 ## set scenario years, empty dataframe
-scenario_years <- c(2005:2016)
+scenario_years <- c(2012:2015)
 scores_all_years <- data.frame()
 
 ## loop through each scenario year
