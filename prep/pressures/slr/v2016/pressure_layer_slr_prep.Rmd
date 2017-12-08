@@ -123,22 +123,25 @@ r_3nm_mask <- raster('~/github/ohi-northeast/spatial/ocean_rasters/rast_3nm_mask
     
 months_coast <- function(x){
   
-  m_yr <- substr(x,108,115)
+  m_yr <- substr(x, 108, 115)
     
   #read in month raster
-   r <- raster(x)%>%
-          rotate()%>%
-        crop(wgs_ext)%>%
-     projectRaster(ocean_ne)%>%
-      mask(r_3nm_mask)
+   r <- raster(x) %>%
+     rotate() %>%
+     crop(wgs_ext) %>%
+     projectRaster(ocean_ne) %>%
+     mask(r_3nm_mask)
   
-  writeRaster(r,filename=paste0(dir_git,'/prep/pressures/slr/v2016/int/msla_monthly_coast/msla_monthly_coast_',m_yr,'.tif'),overwrite=T)
-
+  writeRaster(r, filename=paste0(dir_anx,'/prs_slr/output/msla_monthly_coast/msla_monthly_coast_',m_yr,'.tif'), overwrite=T)
 }
 
-#apply the clipping function to all files
-mclapply(nc_files,months_coast,mc.cores=10)
+#register 10 cores
+registerDoParallel(10)
 
+#apply the clipping function to all files
+foreach(file = nc_files) %dopar%{
+  months_coast(file)
+}
 
 ```
 
@@ -149,7 +152,7 @@ Annual mean sea level anomaly rasters are derived from the monthly data.
 
 ``` {r msla_monthly_to_annual, eval=F}
 
-month_files <- list.files('int/msla_monthly_coast',full.names=T)
+month_files <- list.files(file.path(dir_anx,'prs_slr/output/msla_monthly_coast'),full.names=T)
 
 all_yrs <- c(1993:2015)
 
@@ -164,7 +167,7 @@ foreach (j = all_yrs) %dopar% {
   ### stack all rasters for this year, and calc annual mean, then write as raster
   rast_annual_mean <- stack(msla_yr)%>%
                       calc(mean,na.rm=T)%>%
-                      writeRaster(filename = paste0(file.path(dir_git),'/prep/pressures/slr/v2016/int/msla_annual_mean/rast_msla_annual_',j,'.tif'),overwrite=T)
+                      writeRaster(filename = paste0(file.path(dir_anx),'/prs_slr/output/msla_annual_mean/rast_msla_annual_',j,'.tif'),overwrite=T)
 
 }
 
@@ -172,9 +175,10 @@ foreach (j = all_yrs) %dopar% {
 
 ```{r gif}
 
-annual_files <- list.files('int/msla_annual_mean',full.names=T)%>%stack()
+annual_files <- list.files(file.path(dir_anx, "prs_slr/output/msla_annual_mean"), full.names=T) %>%
+                             stack()
 
-names(annual_files) <- paste0("Year_", substr(names(annual_files),18,21))
+names(annual_files) <- paste0("Year_", substr(names(annual_files), 18, 21))
   
 library(animation)
 
@@ -205,7 +209,7 @@ We will use the max regional SLR anomaly throughout the time series as the refer
 
 ```{r ref_point}
 
-ref <- max(cellStats(annual_files,stat='max'))
+ref <- max(cellStats(annual_files, stat='max'))
 
 ```
 
@@ -217,16 +221,13 @@ Take each year and rescale from 0 to 1 using reference point. Decreases in sea l
 
 ```{r rescale, eval=F}
 
-registerDoParallel(6) 
-
-foreach(i = 1:nlayers(annual_files)) %dopar%{
+foreach(i = 1:nlayers(annual_files)) %dopar% {
   
-yr <- substr(names(annual_files[[i]]),6,9)
+yr <- substr(names(annual_files[[i]]), 6, 9)
   
-  annual_files[[i]]%>%
-    calc(.,fun=function(x){ifelse(x<0,0,x/ref)},
-         filename = paste0('~/github/ohi-northeast/prep/pressures/slr/v2016/int/msla_annual_rescaled/msla_annual_rescaled_',yr,'.tif'),overwrite=T)
-  
+  annual_files[[i]] %>%
+    calc(., fun=function(x){ifelse(x < 0, 0, x/ref)},
+         filename = paste0(file.path(dir_anx), '/prs_slr/output/msla_annual_rescaled/msla_annual_rescaled_',yr,'.tif'), overwrite = T)
 }
 
 ```
@@ -238,7 +239,9 @@ yr <- substr(names(annual_files[[i]]),6,9)
 Visualize via gif
 ```{r, eval=F}
 
-resc_files <- list.files('~/github/ohi-northeast/prep/pressures/slr/v2016/int/msla_annual_rescaled',full.names=T)%>%stack()
+resc_files <- list.files(file.path(dir_anx, 'prs_slr/output/msla_annual_rescaled', full.names = T) %>%
+                           stack()
+                         
 names(resc_files) <- paste0("Year_", substr(names(resc_files),22,25))
 
 saveGIF({
@@ -262,7 +265,8 @@ saveGIF({
 ## Extract data for each region
 
 # read in raster files
-pressure_stack <- lapply(list.files('int/msla_annual_rescaled',full.names=T),raster)%>%brick()
+pressure_stack <- lapply(list.files(file.path(dir_anx, 'prs_slr/output/msla_annual_rescaled'), full.names=T), raster) %>%
+  brick()
 
 # extract data for each region:
 regions_stats <- zonal(pressure_stack,  zones, fun="mean", na.rm=TRUE, progress="text")
@@ -273,42 +277,22 @@ data <- merge(rgn_data, regions_stats, all.y=TRUE, by.x="rgn_id", by.y="zone") %
   gather("year", "pressure_score",starts_with("msla_annual_rescaled_")) 
 
 slr_data <- data %>%
-  mutate(year=substr(year,22, 25)) %>%
+  mutate(year = substr(year, 22, 25)) %>%
   mutate(year = as.numeric(year))
 
-write.csv(slr_data, file.path("int/slr.csv"), row.names=FALSE)
+write.csv(slr_data, file.path("out/slr.csv"), row.names=FALSE)
 
-## save toolbox data for different years/regions
-
-# function to extract data more easily
-saveData <- function(newYear){
-  
-  #assessYear <- newYear + 1
-  criteria_year <- ~year == newYear
-  
-  slr  <- slr_data %>%
-    filter_(criteria_year) %>%
-    dplyr::select(rgn_id, pressure_score) %>%
-    arrange(rgn_id)
-  
-  write.csv(slr, file.path(sprintf('out/slr_%s.csv', newYear)), row.names=FALSE)
-}
-
-
-### extract data 
-for(newYear in (max(slr_data$year) - 10):(max(slr_data$year))){
-  saveData(newYear)
-}
 ```
 
 ### Current scores
 
 ```{r current_score}
 
-now <- slr_data%>%filter(year==2015)
+now <- slr_data%>%
+  filter(year==2015)
 
 #map_scores is a function to plot a tmap map of the scores
-map_scores(now,'pressure_score',scale_label = "Pressure Score", map_title = "Sea Level Rise")
+map_scores(now, score_var = now$pressure_score, scale_label = "Pressure Score", map_title = "Sea Level Rise")
 
 ```
 
