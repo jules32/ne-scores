@@ -1,0 +1,207 @@
+---
+title: 'Exploring RAM v3.8 data for the Northeast'
+author: "*Compiled on `r date()` by `r Sys.info()['user']`*"
+output: 
+  html_document:
+    code_folding: hide
+    toc: true
+    toc_depth: 3
+    toc_float: yes
+    number_sections: true
+    theme: cerulean
+    highlight: haddock
+    includes: 
+      in_header: '~/github/ohi-northeast/src/templates/ohi_hdr.html'
+  pdf_document:
+    toc: true
+---
+
+``` {r setup, echo = FALSE, message = FALSE, warning = FALSE, results = 'hide'}
+
+knitr::opts_chunk$set(fig.width = 6, fig.height = 4, fig.path = 'figs/',
+                      echo = FALSE, message = FALSE, warning = FALSE)
+
+source('~/github/ohi-northeast/src/R/common.R')  ### an OHINE specific version of common.R
+
+dir_git <- '~/github/ohi-northeast'
+#dir_rgn <- file.path(dir_git, 'prep/regions')  ### github: general buffer region shapefiles
+dir_anx <- file.path(dir_M, 'git-annex/neprep')
+
+
+### goal specific folders and info
+goal      <- 'fis'
+scenario  <- 'v2017'
+dir_goal  <- file.path(dir_git, 'prep', goal, scenario)
+dir_goal_anx <- file.path(dir_anx, goal, scenario)
+
+library(sf)
+```
+
+This script filters the RAM database v3.8 for all stocks in the Northeast region and summarizes the available information for each stock.
+
+***
+#Data Source
+
+**Downloaded**: June 28, 2017 (emailed to us)
+
+**Description**:  RAM Legacy Stock Assessment Database provides information on global fish stocks including catch, B/Bmsy and F/Fmsy among other metrics.
+
+**Time range**: pre-1900 to 2015
+
+**Format**:  Tabular
+
+***
+  
+#Analysis
+
+First I want to see what areas are in the database that fall in ours
+
+## Code from [Melanie's RAM spatial work](https://github.com/OHI-Science/ohiprep/blob/master/globalprep/fis/v2017/RAM_data_prep.Rmd#identify-fao-and-ohi-regions-for-ram-stocks)
+
+```{r, eval=F}
+
+RAM_spatial_dir <- file.path(dir_M, "git-annex/globalprep/_raw_data/RAM/d2017/ramldb_boundaries/ramldb_boundaries") 
+
+ram_sf <- list.files(RAM_spatial_dir, pattern = "shp")
+
+ram_sf <- gsub(".shp", "", ram_sf)
+ram_bmsy <- read_csv("~/github/ohiprep/globalprep/fis/v2017/int/ram_stock_bmsy_gf.csv")
+ram_sf <- intersect(ram_bmsy$assessid, ram_sf) # get these spatial data
+
+# get rid of some weird ones with issues (will add by hand at end)
+# missing dataframe
+ram_sf <- ram_sf[-which(ram_sf == "SEFSC-BLACKGROUPERGMSATL-1986-2008-THORSON")] 
+ram_sf <- ram_sf[-which(ram_sf == "SEFSC-BSBASSSATL-1950-2010-HIVELY")] 
+ram_sf <- ram_sf[-which(ram_sf == "SEFSC-RGROUPSATL-1976-2009-HIVELY")] 
+ram_sf <- ram_sf[-which(ram_sf == "SEFSC-RPORGYSATLC-1972-2012-HIVELY")]
+ram_sf <- ram_sf[-which(ram_sf == "SEFSC-RSNAPSATLC-1954-2010-HIVELY")]
+ram_sf <- ram_sf[-which(ram_sf == "SEFSC-SNOWGROUPSATLC-1974-2013-HIVELY")]
+ram_sf <- ram_sf[-which(ram_sf == "SEFSC-TILESATLC-1961-2011-HIVELY")]
+ram_sf <- ram_sf[-which(ram_sf == "SEFSC-VSNAPSATLC-1945-2012-HIVELY")]
+
+
+#self_intersection
+ram_sf <- ram_sf[-which(ram_sf == "AFSC-GHALBSAI-1960-2015-HIVELY")]
+ram_sf <- ram_sf[-which(ram_sf == "NEFSC-HAD5Y-1964-2011-CHING")]
+ram_sf <- ram_sf[-which(ram_sf == "AFSC-SABLEFEBSAIGA-1958-2010-STACHURA")]
+ram_sf <- ram_sf[-which(ram_sf == "NEFSC-SCALL5ZMAB-1964-2013-HIVELY")]
+ram_sf <- ram_sf[-which(ram_sf == "NEFSC-WITFLOUN5Y-1982-2008-WIGLEY")]
+
+
+## get a sample file to convert other spatial data
+tmp <- read_sf(dsn = RAM_spatial_dir, layer = ram_sf[1])
+```
+
+
+## Overlay stock data on Northeast region data
+
+This will limit the RAM database to only those stocks with B/Bmsy values that are in our Northeast region
+
+```{r, eval=F}
+
+rgns_wgs <- rgns %>% 
+  st_transform("+init=epsg:4326")
+
+#intersect each RAM stock boundary with NE rgn
+stock_ne <- NA
+for(stock in ram_sf) {   # stock = ram_sf[85]
+    cat(paste0(stock, "\n"))
+    tmp_poly <- read_sf(dsn = RAM_spatial_dir, layer = stock)
+    tmp <- st_intersection(rgns_wgs, tmp_poly)
+    if(sum(is.na(stock_ne))==1){
+      stock_ne <- tmp
+    }else
+    {stock_ne <- rbind(stock_ne, tmp)}
+}
+
+## Add in stocks that didn't work
+
+## Fix self intersections and add
+intersects <- c("AFSC-GHALBSAI-1960-2015-HIVELY",
+                "NEFSC-HAD5Y-1964-2011-CHING",
+                "AFSC-SABLEFEBSAIGA-1958-2010-STACHURA",
+                "NEFSC-SCALL5ZMAB-1964-2013-HIVELY",
+                "NEFSC-WITFLOUN5Y-1982-2008-WIGLEY")
+
+stock_ne_intersects <- NA
+for(stock in intersects) {   # stock = intersects[3]
+  cat(paste0(stock, "\n"))
+  tmp_poly <- read_sf(dsn = RAM_spatial_dir, layer = stock)
+  tmp_poly <- st_buffer(tmp_poly, 0.0)
+  tmp_ne_intersects <- st_intersection(rgns_wgs, tmp_poly)
+  if(sum(is.na(stock_ne_intersects))==1){
+    stock_ne_intersects <- tmp_ne_intersects
+  }else
+  {stock_ne_intersects <- rbind(stock_ne_intersects, tmp_ne_intersects)}
+}
+
+stock_ne_v2 <- rbind(stock_ne, stock_ne_intersects) #39 stocks
+
+## save spatial file (if concerned about next step, which converts to a csv and loses spatial information):
+# st_write(stock_ne_v2, dsn = file.path(dir_M, "git-annex/neprep/fis/v2017/int/ram"),
+#         layer = "RAM_ne_stock_areas", driver = "ESRI Shapefile")
+
+ne_ram_stocks <- stock_ne_v2 %>%
+  dplyr::select(-rgn_name, -rgn_id, -area_km2, -rgn_abrev) %>%
+  as.data.frame() %>%
+  select(-geometry) %>%
+  distinct()
+
+write.csv(ne_ram_stocks, "output/ne_ram_stocks.csv", row.names=FALSE)
+
+```
+
+It looks like there are 39 stocks in the RAM database that fall within our US Northeast region that have B/Bmsy information. 
+```{r}
+ne_ram_stocks <- read_csv("output/ne_ram_stocks.csv")
+DT::datatable(ne_ram_stocks)
+```
+
+Now lets see if they also have F/Fmsy information, and the full time series in the database for catch, b/bmsy and f/fmsy.
+
+# Results
+
+What assessment information do we have for these stocks?
+
+I need to read in multiple sheets from the excel database provided, which is held on the Mazu server.
+
+```{r, fig.height = 10, fig.width = 8}
+library(readxl)
+
+#time series data for all tsids and stocks filtered for the northeast stocks identified above
+ts <- read_excel(file.path(dir_M, "git-annex/globalprep/_raw_data/RAM/d2017/RAM v3.80/DB Files With Assessment Data/RLSADB v3.80 (assessment data only).xlsx"), sheet = "timeseries") %>%
+  filter(stockid %in% ne_ram_stocks$stockid,
+         tsid %in% c("BdivBmsytouse-dimensionless", "FdivFmsy-dimensionless", "Ctouse-MT")) 
+
+span_df <- ts %>%
+  group_by(stocklong, tsid) %>%
+  summarize(yr_min = min(tsyear), yr_max = max(tsyear)) %>%
+  ungroup() %>%
+  mutate(yr_min = ifelse(yr_min < 1980, 1980, yr_min))  ## some stocks have a really long history (e.g. Atlantic Halibut goes back to pre-1900) so I'm reducing the years to only 1980 for plotting purposes
+
+stock_ids <- span_df$stocklong %>% unique()
+
+span_plot <- ggplot(span_df, aes(x = stocklong)) +
+  ggtheme_basic +
+  theme(panel.border     = element_blank(),
+        panel.grid.minor = element_blank(),
+        panel.grid.major = element_line(colour = 'grey90'),
+        panel.background = element_blank()) +
+  annotate('rect', ymin = 2000, ymax = 2016,
+           xmin = first(stock_ids), xmax = last(stock_ids),
+           fill = 'red', alpha = .1) +
+  geom_linerange(aes(ymin = yr_min, ymax = yr_max, 
+                     color = tsid),
+                 position = position_dodge(width = .5), alpha = .8) +
+  scale_color_manual(values = c('red', 'darkgreen', 'blue', 'black'),
+                       labels=c("B/Bmsy", "Catch", "F/Fmsy")) +
+  coord_flip() +
+  labs(x = 'RAM Stock',
+       y = 'Year',
+       color = 'Parameter')
+
+span_plot
+
+```
+
+It looks like we have B/Bmsy and F/Fmsy for all the large pelagic species (Swordfish, Marlin, Tuna). All stocks have B/Bmsy and nearly all have a catch time series as well. Unfortunately a lot of the data series end around 2005/2006, meaning a lot of the more recent years will need to be gapfilled. Once we get the available data the Mike Fogarty has we can compare to this data assessment and hopefully we'll get more recent data for most of these stocks.

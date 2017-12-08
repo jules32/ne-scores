@@ -1,0 +1,83 @@
+---
+title: "Downloading NOAA Catch Statistics"
+author: "Jamie Afflerbach"
+date: "11/9/2017"
+output: html_document
+---
+
+
+
+
+```{r}
+library(crul)
+library(rvest)
+library(xml2)
+```
+
+
+
+```{r}
+conn <- HttpClient$new(
+	url = "https://www.st.nmfs.noaa.gov/pls/webpls/MF_ANNUAL_LANDINGS.RESULTS"
+)
+```
+
+
+```{r new_england_data}
+res <- conn$post(body = list(
+	qspecies = "ALL SPECIES INDIVIDUALLY",
+	qreturn = "search",
+	qyearfrom = 1945, #it looks like this is the minimum available year for this region. I originally used 1900 as qyearfrom and 1945 was min returned.
+	qyearto = 2016,
+	qstate = "New England By State",
+	qoutput_type = "TABLE"
+))
+x <- res$parse("UTF-8")
+rvest::html_table(xml2::read_html(x), fill = TRUE) 
+#assign object and save as dataframe
+ne_data <- rvest::html_table(xml2::read_html(x), fill = TRUE) %>% 
+  as.data.frame()
+
+```
+
+```{r new_york_data}
+
+res <- conn$post(body = list(
+	qspecies = "ALL SPECIES INDIVIDUALLY",
+	qreturn = "search",
+	qyearfrom = 1945, #it looks like this is the minimum available year for this region. I originally used 1900 as qyearfrom and 1945 was min returned.
+	qyearto = 2016,
+	qstate = "New York",
+	qoutput_type = "TABLE"
+))
+x <- res$parse("UTF-8")
+ny_data <- rvest::html_table(xml2::read_html(x), fill = TRUE) %>% 
+  as.data.frame() %>%
+  mutate(State = "New York")
+
+```
+
+Clean up the data
+
+The column "X" is actually dollars. We can remove this column.
+
+```{r clean_data}
+
+noaa_data <- ne_data %>%
+  rbind(ny_data) %>%
+  select(-X.) %>%
+  rename(tons = Metric.Tons, pounds = Pounds, state = State, year = Year, species = Species) %>%
+  filter(!is.na(state),
+         !is.na(species),
+         state != "", #these rows are subtotals which we can calculate on our own
+         state != "-") #this row is "grand total" which we can calculate on our own
+
+write_csv(noaa_data, "data/noaa_catch_statistics.csv")
+```
+
+
+
+
+
+
+
