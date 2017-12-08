@@ -1,12 +1,13 @@
 
-require(tmap)
+require(sf)
+require(ggplot2)
 require(RColorBrewer)
 require(maptools)
 
 map_scores <- function(score_obj,
-                       score_var   = 'score',           ### character or vector
-                       scale_label = score_var,        ### character or vector
-                       map_title   = 'OHI-Northeast', ### character or vector
+                       score_var   = score,           
+                       scale_label = score_var,         ### character or vector
+                       map_title   = 'OHI-Northeast',   ### character or vector
                        rev_col     = FALSE) { 
   ### This function takes a dataframe of scores and applies them to a map of regions.
   ### * 'score_obj' is a data frame with variables rgn_id and one or more score variables.
@@ -17,40 +18,17 @@ map_scores <- function(score_obj,
   ###   map scale gets its own title).  Defaults to the same as score_vars.
   ### * map_titles is similar to scale_labels
   
-  dir_poly <- '~/github/ohi-northeast/spatial'
-  p4s <- '+proj=aea +lat_1=29.5 +lat_2=45.5 +lat_0=37.5 +lon_0=-96 +x_0=0 +y_0=0 +datum=NAD83 +units=m +no_defs +ellps=GRS80 +towgs84=0,0,0'
-  
-  prov_loaded <- any(str_detect(search(), 'provRmd'))
-  
-  if(prov_loaded) {
-    poly_rgn  <- readShapePoly(fn = file.path(dir_poly, 'ne_ohi_rgns_simp'),
-                               proj4string = CRS(p4s),
-                               nogit = TRUE) ### see prov.R
-    poly_land <- readShapePoly(fn = file.path(dir_poly, 'states'),
-                               proj4string = CRS(p4s),
-                               nogit = TRUE)
-    
-  } else {
-    poly_rgn  <- readShapePoly(fn = file.path(dir_poly, 'ne_ohi_rgns_simp'),
-                               proj4string = CRS(p4s)) ### see prov.R
-    poly_land <- readShapePoly(fn = file.path(dir_poly, 'states'),
-                               proj4string = CRS(p4s))
-  }
-  
-  poly_rgn@data <- poly_rgn@data %>%
+  poly_land <- ne_states
+
+  poly_rgn <- rgns_simp %>%
     left_join(score_obj, by = 'rgn_id')
   
-  score_map <- tm_shape(poly_rgn, is.master = TRUE) +
-    tm_polygons(col     = score_var,
-                title   = scale_label,
-                palette = ifelse(rev_col ==T,"-RdYlBu","RdYlBu"),
-                border.col = 'grey50')
-  score_map <- score_map +
-    tm_shape(poly_land) +
-    tm_polygons(col = 'cornsilk2', border.col = 'cornsilk4') +
-    tm_layout(title = map_title,
-              title.position = c('left','top'),
-            legend.position = c("right","top"))
+  score_map <- ggplot(poly_rgn) +
+    geom_sf(aes(fill = score_var)) +
+    theme_bw() +
+    scale_fill_distiller(palette = "RdYlBu", direction = ifelse(rev_col ==T, 1, -1)) +
+    labs(title = map_title,
+         fill = scale_label)
   
   print(score_map)
   return(invisible(score_map))
