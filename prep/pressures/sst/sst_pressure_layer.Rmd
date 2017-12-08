@@ -70,18 +70,18 @@ Using the `crop` function from the `raster` package we crop all sea surface temp
 
 ```{r crop_to_ne, eval=F}
 
-registerDoParallel(8)
+registerDoParallel(10)
 
 foreach(f = sst_global_files) %dopar% {
 
   raster(f)%>%                     #raster the file
     crop(wgs_ext)%>%               #crop to the WGS extent 
     projectRaster(ocean_ne)%>%
-    mask(ocean_ne, filename = paste0('int/sst_annual_anoms/annual_anoms_',substr(basename(f),25,28),'.tif'),overwrite=T)
+    mask(ocean_ne, filename = paste0(file.path(dir_anx),'/prs_sst/output/sst_annual_anoms/annual_anoms_',substr(basename(f), 25, 28),'.tif'), overwrite = T)
     
 }
 
-plot(raster('int/sst_annual_anoms/annual_anoms_2012.tif'),col=cols,axes=F,main = "Sea Surface Temperature 2012",
+plot(raster(file.path(dir_anx, 'prs_sst/output/sst_annual_anoms/annual_anoms_2012.tif')),col=cols, axes=F, main = "Sea Surface Temperature 2012",
      legend.args=list(text='Anomalous Weeks', side=4, font=2, line=2.5, cex=0.8))
 ```
 
@@ -90,12 +90,13 @@ plot(raster('int/sst_annual_anoms/annual_anoms_2012.tif'),col=cols,axes=F,main =
 
 Getting a sense of how things have changed over time.
 
-```{r gif1,eval=F}
+```{r gif1, eval=F}
 
 #rasterize each file in the list of files and then create a brick of rasters
-s        <- lapply(list.files('int/sst_annual_anoms',full.names=T),raster)%>%brick()
+s <- lapply(list.files(file.path(dir_anx, 'prs_sst/output/sst_annual_anoms'), full.names=T), raster) %>%
+  brick()
 
-names(s) <- paste0("Years_",(substr(names(s),14,17))) #rename each layer for plotting
+names(s) <- paste0("Years_",(substr(names(s), 14, 17))) #rename each layer for plotting
 gsub(".", "-", names(s), fixed = TRUE)                #replace the . with a -
 
 library(animation)
@@ -120,14 +121,15 @@ Calculating total anomalous weeks for each 5-year period from 1982 - 2012.
 
 ```{r five-year}
 
-l <- list.files('int/sst_annual_anoms',full.names=T)
+l <- list.files(file.path(dir_anx, 'prs_sst/output/sst_annual_anoms'), full.names=T)
 
 for(i in 1982:2008){ #i=2005
   
-  yrs <- c(i,i+1,i+2,i+3,i+4)
-  s   <- stack(l[substr(l,35,38)%in%yrs])%>%sum(.)
+  yrs <- c(i, i+1,i+2, i+3, i+4)
+  s   <- stack(l[substr(l, 80, 83)%in%yrs]) %>%
+    sum(.)
   
-  writeRaster(s,filename = paste0('int/sst_5yr_anom_sums/sum_anoms_',min(yrs),'-',max(yrs),'.tif'),overwrite=T)
+  writeRaster(s, filename = paste0(dir_anx, '/prs_sst/output/sst_5yr_anom_sums/sum_anoms_', min(yrs), '-', max(yrs), '.tif'), overwrite=T)
 }
 
 ```
@@ -141,21 +143,22 @@ This time we have decided to use a reference point that represents a regime shif
 
 ```{r rescale,eval=F}
 
-sst_aggs <- list.files('int/sst_5yr_anom_sums',full.names=T) 
+sst_aggs <- list.files(file.path(dir_anx, 'prs_sst/output/sst_5yr_anom_sums'), full.names=T) 
 
 resc_func <- function(x){
   
   #get the year from the file for naming the output raster
-  yrs <- substr(x,33,41)
+  yrs <- substr(x, 78, 86)
  
   #if a cell value is greater than or equal to the reference point (130 weeks), we assign a value of 1, otherwise it is divided by the reference point
   raster(x)%>%
-  calc(.,fun=function(x){ifelse(x<0,0,ifelse(x>130,1,x/130))},
-         filename = paste0('int/sst_rescale/sst_rescale_',yrs,'.tif'),overwrite=T)
+  calc(., fun=function(x){ifelse(x < 0, 0, ifelse(x > 130, 1, x/130))},
+         filename = paste0(dir_anx, '/prs_sst/output/sst_rescale/sst_rescale_', yrs, '.tif'), overwrite=T)
 }
 
-#mclapply is used for parallel processing across multiple cores
-mclapply(sst_aggs,resc_func,mc.cores = 10)
+foreach(file = sst_aggs) %dopar%{
+  resc_func(file)
+}
 
 
 ```
@@ -167,7 +170,8 @@ Using the local reference point, we can see how the pressure changes over time.
 ```{r gif_local_rescale, eval=F}
 
 #list the rescaled rasters and assign them in a brick
-resc      <- lapply(list.files('int/sst_rescale',full.names=T),raster)%>%brick()
+resc      <- lapply(list.files(file.path(dir_anx, 'prs_sst/output/sst_rescale'), full.names=T), raster)%>%
+                      brick()
 names(resc) <- paste0("Years_",(substr(names(resc),13,21)))
 gsub(".", "-", names(resc), fixed = TRUE)
 
@@ -198,7 +202,8 @@ By extracting the data for each of the 9 regions using the `zonal` function from
 ```{r extract_data, eval=F}
 
 # read in rescaled files
-pressure_stack <- lapply(list.files('int/sst_rescale',full.names=T),raster)%>%brick()
+pressure_stack <- lapply(list.files(file.path(dir_anx, 'prs_sst/output/sst_rescale'),full.names=T), raster)%>%
+  brick()
 
 # extract data for each region (zones is previously defined in common.R)
 regions_stats  <- zonal(pressure_stack,  zones, fun="mean", na.rm=TRUE, progress="text")%>%
@@ -207,7 +212,7 @@ regions_stats  <- zonal(pressure_stack,  zones, fun="mean", na.rm=TRUE, progress
 #merge the zonal stats with the rgn_data as defined in common.R
 data           <- merge(rgn_data, regions_stats, all.y=TRUE, by.x="rgn_id", by.y="zone") %>%
                     dplyr::select(-area_km2)%>%
-                    gather("year", "pressure_score",starts_with("sst_rescale_")) 
+                    gather("year", "pressure_score", starts_with("sst_rescale_")) 
 
 #add a year column that grabs the last year of the 5 year period and reformat as numeric
 sst_data <- data %>%
