@@ -43,7 +43,7 @@ For OHI we only calculated standard deviation so we had to calculate mean here.
 
 ```{r mean_SST, eval=F}
 
-registerDoParallel(10)
+registerDoParallel(12)
 
 foreach(i = 1982:2012) %dopar%{
   
@@ -52,56 +52,58 @@ foreach(i = 1982:2012) %dopar%{
   for (j in 1:53){
     
     print(j)
-    w = which(substr(names_weekly,2,5)==i)[j] 
+    w = which(substr(names_weekly, 2, 5)==i)[j] 
     if(is.na(w))next()
     
-    w_week = weekly_sst[[w]]%>%
-      crop(wgs_ext)%>% #crop to NE region
-      calc(.,fun=function(x){x * (9/5) - 459.67}) #Kelvin to Farenheit conversion
+    w_week = weekly_sst[[w]] %>%
+      crop(wgs_ext) %>% #crop to NE region
+      calc(., fun=function(x){x * (9/5) - 459.67}) #Kelvin to Farenheit conversion
     
-    s = stack(s,w_week)
+    s = stack(s, w_week)
     
   }
   
-  s_mean = calc(s,fun=function(x){mean(x,na.rm=T)},progress='text',filename =paste0('int/sst_annual_means_ne/sst_annual_mean_',i,'.tif'),overwrite=T)
+  s_mean = calc(s, fun=function(x){mean(x, na.rm=T)}, progress='text', 
+                filename = paste0(dir_anx, '/prs_sst/output/sst_annual_means_ne/sst_annual_mean_', 
+                                  i, '.tif'), overwrite=T)
   
 }
 ```
 
 ```{r mean_SSTA, eval=F}
 
-#assign 10 cores to parallel processing
-registerDoParallel(10)
-
-for(i in 1982:2012){
+foreach(i = 1988:2012) %dopar% {
   print(i)
   s = stack()
   
   for (j in 1:53){
     
     print(j)
-    w = which(substr(names_ssta,2,5)==i)[j] 
+    w = which(substr(names_ssta, 2, 5)==i)[j] 
     if(is.na(w))next()
     
     w_week = ssta[[w]]%>%
       crop(wgs_ext)
     
-    s = stack(s,w_week)
+    s = stack(s, w_week)
     
   }
   
-  s_mean = calc(s,fun=function(x){mean(x,na.rm=T)},progress='text',filename =paste0('int/ssta_annual_means_ne/ssta_annual_mean_',i,'.tif'),overwrite=T)
+  s_mean = calc(s, fun=function(x){mean(x,na.rm=T)}, progress='text',
+                filename = paste0(dir_anx, '/prs_sst/output/ssta_annual_means_ne/ssta_annual_mean_', i,'.tif'), overwrite=T)
   
 }
 ```
 
 ```{r ssta_boxplot}
 
-ssta_annual<-list.files('int/ssta_annual_means_ne',full.names=T)%>%stack()%>%
-              calc(.,fun=function(x){x*1.8})%>% #convert change in K to change in F. A 1 K change = 1.8 F change
+ssta_annual <- list.files(file.path(dir_anx, 'prs_sst/output/ssta_annual_means_ne'), full.names=T) %>%
+  stack() %>%
+  calc(., fun=function(x){x*1.8})%>% #convert change in K to change in F. A 1 K change = 1.8 F change
               projectRaster(ocean_ne)%>%
               mask(ocean_ne)
-names(ssta_annual) <- paste0("Year_",(substr(names(ssta_annual),18,21)))
+
+names(ssta_annual) <- paste0("Year_", (substr(names(ssta_annual), 18, 21)))
 
 library(rasterVis)
 bwplot(ssta_annual, scales=list(x=list(labels=c(1982:2012), rot=45)), ylab = "Anomaly (degrees F)")
@@ -123,48 +125,6 @@ saveGIF({
 
 <img src="ssta_annual_means.gif"/>
 
-# Original method
-
-Compare the number of weekly anomalies in a 5 year time period as it compares to the historical reference.
-
-```{r}
-
-  l   <- list.files(file.path(dir_M,'git-annex/globalprep/prs_sst/v2015/tmp'),pattern='annual_pos_anomalies',full.names=TRUE)
-  
-# Grab years 1985-1989 as our reference period
-anoms_old <- stack(l[4:8])%>%sum(.)%>%
-              crop(wgs_ext)%>%
-              projectRaster(ocean_ne)%>%
-              mask(ocean_ne)
-
-#grab years 2008-2012 as our current time period
-anoms_new <- stack(l[27:31])%>%sum(.)%>%
-              crop(wgs_ext)%>%
-              projectRaster(ocean_ne)%>%
-              mask(ocean_ne)
-
-anoms_diff <- raster('int/sst_anom_diffs/sst_anom_diffs_2008-2012.tif')
-
-#plot the three
-par(mfrow = c(3,2))
-plot(anoms_old,axes=F,col=cols,main = 'Number of weeks with SST anomalies \n 1985-1989')
-hist(anoms_old)
-plot(anoms_new,axes=F,col=cols,main = 'Number of weeks with SST anomalies \n 2008-2012')
-hist(anoms_new)
-plot(anoms_diff,axes=F,col=cols,main = 'Difference in number of anomalies')
-hist(anoms_diff)
-invisible(dev.off())
-
-#The rescaled layer using this method using hte maximum change in anoms globally as ref point
-anom_resc <- raster('int/sst_rescale/sst_rescale_global_2008-2012.tif')
-par(mfrow=c(1,2))
-
-plot(anom_resc,col=cols,axes=F)
-plot(rgns,add=T,main = 'Rescaled Pressure Layer using \n Difference in Anomalies Method')
-hist(anom_resc)
-
-```
-
 # SST Rate of change
 
 Calculates the trend per pixel from 1982 - 2012 for SST
@@ -172,7 +132,8 @@ Calculates the trend per pixel from 1982 - 2012 for SST
 ```{r sst_rate_allyrs}
 
 #create a raster stack of all annual SST mean rasters
-annual_stack <- list.files('int/sst_annual_means_ne',full.names=T)%>%stack()
+annual_stack <- list.files(file.path(dir_anx, 'prs_sst/output/sst_annual_means_ne'), full.names=T) %>%
+                             stack()
 
 #get a single raster output with rate of change
 time <- c(1:31) #31 years
@@ -279,7 +240,7 @@ Calculates the trend per pixel from 1982 - 2012
 ```{r ssta_rate_allyrs}
 
 #get all annual mean SSTAs
-ssta_stack <- list.files('int/ssta_annual_means_ne',full.names=T)%>%
+ssta_stack <- list.files(file.path(dir_anx, 'prs_sst/output/ssta_annual_means_ne'),full.names=T)%>%
                   stack()%>%
                   projectRaster(ocean_ne)%>%
                   mask(ocean_ne)
@@ -371,10 +332,10 @@ This plot shows that over the years 2008-2012, the NE region is warming at a fas
 # SSTA Rescale using difference in rate - 5 years
 
 ```{r rescale_ssta_5yr_diff}
-ref <- cellStats(diff,stat='max')
+ref <- cellStats(diff, stat='max')
 
-diffs_resc <- calc(diff,fun=function(x){ifelse(x<0,0,x/ref)})
-plot(diffs_resc,axes=F,col=cols)
+diffs_resc <- calc(diff, fun=function(x){ifelse(x<0, 0, x/ref)})
+plot(diffs_resc, axes=F, col=cols)
 hist(diffs_resc)
 invisible(dev.off())
 ```
