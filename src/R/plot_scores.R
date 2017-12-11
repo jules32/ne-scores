@@ -25,6 +25,7 @@ map_scores <- function(score_obj,
   
   score_map <- ggplot(poly_rgn) +
     geom_sf(aes(fill = score_var)) +
+    coord_sf(datum = NA) +
     theme_bw() +
     scale_fill_distiller(palette = "RdYlBu", direction = ifelse(rev_col ==T, 1, -1)) +
     labs(title = map_title,
