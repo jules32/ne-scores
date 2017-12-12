@@ -57,15 +57,15 @@ First we identify the global data layers we will be using to clip to the Northea
 
 ```{r global_uv_data}
 
-anom_files <- list.files(file.path(dir_M,'git-annex/globalprep/prs_uv/v2017/int/annual_anoms'),full.names = T)
+anom_files <- list.files(file.path(dir_M, 'git-annex/globalprep/prs_uv/v2017/int/annual_anoms'), full.names = T)
 
 library(rworldmap)
 world = getMap()
 
-plot(raster(anom_files[12]),col=cols, main = "UV Radiation Anomalies 2016", box=F,axes=F,
+plot(raster(anom_files[12]), col=cols, main = "UV Radiation Anomalies 2016", box=F, axes=F,
      legend.args=list(text='Anomalous Weeks', side=4, font=2, line=2.5, cex=0.8))
 
-plot(world,col='black',add=T)
+plot(world, col='black', add=T)
 
 ```
 
@@ -76,24 +76,23 @@ Using the `crop` function from the `raster` package we crop all uv rasters to ou
 
 ```{r crop_to_ne, eval=F}
 
-registerDoParallel(8) #register 8 cores for parallel processing
+registerDoParallel(10) #register 8 cores for parallel processing
 
 foreach(f = anom_files) %dopar% {
   
   raster(f)%>%
     crop(wgs_ext)%>%  #the northeast region in wgs projection
-    projectRaster(ocean_ne,method = 'ngb')%>%
-    mask(ocean_ne, filename = paste0('int/annual_anom_',substr(basename(f),22,25),'.tif'),overwrite=T)
+    projectRaster(ocean_ne, method = 'ngb')%>%
+    mask(ocean_ne, filename = paste0(dir_anx, '/prs_uv/output/annual_anoms/annual_anom_', substr(basename(f), 22, 25),'.tif'),overwrite=T)
   
 }
-
 
 ```
     
 ```{r plot}
 
-plot(raster('int/annual_anom_2016.tif'),col=cols,main = "Ultraviolet Radiation 2016",
-     legend.args=list(text='Anomalous Weeks', side=4, font=2, line=2.5, cex=0.8))
+plot(raster(file.path(dir_anx, 'prs_uv/output/annual_anoms/annual_anom_2016.tif')), col=cols, 
+     main = "Ultraviolet Radiation 2016", legend.args=list(text='Anomalous Weeks', side=4, font=2, line=2.5, cex=0.8))
 
 ```
     
@@ -105,9 +104,10 @@ Getting a sense of how things have changed over time.
 
 ```{r gif1, eval=F}
 
-l   <- lapply(list.files('int',pattern = 'anom',full.names=T),raster)%>%brick()
+l <- lapply(list.files(file.path(dir_anx, "prs_uv/output/annual_anoms"), full.names=T), raster)%>%
+                brick()
 
-names(l) <- paste0("Year",(substr(names(l),13,16))) #rename each layer for plotting
+names(l) <- paste0("Year", (substr(names(l),13,16))) #rename each layer for plotting
 
 library(animation)
 
@@ -129,16 +129,17 @@ saveGIF({
 
 Calculating total anomalous weeks for each 5-year period from 2005 - 2016
 
-```{r five-year}
+```{r five-year, eval=F}
 
-l <- list.files('int',full.names=T)
+l <- list.files(file.path(dir_anx, "prs_uv/output/annual_anoms"), full.names=T)
 
 for(i in 2005:2012){ #i=2005
   
   yrs <- c(i,i+1,i+2,i+3,i+4)
-  s   <- stack(l[substr(l,17,20)%in%yrs])%>%sum(.)
+  s   <- stack(l[substr(basename(l), 13, 16)%in%yrs]) %>%
+    sum(.)
   
-  writeRaster(s,filename = paste0('int/sum_anoms_',min(yrs),'-',max(yrs),'.tif'),overwrite=T)
+  writeRaster(s, filename = paste0(dir_anx, "/prs_uv/output/sum_anoms/sum_anoms_", min(yrs), '-', max(yrs), '.tif'), overwrite=T)
 }
 
 ```
@@ -151,21 +152,22 @@ This time we have decided to use a reference point that represents a regime shif
 
 ```{r rescale, eval=F}
 
-uv_aggs <- list.files('int',full.names=T, pattern = 'sum')
+uv_aggs <- list.files(file.path(dir_anx, "prs_uv/output/sum_anoms"), full.names=T)
 
 resc_func <- function(x){
   
   #get the year from the file for naming the output raster
-  yrs <- substr(x,15,23)
+  yrs <- substr(basename(x), 11, 19)
  
   #if a cell value is greater than or equal to the reference point (130 weeks), we assign a value of 1, otherwise it is divided by the reference point
   raster(x)%>%
-  calc(.,fun=function(x){ifelse(x<0,0,ifelse(x>130,1,x/130))},
-         filename = paste0('output/uv_rescale_',yrs,'.tif'),overwrite=T)
+  calc(.,fun=function(x){ifelse(x<0, 0, ifelse(x>130, 1, x/130))},
+         filename = paste0(dir_anx, '/prs_uv/output/rescaled/uv_rescale_', yrs, '.tif'), overwrite=T)
 }
 
-#mclapply is used for parallel processing across multiple cores
-mclapply(uv_aggs,resc_func,mc.cores = 8)
+foreach(file = uv_aggs) %dopar% {
+  resc_func(file)
+}
 
 ```
 
@@ -176,8 +178,9 @@ See how the pressure changes over time
 ```{r gif_rescale, eval=F}
 
 #list the rescaled rasters and assign them in a brick
-resc      <- lapply(list.files('output',pattern = "uv_rescale", full.names=T),raster)%>%brick()
-names(resc) <- paste0("Years_",(substr(names(resc),12,20)))
+resc      <- lapply(list.files(file.path(dir_anx, 'prs_uv/output/rescaled'), full.names=T), raster) %>%
+                      brick()
+names(resc) <- paste0("Years_", (substr(names(resc), 12, 20)))
 gsub(".", "-", names(resc), fixed = TRUE)
 
 #create a gif of values over time
@@ -206,59 +209,38 @@ By extracting the data for each of the 9 regions using the `zonal` function from
 ```{r extract_region_results, eval=F}
 
 # get rescaled data: (using the locally rescaled ones for now)
-rast_stack <- list.files('output',pattern = 'uv_rescale',full.names=T)%>%stack()
+rast_stack <- list.files(file.path(dir_anx, 'prs_uv/output/rescaled'), full.names=T) %>%
+                           stack()
 
 # extract data for each region:
-regions_stats <- zonal(rast_stack,  zones, fun="mean", na.rm=TRUE, progress="text")%>%data.frame()
+regions_stats <- zonal(rast_stack,  zones, fun="mean", na.rm=TRUE, progress="text") %>%
+  data.frame()
 
 data <- merge(rgn_data, regions_stats, all.y=TRUE, by.x="rgn_id", by.y="zone") %>%
           dplyr::select(-area_km2)%>%
-  gather("year", "pressure_score",starts_with("uv_rescale_")) 
+          gather("year", "pressure_score", starts_with("uv_rescale_")) 
 
 uv_data <- data %>%
-  mutate(year=substr(year,17,20)) %>%
+  mutate(year=substr(year, 17, 20)) %>%
   mutate(year = as.numeric(year))
 
 write.csv(uv_data, "output/uv.csv", row.names=FALSE)
 ```
 
-Each year is saved individually for the OHI toolbox.
-
-```{r, eval=F}
-
-# function to extract data more easily
-uv_data <- read.csv("output/uv.csv")
-
-saveData <- function(newYear){ # newYear= 2012
-  
-  criteria_year <- ~year == newYear
-
-    uv  <- uv_data %>%
-      filter_(criteria_year) %>%
-      dplyr::select(rgn_id, pressure_score) %>%
-      arrange(rgn_id)
-  
-  write.csv(uv, sprintf('output/uv_%s.csv', newYear), row.names=FALSE)
-}
-
-
-### extract data 
-for(newYear in (min(uv_data$year)):(max(uv_data$year))){
-  saveData(newYear)
-}
-
-```
 
 ## Current scores
 
 ```{r current_score}
 
 #select data from 2012
-now <- read.csv("output/uv.csv")%>%filter(year==2016)
+now <- read.csv("output/uv.csv") %>%
+  filter(year==2016)
 
 
 #map_scores is a function to plot a tmap map of the scores
-map_scores(now,'pressure_score',scale_label = "Pressure Score", map_title = "UV Radiation Pressure")
+map_scores(now, now$pressure_score, 
+           scale_label = "Pressure Score",
+           map_title = "UV Radiation Pressure")
 
 ```
 
