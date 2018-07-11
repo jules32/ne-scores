@@ -30,7 +30,7 @@ trend_calc <- function(status_data, trend_years=trend_years){
   }
   
   status_data <- status_data %>%
-    select(region_id, year, status) %>%
+    select(region_id, year, status) %>%  #should this change to score?? failing when running trend_calc on liv
     filter(year %in% trend_years) %>%
     unique()
   
