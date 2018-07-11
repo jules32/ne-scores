@@ -1044,63 +1044,42 @@ LIV_ECO <- function(layers, subgoal){
   
   # wages
   le_cst_wages <- layers$data$le_coast_wages %>%
-    dplyr::select(region_id = rgn_id, year, wage_usd = wages_per_job)
-  
-  ## wages ref points
-  le_cst_wages_ref <- layers$data$le_coast_wages_ref %>% 
-    dplyr::select(region_id = rgn_id, year, wage_usd = ref)
+    dplyr::select(region_id = rgn_id, year, wage_growth_rate)
   
   #jobs
   le_cst_jobs  <- layers$data$le_coast_jobs %>%
-    dplyr::select(region_id = rgn_id, year, jobs = rgn_employment)
-  
-  #jobs ref point
-  
-  le_cst_jobs_ref  <- layers$data$le_coast_jobs_ref %>%
-    dplyr::select(region_id = rgn_id, year, mean_jobs = ref)
-  
-  #nationwide job growth
-  le_usa_jobs <- layers$data$le_usa_jobs %>%
-    dplyr::select(year, us_job_growth)
+    dplyr::select(region_id = rgn_id, year, coast_job_growth, us_job_growth)
   
   ## Jobs scores
   
-  ## calculate jobs scores by comparing the total number of jobs in each year & region to the average number of jobs in the previous 5 years. 
-  ## This is done for both coastal and statewide jobs. Then the change in employment at the coastal level is compared to the change at the 
-  ## state level. If the growth in coastal employment is greater than the growth in statewide employment, the region scores a 1.
-  ## If not, the regions score is the coastal employment change divided by the statewide employment change.
+  #we don't set a specific target of job growth. If national job growth is positive, we want to be at or above that growth rate. If national job growth is negative, we want coastal job growth to be the same or better as the previous 3 yr avg
   
-  ##combining the employment data and calculating the change compared to reference period
+  ## parameters
+  min_jobs = -0.25 #(a loss of 25% of all jobs gets a score of 0)
+
+  jobs_score <- le_cst_jobs %>%
+    mutate(job_score =  
+             case_when(
+               coast_job_growth >= 0 & us_job_growth < 0 ~ 1,
+               coast_job_growth >= 0 & us_job_growth >= 0 ~ coast_job_growth/us_job_growth,
+               coast_job_growth < 0 & us_job_growth < 0 ~ (coast_job_growth - min_jobs)/(0 - min_jobs),
+               coast_job_growth <0 & us_job_growth >= 0 ~ (coast_job_growth - min_jobs)/(us_job_growth - min_jobs)
+             ),
+           job_score = ifelse(job_score > 1, 1, job_score))
+             
+
+  ## Wage scores
   
-  ##coastal jobs
-  coast_jobs <- le_cst_jobs %>%
-    rename(coast_jobs = jobs) %>%
-    left_join(le_cst_jobs_ref) %>%    #join with the reference point data
-    filter(!is.na(mean_jobs)) %>%     #remove years with NA for mean jobs (same as removing years pre-2010)
-    rename(coast_mean_jobs = mean_jobs) %>%
-    mutate(cst_chg = coast_jobs/coast_mean_jobs)
+  ## set parameters for min (what gets a 0) and reference point target (what gets 100)
+  min_wage  = -0.4 #this represents a 40% decrease
+  targ_wage = 0.035 #this represents our target growth rate
   
-  #combine coastal and state data, calculate jobs scores
-  jobs_score <- coast_jobs %>%
-    left_join(le_usa_jobs) %>%
-    mutate(job_score = ifelse(cst_chg > us_job_growth, 1, cst_chg/us_job_growth)) %>%
-    select(region_id, year, job_score)
-  
-  
-  ## Wages scores
-  #combining the coastal wage data and calculate the change
-  coast_wages <- le_cst_wages %>%
-    rename(coast_wages = wage_usd) %>%
-    left_join(le_cst_wages_ref) %>%    #join with the reference point data
-    filter(!is.na(wage_usd)) %>%       #remove years with NA for wages (same as removing years pre-2010)
-    rename(coast_mean_wages = wage_usd) %>%
-    mutate(cst_chg = coast_wages/coast_mean_wages)
-  
-  #combine coastal and state data, calculate
-  wages_score <- coast_wages %>%
-    mutate(wages_score = ifelse(cst_chg > 1.035, 1, cst_chg/1.035)) %>%
-    select(region_id, year, wages_score)
-  
+  wages_score <- le_cst_wages %>%
+    mutate(wages_score =
+             case_when(
+               wage_growth_rate >= targ_wage ~ 1, #if the growth rate is about 3.5% it gets a perfect score
+               wage_growth_rate <= targ_wage ~ (wage_growth_rate - min_wage)/(targ_wage-min_wage)))
+
   # LIV calculations ----
   
   # combine jobs and wages scores per region and divide by two

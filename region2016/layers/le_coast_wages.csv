@@ -1,71 +1,78 @@
-"","state","year","rgn_id","rgn_name","wages_per_job"
-"1","Connecticut",2014,3,"Connecticut",38584.4448103941
-"2","Connecticut",2013,3,"Connecticut",38283.5722445406
-"3","Connecticut",2012,3,"Connecticut",39467.3508443566
-"4","Connecticut",2011,3,"Connecticut",39749.7948336307
-"5","Connecticut",2010,3,"Connecticut",41044.4487939236
-"6","Connecticut",2009,3,"Connecticut",40663.3667229059
-"7","Connecticut",2008,3,"Connecticut",40154.2502953161
-"8","Connecticut",2007,3,"Connecticut",43033.0060677871
-"9","Connecticut",2006,3,"Connecticut",39825.4073505234
-"10","Connecticut",2005,3,"Connecticut",41128.0300576439
-"11","Maine",2014,7,"Maine",33429.3084258096
-"12","Maine",2013,7,"Maine",32496.8729916129
-"13","Maine",2012,7,"Maine",32710.6496692513
-"14","Maine",2011,7,"Maine",33051.4119572329
-"15","Maine",2010,7,"Maine",34112.7571857902
-"16","Maine",2009,7,"Maine",33627.0288631484
-"17","Maine",2008,7,"Maine",33346.9032329674
-"18","Maine",2007,7,"Maine",34112.0736614206
-"19","Maine",2006,7,"Maine",33172.7990658365
-"20","Maine",2005,7,"Maine",33380.7414914425
-"21","Rhode Island",2014,1,"Rhode Island",26374.5227126915
-"22","Rhode Island",2013,1,"Rhode Island",25904.2510864191
-"23","Rhode Island",2012,1,"Rhode Island",25840.4035308953
-"24","Rhode Island",2011,1,"Rhode Island",25674.0491349002
-"25","Rhode Island",2010,1,"Rhode Island",26231.4928333876
-"26","Rhode Island",2009,1,"Rhode Island",26057.3107807884
-"27","Rhode Island",2008,1,"Rhode Island",25959.2925719187
-"28","Rhode Island",2007,1,"Rhode Island",26690.8531537866
-"29","Rhode Island",2006,1,"Rhode Island",26671.7284142283
-"30","Rhode Island",2005,1,"Rhode Island",26823.310156681
-"31","Massachusetts",2014,4,"Massachusetts-Gulf of Maine",33562.659587197
-"32","Massachusetts",2014,5,"Massachusetts-Virginian",26082.2747779405
-"33","Massachusetts",2013,4,"Massachusetts-Gulf of Maine",33141.7038594085
-"34","Massachusetts",2013,5,"Massachusetts-Virginian",26222.8699720562
-"35","Massachusetts",2012,4,"Massachusetts-Gulf of Maine",33234.7257705061
-"36","Massachusetts",2012,5,"Massachusetts-Virginian",25127.5932963678
-"37","Massachusetts",2011,4,"Massachusetts-Gulf of Maine",32167.08120213
-"38","Massachusetts",2011,5,"Massachusetts-Virginian",25368.3413316148
-"39","Massachusetts",2010,4,"Massachusetts-Gulf of Maine",32429.6447197882
-"40","Massachusetts",2010,5,"Massachusetts-Virginian",27533.5778301314
-"41","Massachusetts",2009,4,"Massachusetts-Gulf of Maine",32223.8540983139
-"42","Massachusetts",2009,5,"Massachusetts-Virginian",28845.1872159963
-"43","Massachusetts",2008,4,"Massachusetts-Gulf of Maine",32361.7950060234
-"44","Massachusetts",2008,5,"Massachusetts-Virginian",28429.3835875193
-"45","Massachusetts",2007,4,"Massachusetts-Gulf of Maine",32873.9249396864
-"46","Massachusetts",2007,5,"Massachusetts-Virginian",29888.7392162618
-"47","Massachusetts",2006,4,"Massachusetts-Gulf of Maine",33611.8575223779
-"48","Massachusetts",2006,5,"Massachusetts-Virginian",29898.6277690521
-"49","Massachusetts",2005,4,"Massachusetts-Gulf of Maine",31845.3623316128
-"50","Massachusetts",2005,5,"Massachusetts-Virginian",28501.5306990226
-"51","New Hampshire",2014,6,"New Hampshire",22353.5191060823
-"52","New Hampshire",2013,6,"New Hampshire",21379.7789401545
-"53","New Hampshire",2012,6,"New Hampshire",22480.3530407448
-"54","New Hampshire",2011,6,"New Hampshire",23558.6542309231
-"55","New Hampshire",2010,6,"New Hampshire",22394.1712511153
-"56","New Hampshire",2009,6,"New Hampshire",22626.7827617581
-"57","New Hampshire",2008,6,"New Hampshire",22091.134344628
-"58","New Hampshire",2007,6,"New Hampshire",22686.188080411
-"59","New Hampshire",2006,6,"New Hampshire",22421.7385054293
-"60","New Hampshire",2005,6,"New Hampshire",22804.4827097441
-"61","New York",2014,2,"New York",31038.5590947717
-"62","New York",2013,2,"New York",30649.0103775324
-"63","New York",2012,2,"New York",30779.4380936994
-"64","New York",2011,2,"New York",31068.7352432056
-"65","New York",2010,2,"New York",31591.0430769856
-"66","New York",2009,2,"New York",31452.4951234982
-"67","New York",2008,2,"New York",31701.5641703237
-"68","New York",2007,2,"New York",32304.6348550542
-"69","New York",2006,2,"New York",31824.1502418557
-"70","New York",2005,2,"New York",31513.635260798
+"","state","year","rgn_id","rgn_name","wage_growth_rate"
+"1","Connecticut",2005,3,"Connecticut",NA
+"2","Maine",2005,7,"Maine",NA
+"3","Rhode Island",2005,1,"Rhode Island",NA
+"4","Massachusetts",2005,4,"Massachusetts-Gulf of Maine",NA
+"5","Massachusetts",2005,5,"Massachusetts-Virginian",NA
+"6","New Hampshire",2005,6,"New Hampshire",NA
+"7","New York",2005,2,"New York",NA
+"8","Connecticut",2006,3,"Connecticut",NA
+"9","Maine",2006,7,"Maine",NA
+"10","Rhode Island",2006,1,"Rhode Island",NA
+"11","Massachusetts",2006,4,"Massachusetts-Gulf of Maine",NA
+"12","Massachusetts",2006,5,"Massachusetts-Virginian",NA
+"13","New Hampshire",2006,6,"New Hampshire",NA
+"14","New York",2006,2,"New York",NA
+"15","Connecticut",2007,3,"Connecticut",NA
+"16","Maine",2007,7,"Maine",NA
+"17","Rhode Island",2007,1,"Rhode Island",NA
+"18","Massachusetts",2007,4,"Massachusetts-Gulf of Maine",NA
+"19","Massachusetts",2007,5,"Massachusetts-Virginian",NA
+"20","New Hampshire",2007,6,"New Hampshire",NA
+"21","New York",2007,2,"New York",NA
+"22","Connecticut",2008,3,"Connecticut",-0.0284199829241517
+"23","Maine",2008,7,"Maine",-0.00620772579920226
+"24","Rhode Island",2008,1,"Rhode Island",-0.0287832929332406
+"25","Massachusetts",2008,4,"Massachusetts-Gulf of Maine",-0.0126690252218076
+"26","Massachusetts",2008,5,"Massachusetts-Virginian",-0.0339878169804759
+"27","New Hampshire",2008,6,"New Hampshire",-0.024134121621109
+"28","New York",2008,2,"New York",-0.00562227364076673
+"29","Connecticut",2009,3,"Connecticut",-0.00831266899385241
+"30","Maine",2009,7,"Maine",0.0024774546740598
+"31","Rhode Island",2009,1,"Rhode Island",-0.0144971583205455
+"32","Massachusetts",2009,4,"Massachusetts-Gulf of Maine",-0.0220138445824214
+"33","Massachusetts",2009,5,"Massachusetts-Virginian",-0.0190574798739456
+"34","New Hampshire",2009,6,"New Hampshire",0.0101383474796206
+"35","New York",2009,2,"New York",-0.015369493234663
+"36","Connecticut",2010,3,"Connecticut",-0.00579146628885729
+"37","Maine",2010,7,"Maine",0.0123881222280826
+"38","Rhode Island",2010,1,"Rhode Island",-0.000164888813101172
+"39","Massachusetts",2010,4,"Massachusetts-Gulf of Maine",-0.00175087856311085
+"40","Massachusetts",2010,5,"Massachusetts-Virginian",-0.0523451488870363
+"41","New Hampshire",2010,6,"New Hampshire",-0.00328750571851266
+"42","New York",2010,2,"New York",-0.00718179638673544
+"43","Connecticut",2011,3,"Connecticut",-0.0214396600945549
+"44","Maine",2011,7,"Maine",-0.0191167939598456
+"45","Rhode Island",2011,1,"Rhode Island",-0.0156674587384746
+"46","Massachusetts",2011,4,"Massachusetts-Gulf of Maine",-0.00529865125403028
+"47","Massachusetts",2011,5,"Massachusetts-Virginian",-0.102621325801163
+"48","New Hampshire",2011,6,"New Hampshire",0.0531033185446839
+"49","New York",2011,2,"New York",-0.016242492846764
+"50","Connecticut",2012,3,"Connecticut",-0.0251574010438121
+"51","Maine",2012,7,"Maine",-0.0263837424327477
+"52","Rhode Island",2012,1,"Rhode Island",-0.00566477686832767
+"53","Massachusetts",2012,4,"Massachusetts-Gulf of Maine",0.0297828962613549
+"54","Massachusetts",2012,5,"Massachusetts-Virginian",-0.0778538444942992
+"55","New Hampshire",2012,6,"New Hampshire",-0.0166018628224432
+"56","New York",2012,2,"New York",-0.0188493922181784
+"57","Connecticut",2013,3,"Connecticut",-0.0449925660388351
+"58","Maine",2013,7,"Maine",-0.0238718815283423
+"59","Rhode Island",2013,1,"Rhode Island",-0.000426932426723647
+"60","Massachusetts",2013,4,"Massachusetts-Gulf of Maine",0.0162898522245414
+"61","Massachusetts",2013,5,"Massachusetts-Virginian",0.00819045811524699
+"62","New Hampshire",2013,6,"New Hampshire",-0.0627450342105712
+"63","New York",2013,2,"New York",-0.0159695823916507
+"64","Connecticut",2014,3,"Connecticut",-0.0148712580666144
+"65","Maine",2014,7,"Maine",0.0206494264266062
+"66","Rhode Island",2014,1,"Rhode Island",0.0220213507102045
+"67","Massachusetts",2014,4,"Massachusetts-Gulf of Maine",0.0217616354990842
+"68","Massachusetts",2014,5,"Massachusetts-Virginian",0.0199171473674526
+"69","New Hampshire",2014,6,"New Hampshire",-0.00531348490402206
+"70","New York",2014,2,"New York",0.00668662028489875
+"71","Connecticut",2015,3,"Connecticut",0.00976077262312147
+"72","Maine",2015,7,"Maine",0.0539670043427343
+"73","Rhode Island",2015,1,"Rhode Island",0.0476289407605903
+"74","Massachusetts",2015,4,"Massachusetts-Gulf of Maine",0.0220438371218528
+"75","Massachusetts",2015,5,"Massachusetts-Virginian",0.153008229768673
+"76","New Hampshire",2015,6,"New Hampshire",0.114085763699082
+"77","New York",2015,2,"New York",0.0283119786766788
