@@ -5,7 +5,7 @@
 ## - The `ohicore` function CalculateAll() calculates OHI scores.
 
 ## set working directory for all OHI calculations ----
-setwd("~/github/ohi-northeast/region2016")
+setwd("~/github/ne-scores/region2016")
 
 ## load required packages. If not installed, install from the comment ----
 library(ohicore)   # source('~/github/ohi-northeast/install_ohicore.R')
