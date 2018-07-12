@@ -20,8 +20,6 @@ resilience_element = list('NP'  = 'np_harvest_product_weight',
 pressures_element  = list('NP'  = 'np_harvest_product_weight',
                              'CS'  = 'element_wts_cs_km2_x_storage'  ,
                              'CP'  = 'element_wts_cp_km2_x_protection' ,
-                             'LIV' = 'le_sector_weight' ,
-                             'ECO' = 'le_sector_weight',
                              'HAB' = 'element_wts_hab_pres_abs'             )
 
 

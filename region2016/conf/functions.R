@@ -1092,10 +1092,10 @@ LIV <- function(layers){
   liv_trend <- CalculateTrend(status_data = liv_status, trend_years = trend_years) 
   
   liv_scores <- liv_status %>%
-    rename(score = status) %>%
-    mutate(dimension = "status") %>%
+    mutate(score = 100 * status,
+           dimension = "status") %>%
     filter(year == scen_year) %>%
-    select(-year) %>%
+    select(-year, -status) %>%
     rbind(liv_trend) %>%
     mutate(goal = 'LIV') %>%
     select(region_id, goal, dimension, score) %>%
@@ -1106,43 +1106,45 @@ LIV <- function(layers){
 
 }  
  
-#ECO <- function(layers) {   
+ECO <- function(layers) {   
   # ECO data layers
   
   scen_year <- layers$data$scenario_year
   
   #coastal gdp growth rate
   eco_cst_gdp <- layers$data$eco_coast_gdp %>%
-    dplyr::select(region_id = rgn_id, year, cst_chg)
-  
-  #national gdp growth rate (reference point)
-  eco_usa_gdp = layers$data$eco_usa_gdp %>%
-    dplyr::select(year, GDP_growth_rate)
-  
+    dplyr::select(region_id = rgn_id, year, gdp_growth_rate)
+
   
   # ECO calculations ----
   
   # ECO status
   
-  #compare regional gdp growth to nationwide average
-  eco_status <- eco_cst_gdp %>%
-    left_join(eco_usa_gdp) %>%
-    mutate(GDP_growth_rate = GDP_growth_rate/100 + 1,
-           score = ifelse(cst_chg > GDP_growth_rate, 1, cst_chg/GDP_growth_rate)*100,
-           dimension = "status") %>%
-    select(region_id, year, score, dimension)
+  ## set parameters for min (what gets a 0) and reference point target (what gets 100)
+  min_gdp  = -0.3 #this represents the worst case scenario (what gets a 0)
+  targ_gdp = 0.03 #this represents our target gdp growth rate
   
+  eco_status <- eco_cst_gdp %>%
+    mutate(status =
+             case_when(
+               gdp_growth_rate >= targ_gdp ~ 1, #if the growth rate is about 3.5% it gets a perfect score
+               gdp_growth_rate <= targ_gdp ~ (gdp_growth_rate - min_gdp)/(targ_gdp - min_gdp))) %>%
+    select(year, region_id, status)
   
   # ECO trend
   
   trend_years <- (scen_year-4):(scen_year)
   
-  eco_trend <- CalculateTrend(status_data=eco_status, trend_years = trend_years) 
+  eco_trend <- CalculateTrend(status_data = eco_status, trend_years = trend_years) 
   
   # ECO scores
   
   eco_scores <- eco_status %>%
-    full_join(eco_trend, by=c('region_id', 'dimension', 'score')) %>%
+    filter(year == scen_year) %>%
+    mutate(dimension = "status",
+           score = 100 * status) %>%
+    select(-year, -status) %>%
+    rbind(eco_trend) %>%
     mutate(goal = 'ECO') %>%
     select(region_id, goal, dimension, score) %>%
     arrange(goal, dimension, region_id)
@@ -1153,7 +1155,7 @@ LIV <- function(layers){
 }
 
 
-#LE <- function(scores, layers){
+LE <- function(scores, layers){
   
   # calculate LE scores
   scores.LE = scores %>%
