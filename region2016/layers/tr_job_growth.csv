@@ -1,0 +1,122 @@
+"","year","rgn_name","rgn_id","tr_job_growth"
+"1",2005,"Maine",6,NA
+"2",2005,"New Hampshire",9,NA
+"3",2005,"New York",10,NA
+"4",2005,"Rhode Island",11,NA
+"5",2005,"Connecticut",5,NA
+"6",2005,"Massachusetts-Gulf of Maine",7,NA
+"7",2005,"Massachusetts-Virginian",8,NA
+"8",2006,"Maine",6,NA
+"9",2006,"New Hampshire",9,NA
+"10",2006,"New York",10,NA
+"11",2006,"Rhode Island",11,NA
+"12",2006,"Connecticut",5,NA
+"13",2006,"Massachusetts-Gulf of Maine",7,NA
+"14",2006,"Massachusetts-Virginian",8,NA
+"15",2007,"Maine",6,NA
+"16",2007,"New Hampshire",9,NA
+"17",2007,"New York",10,NA
+"18",2007,"Rhode Island",11,NA
+"19",2007,"Connecticut",5,NA
+"20",2007,"Massachusetts-Gulf of Maine",7,NA
+"21",2007,"Massachusetts-Virginian",8,NA
+"22",2008,"Maine",6,-0.00670469699214693
+"23",2008,"New Hampshire",9,-0.039549436795995
+"24",2008,"New York",10,0.0723243551375232
+"25",2008,"Rhode Island",11,0.0209591249644359
+"26",2008,"Connecticut",5,0.0400638658136074
+"27",2008,"Massachusetts-Gulf of Maine",7,0.0442604949742378
+"28",2008,"Massachusetts-Virginian",8,0.0714431609286703
+"29",2009,"Maine",6,-0.00997586484312152
+"30",2009,"New Hampshire",9,-0.0638972809667674
+"31",2009,"New York",10,0.0279780169649813
+"32",2009,"Rhode Island",11,-0.0319408017984264
+"33",2009,"Connecticut",5,0.0206231923480462
+"34",2009,"Massachusetts-Gulf of Maine",7,0.0194216643140164
+"35",2009,"Massachusetts-Virginian",8,0.0337181078320465
+"36",2010,"Maine",6,0.0262932691711419
+"37",2010,"New Hampshire",9,-0.000104498667642061
+"38",2010,"New York",10,0.0555800215425353
+"39",2010,"Rhode Island",11,-0.0198159573355642
+"40",2010,"Connecticut",5,0.00893222977956243
+"41",2010,"Massachusetts-Gulf of Maine",7,0.0197382551826808
+"42",2010,"Massachusetts-Virginian",8,0.0307241203467619
+"43",2011,"Maine",6,0.0776328937466846
+"44",2011,"New Hampshire",9,-0.0439091244531127
+"45",2011,"New York",10,0.10407309811437
+"46",2011,"Rhode Island",11,0.00890571785162786
+"47",2011,"Connecticut",5,0.0504788995915348
+"48",2011,"Massachusetts-Gulf of Maine",7,0.0775232239082284
+"49",2011,"Massachusetts-Virginian",8,0.038293044218223
+"50",2012,"Maine",6,0.0718655534763206
+"51",2012,"New Hampshire",9,0.116421437009988
+"52",2012,"New York",10,0.129164293849658
+"53",2012,"Rhode Island",11,0.0516236735214681
+"54",2012,"Connecticut",5,0.0905973593129086
+"55",2012,"Massachusetts-Gulf of Maine",7,0.0691435096523854
+"56",2012,"Massachusetts-Virginian",8,0.0760420869673175
+"57",2013,"Maine",6,0.0463890109381866
+"58",2013,"New Hampshire",9,0.125135623869801
+"59",2013,"New York",10,0.120459978516122
+"60",2013,"Rhode Island",11,0.06519248395967
+"61",2013,"Connecticut",5,0.12338017133844
+"62",2013,"Massachusetts-Gulf of Maine",7,0.0563070463357187
+"63",2013,"Massachusetts-Virginian",8,-0.0123858213360278
+"64",2014,"Maine",6,0.0251714962557119
+"65",2014,"New Hampshire",9,0.0576723498888065
+"66",2014,"New York",10,0.120491902966573
+"67",2014,"Rhode Island",11,0.0548193258608831
+"68",2014,"Connecticut",5,0.0926431580589795
+"69",2014,"Massachusetts-Gulf of Maine",7,0.0473885486588399
+"70",2014,"Massachusetts-Virginian",8,0.0457828448636066
+"71",2015,"Maine",6,0.0244169580032747
+"72",2015,"New Hampshire",9,0.0416920695962106
+"73",2015,"New York",10,0.105524669717832
+"74",2015,"Rhode Island",11,0.0327757751957021
+"75",2015,"Connecticut",5,0.0468886371655124
+"76",2015,"Massachusetts-Gulf of Maine",7,0.0821904369493986
+"77",2015,"Massachusetts-Virginian",8,0.071549691075292
+"78",2005,"Offshore",1,NA
+"79",2005,"Georges Bank",2,NA
+"80",2005,"Gulf of Maine",3,NA
+"81",2005,"Mid-Atlantic Bight",4,NA
+"82",2006,"Offshore",1,NA
+"83",2006,"Georges Bank",2,NA
+"84",2006,"Gulf of Maine",3,NA
+"85",2006,"Mid-Atlantic Bight",4,NA
+"86",2007,"Offshore",1,NA
+"87",2007,"Georges Bank",2,NA
+"88",2007,"Gulf of Maine",3,NA
+"89",2007,"Mid-Atlantic Bight",4,NA
+"90",2008,"Offshore",1,NA
+"91",2008,"Georges Bank",2,NA
+"92",2008,"Gulf of Maine",3,NA
+"93",2008,"Mid-Atlantic Bight",4,NA
+"94",2009,"Offshore",1,NA
+"95",2009,"Georges Bank",2,NA
+"96",2009,"Gulf of Maine",3,NA
+"97",2009,"Mid-Atlantic Bight",4,NA
+"98",2010,"Offshore",1,NA
+"99",2010,"Georges Bank",2,NA
+"100",2010,"Gulf of Maine",3,NA
+"101",2010,"Mid-Atlantic Bight",4,NA
+"102",2011,"Offshore",1,NA
+"103",2011,"Georges Bank",2,NA
+"104",2011,"Gulf of Maine",3,NA
+"105",2011,"Mid-Atlantic Bight",4,NA
+"106",2012,"Offshore",1,NA
+"107",2012,"Georges Bank",2,NA
+"108",2012,"Gulf of Maine",3,NA
+"109",2012,"Mid-Atlantic Bight",4,NA
+"110",2013,"Offshore",1,NA
+"111",2013,"Georges Bank",2,NA
+"112",2013,"Gulf of Maine",3,NA
+"113",2013,"Mid-Atlantic Bight",4,NA
+"114",2014,"Offshore",1,NA
+"115",2014,"Georges Bank",2,NA
+"116",2014,"Gulf of Maine",3,NA
+"117",2014,"Mid-Atlantic Bight",4,NA
+"118",2015,"Offshore",1,NA
+"119",2015,"Georges Bank",2,NA
+"120",2015,"Gulf of Maine",3,NA
+"121",2015,"Mid-Atlantic Bight",4,NA
