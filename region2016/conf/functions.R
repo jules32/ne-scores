@@ -954,76 +954,55 @@ CP <- function(layers) {
 }
 
 TR <- function(layers) {
-  ## formula:
-  ##  E   = Ep                         # Ep: % of direct tourism jobs. tr_jobs_pct_tourism.csv
-  ##  S   = (S_score - 1) / (7 - 1)    # S_score: raw TTCI score, not normalized (1-7). tr_sustainability.csv
-  ##  Xtr = E * S
-  
-  pct_ref <- 90
   
   scen_year <- layers$data$scenario_year
   
+  ## read in layer
   
-  ## read in layers
-  
-  tourism <-
-    AlignDataYears(layer_nm = "tr_jobs_pct_tourism", layers_obj = layers) %>%
-    select(-layer_name)
-  sustain <-
-    AlignDataYears(layer_nm = "tr_sustainability", layers_obj = layers) %>%
-    select(-layer_name)
-  
-  tr_data  <-
-    full_join(tourism, sustain, by = c('rgn_id', 'scenario_year'))
-  
-  tr_model <- tr_data %>%
-    mutate(E   = Ep,
-           S   = (S_score - 1) / (7 - 1),
-           # scale score from 1 to 7.
-           Xtr = E * S)
+  tourism_job_growth <-
+    AlignDataYears(layer_nm = "tr_job_growth", layers_obj = layers) %>%
+    select(-layer_name, -X)
   
   
-  # regions with Travel Warnings
-  rgn_travel_warnings <-
-    AlignDataYears(layer_nm = "tr_travelwarnings", layers_obj = layers) %>%
-    select(-layer_name)
+  # we don't set a specific target of job growth in the T&R sector. As long as regions are not losing jobs
+  # in the sector, they receive a score of 100. We do set a minimum, or lower limit, of 25% job loss, where
+  # loss of 25% or more jobs in this sector are given a 0.
   
-  ## incorporate Travel Warnings
-  tr_model <- tr_model %>%
-    left_join(rgn_travel_warnings, by = c('rgn_id', 'scenario_year')) %>%
-    mutate(Xtr = ifelse(!is.na(multiplier), multiplier * Xtr, Xtr)) %>%
-    select(-multiplier)
+  ## parameters
+  min_jobs = -0.25 #(a loss of 25% of all jobs gets a score of 0)
   
-  
-  ### Calculate status based on quantile reference (see function call for pct_ref)
-  tr_model <- tr_model %>%
-    group_by(scenario_year) %>%
-    mutate(Xtr_q = quantile(Xtr, probs = pct_ref / 100, na.rm = TRUE)) %>%
-    mutate(status  = ifelse(Xtr / Xtr_q > 1, 1, Xtr / Xtr_q)) %>% # rescale to qth percentile, cap at 1
-    ungroup()
+  tr_score <- tourism_job_growth %>%
+    dplyr::mutate(score =  
+             case_when(
+               tr_job_growth >= 0 ~ 1,
+               tr_job_growth < 0 ~ (tr_job_growth - min_jobs)/(0 - min_jobs)
+             ))
   
   
   # get status
-  tr_status <- tr_model %>%
-    filter(scenario_year == scen_year) %>%
-    select(region_id = rgn_id, score = status) %>%
-    mutate(score = score * 100) %>%
+  tr_status <- tr_score %>%
+   # filter(scenario_year == scen_year) %>%
+    select(region_id = rgn_id, score, scenario_year) %>%
+    mutate(status = score * 100) %>%
     mutate(dimension = 'status')
   
   
   # calculate trend
   
-  trend_data <- tr_model %>%
+  trend_data <- tr_status %>%
     filter(!is.na(status))
   
   trend_years <- (scen_year - 4):(scen_year)
   
   tr_trend <-
-    CalculateTrend(status_data = trend_data, trend_years = trend_years)
-  
+    CalculateTrend(status_data = trend_data, trend_years = trend_years) 
   
   # bind status and trend by rows
-  tr_score <- bind_rows(tr_status, tr_trend) %>%
+  tr_score <- tr_status %>%
+    filter(scenario_year == scen_year) %>%
+    rename(year = scenario_year) %>%
+    select(region_id, score = status, dimension) %>%
+    bind_rows(tr_trend) %>%
     mutate(goal = 'TR')
   
   # return final scores
