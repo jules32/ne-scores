@@ -1017,12 +1017,12 @@ LIV <- function(layers){
   scen_year <- layers$data$scenario_year
   
   # wages
-  le_cst_wages <- layers$data$le_coast_wages %>%
-    dplyr::select(region_id = rgn_id, year, wage_growth_rate)
+  le_cst_wages <- AlignDataYears(layer_nm = "le_coast_wages", layers_obj = layers) %>%
+    select(-layer_name, -X)
   
   #jobs
-  le_cst_jobs  <- layers$data$le_coast_jobs %>%
-    dplyr::select(region_id = rgn_id, year, coast_job_growth, us_job_growth)
+  le_cst_jobs  <- AlignDataYears(layer_nm = "le_coast_jobs", layers_obj = layers) %>%
+    select(-layer_name, -X)
   
   ## Jobs scores
   
@@ -1091,9 +1091,8 @@ ECO <- function(layers) {
   scen_year <- layers$data$scenario_year
   
   #coastal gdp growth rate
-  eco_cst_gdp <- layers$data$eco_coast_gdp %>%
-    dplyr::select(region_id = rgn_id, year, gdp_growth_rate)
-
+  eco_cst_gdp <- AlignDataYears(layer_nm = "eco_coast_gdp", layers_obj = layers) %>%
+    select(-layer_name, -X)
   
   # ECO calculations ----
   
