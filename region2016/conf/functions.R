@@ -1021,7 +1021,7 @@ LIV <- function(layers){
     select(-layer_name, -X)
   
   #jobs
-  le_cst_jobs  <- AlignDataYears(layer_nm = "le_coast_jobs", layers_obj = layers) %>%
+  le_cst_jobs  <- AlignDataYears(layer_nm = "le_job_growth", layers_obj = layers) %>%
     select(-layer_name, -X)
   
   ## Jobs scores
@@ -1062,7 +1062,8 @@ LIV <- function(layers){
   liv_status <- jobs_score %>%
     left_join(wages_score) %>%
     mutate(status = (job_score + wages_score)/2) %>% 
-    select(year, region_id, status) 
+    select(year = scenario_year, region_id = rgn_id, status) %>%
+    filter(!is.na(status))
   
   ## trend
   
@@ -1078,8 +1079,11 @@ LIV <- function(layers){
     rbind(liv_trend) %>%
     mutate(goal = 'LIV') %>%
     select(region_id, goal, dimension, score) %>%
-    arrange(goal, dimension, region_id)
-  
+    arrange(goal, dimension, region_id) %>%
+    complete(region_id = 1:11, #this adds in regions 1-4 with NA values for trend and status
+             goal,
+             dimension)
+
   # return final scores
   return(liv_scores)
 
@@ -1107,7 +1111,8 @@ ECO <- function(layers) {
              case_when(
                gdp_growth_rate >= targ_gdp ~ 1, #if the growth rate is about 3.5% it gets a perfect score
                gdp_growth_rate <= targ_gdp ~ (gdp_growth_rate - min_gdp)/(targ_gdp - min_gdp))) %>%
-    select(year, region_id, status)
+    select(year = scenario_year, region_id = rgn_id, status) %>%
+    filter(!is.na(status))
   
   # ECO trend
   
@@ -1125,7 +1130,10 @@ ECO <- function(layers) {
     rbind(eco_trend) %>%
     mutate(goal = 'ECO') %>%
     select(region_id, goal, dimension, score) %>%
-    arrange(goal, dimension, region_id)
+    arrange(goal, dimension, region_id) %>%
+    complete(region_id = 1:11, #this adds in regions 1-4 with NA values for trend and status
+             goal,
+             dimension)
 
   # return final scores
   return(eco_scores)
