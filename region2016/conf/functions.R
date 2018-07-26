@@ -981,7 +981,6 @@ TR <- function(layers) {
   
   # get status
   tr_status <- tr_score %>%
-   # filter(scenario_year == scen_year) %>%
     select(region_id = rgn_id, score, scenario_year) %>%
     mutate(status = score * 100) %>%
     mutate(dimension = 'status')
@@ -1003,7 +1002,10 @@ TR <- function(layers) {
     rename(year = scenario_year) %>%
     select(region_id, score = status, dimension) %>%
     bind_rows(tr_trend) %>%
-    mutate(goal = 'TR')
+    mutate(goal = 'TR') %>%
+    complete(region_id = 1:11, #this adds in regions 1-4 with NA values for trend and status
+             goal,
+             dimension)
   
   # return final scores
   scores <- tr_score %>%
