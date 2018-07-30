@@ -1,0 +1,133 @@
+"","rgn_name","rgn_id","year","perc_open"
+"1","Connecticut",5,2005,0.970875521143538
+"2","Connecticut",5,2006,0.989715880263826
+"3","Connecticut",5,2007,0.992407914764079
+"4","Connecticut",5,2008,0.980447254419857
+"5","Connecticut",5,2009,0.98951598173516
+"6","Connecticut",5,2010,0.988866057838661
+"7","Connecticut",5,2011,0.96909276616198
+"8","Connecticut",5,2012,0.976774595267746
+"9","Connecticut",5,2013,0.989374627754616
+"10","Connecticut",5,2014,0.982020547945206
+"11","Connecticut",5,2015,0.99410197869102
+"12","Connecticut",5,2016,0.988785925329036
+"13","Maine",6,2005,0.981506849315068
+"14","Maine",6,2006,0.985452054794521
+"15","Maine",6,2007,0.984571428571429
+"16","Maine",6,2008,0.970947488584475
+"17","Maine",6,2009,0.979205479452055
+"18","Maine",6,2010,0.980502283105023
+"19","Maine",6,2011,0.982872561228726
+"20","Maine",6,2012,0.986876712328767
+"21","Maine",6,2013,0.973538812785388
+"22","Maine",6,2014,0.974169148302561
+"23","Maine",6,2015,0.983421395955642
+"24","Maine",6,2016,0.985868469430113
+"25","Massachusetts-Gulf of Maine",7,2005,0.984836723398367
+"26","Massachusetts-Gulf of Maine",7,2006,0.96746842198897
+"27","Massachusetts-Gulf of Maine",7,2007,0.98609912558002
+"28","Massachusetts-Gulf of Maine",7,2008,0.978144254395192
+"29","Massachusetts-Gulf of Maine",7,2009,0.976409967148082
+"30","Massachusetts-Gulf of Maine",7,2010,0.979617140136246
+"31","Massachusetts-Gulf of Maine",7,2011,0.980741376986341
+"32","Massachusetts-Gulf of Maine",7,2012,0.981019076481099
+"33","Massachusetts-Gulf of Maine",7,2013,0.979873198920338
+"34","Massachusetts-Gulf of Maine",7,2014,0.98304687549893
+"35","Massachusetts-Gulf of Maine",7,2015,0.972582835733521
+"36","Massachusetts-Gulf of Maine",7,2016,0.983497716894977
+"37","Massachusetts-Virginian",8,2005,0.992855224281493
+"38","Massachusetts-Virginian",8,2006,0.986424657534247
+"39","Massachusetts-Virginian",8,2007,0.991173938068378
+"40","Massachusetts-Virginian",8,2008,0.991212640099626
+"41","Massachusetts-Virginian",8,2009,0.985719080513601
+"42","Massachusetts-Virginian",8,2010,0.986676535032699
+"43","Massachusetts-Virginian",8,2011,0.98737116764514
+"44","Massachusetts-Virginian",8,2012,0.986506849315068
+"45","Massachusetts-Virginian",8,2013,0.989315068493151
+"46","Massachusetts-Virginian",8,2014,0.98730904939809
+"47","Massachusetts-Virginian",8,2015,0.983561643835617
+"48","Massachusetts-Virginian",8,2016,0.99013698630137
+"49","New Hampshire",9,2005,0.997260273972603
+"50","New Hampshire",9,2006,0.987397260273973
+"51","New Hampshire",9,2007,0.994520547945206
+"52","New Hampshire",9,2008,0.991095890410959
+"53","New Hampshire",9,2009,0.993424657534247
+"54","New Hampshire",9,2010,0.991232876712329
+"55","New Hampshire",9,2011,0.991780821917808
+"56","New Hampshire",9,2012,0.994520547945206
+"57","New Hampshire",9,2013,0.987671232876712
+"58","New Hampshire",9,2014,0.98972602739726
+"59","New Hampshire",9,2015,0.994520547945206
+"60","New Hampshire",9,2016,0.983561643835616
+"61","New York",10,2005,0.960197276087687
+"62","New York",10,2006,0.946771292435974
+"63","New York",10,2007,0.935380400421496
+"64","New York",10,2008,0.932459720730397
+"65","New York",10,2009,0.921707287059538
+"66","New York",10,2010,0.959966514459665
+"67","New York",10,2011,0.93549415553633
+"68","New York",10,2012,0.934661424271143
+"69","New York",10,2013,0.950057480526457
+"70","New York",10,2014,0.94523171513258
+"71","New York",10,2015,0.947170319634703
+"72","New York",10,2016,0.962635475939586
+"73","Rhode Island",11,2005,0.981415525114155
+"74","Rhode Island",11,2006,0.903817351598174
+"75","Rhode Island",11,2007,0.987397260273973
+"76","Rhode Island",11,2008,0.983799086757991
+"77","Rhode Island",11,2009,0.969123287671233
+"78","Rhode Island",11,2010,0.989611872146119
+"79","Rhode Island",11,2011,0.987243150684932
+"80","Rhode Island",11,2012,0.991487279843444
+"81","Rhode Island",11,2013,0.983561643835616
+"82","Rhode Island",11,2014,0.992482061317678
+"83","Rhode Island",11,2015,0.989840182648402
+"84","Rhode Island",11,2016,0.99117199391172
+"85","Offshore",1,2005,NA
+"86","Georges Bank",2,2005,NA
+"87","Gulf of Maine",3,2005,NA
+"88","Mid-Atlantic Bight",4,2005,NA
+"89","Offshore",1,2006,NA
+"90","Georges Bank",2,2006,NA
+"91","Gulf of Maine",3,2006,NA
+"92","Mid-Atlantic Bight",4,2006,NA
+"93","Offshore",1,2007,NA
+"94","Georges Bank",2,2007,NA
+"95","Gulf of Maine",3,2007,NA
+"96","Mid-Atlantic Bight",4,2007,NA
+"97","Offshore",1,2008,NA
+"98","Georges Bank",2,2008,NA
+"99","Gulf of Maine",3,2008,NA
+"100","Mid-Atlantic Bight",4,2008,NA
+"101","Offshore",1,2009,NA
+"102","Georges Bank",2,2009,NA
+"103","Gulf of Maine",3,2009,NA
+"104","Mid-Atlantic Bight",4,2009,NA
+"105","Offshore",1,2010,NA
+"106","Georges Bank",2,2010,NA
+"107","Gulf of Maine",3,2010,NA
+"108","Mid-Atlantic Bight",4,2010,NA
+"109","Offshore",1,2011,NA
+"110","Georges Bank",2,2011,NA
+"111","Gulf of Maine",3,2011,NA
+"112","Mid-Atlantic Bight",4,2011,NA
+"113","Offshore",1,2012,NA
+"114","Georges Bank",2,2012,NA
+"115","Gulf of Maine",3,2012,NA
+"116","Mid-Atlantic Bight",4,2012,NA
+"117","Offshore",1,2013,NA
+"118","Georges Bank",2,2013,NA
+"119","Gulf of Maine",3,2013,NA
+"120","Mid-Atlantic Bight",4,2013,NA
+"121","Offshore",1,2014,NA
+"122","Georges Bank",2,2014,NA
+"123","Gulf of Maine",3,2014,NA
+"124","Mid-Atlantic Bight",4,2014,NA
+"125","Offshore",1,2015,NA
+"126","Georges Bank",2,2015,NA
+"127","Gulf of Maine",3,2015,NA
+"128","Mid-Atlantic Bight",4,2015,NA
+"129","Offshore",1,2016,NA
+"130","Georges Bank",2,2016,NA
+"131","Gulf of Maine",3,2016,NA
+"132","Mid-Atlantic Bight",4,2016,NA
